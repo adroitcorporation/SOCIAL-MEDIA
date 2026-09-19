@@ -1,0 +1,55 @@
+{
+  "name": "founder-circle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "node scripts/start.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
+    "db:local": "tsx scripts/local-db.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "demo": "node scripts/demo.mjs",
+    "postinstall": "prisma generate",
+    "format": "prettier --write src scripts tests prisma/seed.ts *.ts *.json *.yaml *.md",
+    "render:validate": "node scripts/validate-render.mjs"
+  },
+  "keywords": [],
+  "type": "module",
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "@supabase/supabase-js": "2.116.0",
+    "lucide-react": "1.47.0",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@electric-sql/pglite-socket": "0.2.11",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "agent-browser": "0.38.1",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "prettier": "3.9.8",
+    "prisma": "6.19.3",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1",
+    "yaml": "2.9.1"
+  },
+  "private": true,
+  "overrides": {
+    "deepmerge-ts": "8.0.0"
+  }
+}

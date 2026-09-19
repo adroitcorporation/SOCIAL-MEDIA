@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id              String               @id
+  name            String
+  photo           String               @default("")
+  college         String               @default("")
+  degree          String               @default("")
+  graduationYear  Int                  @default(2028)
+  city            String               @default("")
+  bio             String               @default("")
+  skills          String[]             @default([])
+  interests       String[]             @default([])
+  domains         String[]             @default([])
+  lookingFor      String[]             @default([])
+  linkedin        String               @default("")
+  github          String               @default("")
+  instagram       String               @default("")
+  portfolio       String               @default("")
+  emailVerified   Boolean              @default(false)
+  collegeVerified Boolean              @default(false)
+  onboarded       Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  sent            Connection[]         @relation("Requester")
+  received        Connection[]         @relation("Receiver")
+  memberships     ConversationMember[]
+  owned           Conversation[]
+  messages        Message[]
+  ideas           Idea[]
+  resonances      IdeaResonance[]
+  notifications   Notification[]
+  blocks          Block[]              @relation("Blocker")
+  blockedBy       Block[]              @relation("Blocked")
+  skipped         Skip[]               @relation("Skipper")
+  skippedBy       Skip[]               @relation("Skipped")
+  savedEvents     SavedEvent[]
+
+  @@index([college, city])
+}
+
+model Connection {
+  id          String           @id @default(cuid())
+  pairKey     String           @unique
+  requesterId String
+  receiverId  String
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  requester   User             @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver    User             @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([requesterId, status])
+  @@index([receiverId, status])
+}
+
+model Block {
+  blockerId String
+  blockedId String
+  blocker   User   @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User   @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+}
+
+model Skip {
+  userId   String
+  targetId String
+  user     User   @relation("Skipper", fields: [userId], references: [id], onDelete: Cascade)
+  target   User   @relation("Skipped", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@id([userId, targetId])
+}
+
+model Conversation {
+  id        String               @id @default(cuid())
+  type      ConversationType
+  name      String?
+  image     String?
+  ownerId   String?
+  owner     User?                @relation(fields: [ownerId], references: [id])
+  directKey String?              @unique
+  ideaId    String?              @unique
+  idea      Idea?                @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+  members   ConversationMember[]
+  messages  Message[]
+}
+
+model ConversationMember {
+  conversationId String
+  userId         String
+  role           MemberRole   @default(MEMBER)
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  body           String
+  clientId       String
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id])
+
+  @@unique([senderId, clientId])
+  @@index([conversationId, createdAt])
+}
+
+model Idea {
+  id           String          @id @default(cuid())
+  authorId     String
+  title        String
+  description  String
+  category     String
+  skills       String[]
+  tags         String[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  author       User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  resonances   IdeaResonance[]
+  conversation Conversation?
+
+  @@index([createdAt])
+}
+
+model IdeaResonance {
+  ideaId    String
+  userId    String
+  createdAt DateTime @default(now())
+  idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, userId])
+}
+
+model Event {
+  id          String       @id @default(cuid())
+  title       String
+  description String
+  category    String
+  organizer   String
+  location    String
+  startsAt    DateTime
+  url         String
+  savedBy     SavedEvent[]
+
+  @@index([startsAt])
+}
+
+model SavedEvent {
+  userId  String
+  eventId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([userId, eventId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  href      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model RateLimit {
+  key       String   @id
+  count     Int      @default(1)
+  expiresAt DateTime
+}
