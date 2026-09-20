@@ -2,22 +2,32 @@ import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 import { readFile } from 'node:fs/promises';
-import type * as Services from '../src/services/community';
-import type { db as Database } from '../src/lib/db';
+import type * as Services from '../src/backend/services/community';
+import type { db as Database } from '../src/backend/database/client';
 let pg: PGlite;
 let server: PGLiteSocketServer;
 let db: typeof Database;
 let service: typeof Services;
 beforeAll(async () => {
   pg = await PGlite.create();
-  await pg.exec(await readFile('prisma/migrations/202609200001_initial/migration.sql', 'utf8'));
-  await pg.exec(await readFile('prisma/migrations/202609200002_integrity/migration.sql', 'utf8'));
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202609200001_initial/migration.sql',
+      'utf8',
+    ),
+  );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202609200002_integrity/migration.sql',
+      'utf8',
+    ),
+  );
   server = new PGLiteSocketServer({ db: pg, host: '127.0.0.1', port: 54330 });
   await server.start();
   process.env.DATABASE_URL =
     'postgresql://postgres:postgres@127.0.0.1:54330/postgres?connection_limit=1';
-  ({ db } = await import('../src/lib/db'));
-  service = await import('../src/services/community');
+  ({ db } = await import('../src/backend/database/client'));
+  service = await import('../src/backend/services/community');
   for (const id of ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'])
     await db.user.create({
       data: { id, name: `Student ${id}`, college: 'Test College', onboarded: true },

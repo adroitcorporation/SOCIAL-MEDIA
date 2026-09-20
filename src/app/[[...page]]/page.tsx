@@ -1,4 +1,4 @@
-import { CircleApp } from '@/components/circle-app';
+import { CircleApp } from '@/frontend/components/circle-app';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 export default async function Page({ params }: { params: Promise<{ page?: string[] }> }) {

@@ -7,8 +7,14 @@ const env = {
   APP_URL: 'http://localhost:3000',
 };
 for (const args of [
-  ['node_modules/prisma/build/index.js', 'migrate', 'deploy'],
-  ['node_modules/tsx/dist/cli.mjs', 'prisma/seed.ts'],
+  [
+    'node_modules/prisma/build/index.js',
+    'migrate',
+    'deploy',
+    '--schema',
+    'src/backend/database/prisma/schema.prisma',
+  ],
+  ['node_modules/tsx/dist/cli.mjs', 'src/backend/database/prisma/seed.ts'],
 ]) {
   const result = spawnSync(process.execPath, args, { env, stdio: 'inherit' });
   if (result.status !== 0) process.exit(result.status || 1);

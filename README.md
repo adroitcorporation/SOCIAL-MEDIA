@@ -76,20 +76,29 @@ Transactions are serializable with bounded conflict retries. Database constraint
 ## Code map
 
 ```text
-src/app/                      Routes, protected API, live stream, global styles
-src/components/               UI components and client data/session controller
-src/services/community.ts     Transactional business rules and data queries
-src/lib/auth.ts               Server token verification and local-only demo guard
-src/lib/validation.ts         Input schemas and safe HTTPS URLs
-src/lib/brand.ts              Central product name, tagline, description
-prisma/schema.prisma          Models and relationships
-prisma/migrations/            Initial schema + RLS/integrity constraints
-prisma/seed.ts                Guarded, non-destructive fictional sample data
-scripts/                      Local database/demo and migration-first production start
-tests/                        Database regression and browser flow tests
+src/app/                        Thin Next.js route/layout adapters
+src/backend/auth/               Server authentication and identity verification
+src/backend/database/           Prisma client, transactions, schema, migrations, seed
+src/backend/http/               API handlers, request parsing, middleware, response mapping
+src/backend/services/           Business rules and database queries by domain
+src/backend/types/              Server-only types
+src/frontend/api/               Typed HTTP client and live updates
+src/frontend/auth/              Browser authentication adapter
+src/frontend/components/        App shell and reusable UI
+src/frontend/features/          Feature screens, forms, and interactions
+src/frontend/hooks/             Client session/data controller
+src/frontend/state/             React context
+src/frontend/pages/             Home, error, and not-found screens
+src/frontend/styles/            Global styles
+src/shared/contracts/           DTOs, enums, and pure validation schemas
+src/shared/config/brand.ts       Product name, tagline, description
+scripts/                        Local demo, startup, and architecture checks
+tests/                          Database, security, API transport, and browser tests
 ```
 
-Change visible branding in `src/lib/brand.ts`. Infrastructure/package names in `render.yaml` and `package.json` are independent deployment identifiers.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for dependency rules and how to connect or replace services. Both frontend and backend depend on shared contracts; neither imports the other. API clients use explicit wire types instead of Prisma types.
+
+Change visible branding in `src/shared/config/brand.ts`. Infrastructure/package names in `render.yaml` and `package.json` are independent deployment identifiers.
 
 ## API
 
@@ -121,6 +130,7 @@ Lists are bounded to protect response size (discovery 12/page, ideas 50, events/
 ## Verification
 
 ```sh
+npm run check:boundaries
 npm run typecheck
 npm test
 npm run build
@@ -135,7 +145,7 @@ Database tests use an isolated in-memory PGlite PostgreSQL engine with the real 
 
 Browser tests run against the local demo only and verify cancellation across refresh, group creation/member management/message persistence, persistent idea-group reuse, live refresh in another browser, and all eight mobile screens. They must never run against a real user database.
 
-Verification completed in this workspace: **18 database/security tests and 5 browser flow tests pass**, TypeScript and the production build pass, the dependency audit reports zero vulnerabilities, and `render.yaml` validates against Render's official JSON schema. GitHub Actions runs the build, database/security tests, and browser flows on pushes and pull requests.
+Verification completed in this workspace: **24 database/security/transport tests and 5 browser flow tests pass**, TypeScript and the production build pass, the dependency audit reports zero vulnerabilities, and `render.yaml` validates against Render's official JSON schema. GitHub Actions runs the build, database/security tests, and browser flows on pushes and pull requests.
 
 On Windows, stop the development server before running `npm run build`: Prisma cannot replace its loaded query-engine DLL while Next.js is running. Restart with `npm run demo` afterward.
 

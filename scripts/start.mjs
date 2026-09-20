@@ -16,7 +16,13 @@ if (process.env.LOCAL_DEMO === 'true') {
 }
 const migration = spawnSync(
   process.execPath,
-  ['node_modules/prisma/build/index.js', 'migrate', 'deploy'],
+  [
+    'node_modules/prisma/build/index.js',
+    'migrate',
+    'deploy',
+    '--schema',
+    'src/backend/database/prisma/schema.prisma',
+  ],
   { stdio: 'inherit' },
 );
 if (migration.status !== 0) process.exit(migration.status || 1);

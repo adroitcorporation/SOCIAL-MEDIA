@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { brand } from '@/lib/brand';
-import './globals.css';
+import { brand } from '@/shared/config/brand';
+import '@/frontend/styles/globals.css';
 export const metadata: Metadata = {
   title: { default: brand.name, template: `%s · ${brand.name}` },
   description: brand.description,

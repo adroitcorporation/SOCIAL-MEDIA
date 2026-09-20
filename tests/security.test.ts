@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { boundedJson } from '../src/lib/request';
-import { isLocalDemo } from '../src/lib/auth';
-import { profileSchema } from '../src/lib/validation';
+import { boundedJson } from '../src/backend/http/request';
+import { isLocalDemo } from '../src/backend/auth/session';
+import { profileSchema } from '../src/shared/contracts/schemas';
 afterEach(() => vi.unstubAllEnvs());
 describe('Request and environment safety', () => {
   it('never enables demo authentication in production', () => {

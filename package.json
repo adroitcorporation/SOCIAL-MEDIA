@@ -6,17 +6,18 @@
   "scripts": {
     "test": "vitest run",
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate --schema src/backend/database/prisma/schema.prisma && next build",
     "start": "node scripts/start.mjs",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
     "db:local": "tsx scripts/local-db.ts",
-    "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:migrate": "prisma migrate deploy --schema src/backend/database/prisma/schema.prisma",
+    "db:seed": "tsx src/backend/database/prisma/seed.ts",
     "demo": "node scripts/demo.mjs",
-    "postinstall": "prisma generate",
-    "format": "prettier --write src scripts tests prisma/seed.ts *.ts *.json *.yaml *.md",
-    "render:validate": "node scripts/validate-render.mjs"
+    "postinstall": "prisma generate --schema src/backend/database/prisma/schema.prisma",
+    "format": "prettier --write src scripts tests *.ts *.json *.yaml *.md",
+    "render:validate": "node scripts/validate-render.mjs",
+    "check:boundaries": "node scripts/check-boundaries.mjs"
   },
   "keywords": [],
   "type": "module",
@@ -27,6 +28,7 @@
     "next": "16.3.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "0.0.1",
     "zod": "4.6.5"
   },
   "devDependencies": {
