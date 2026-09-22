@@ -2,6 +2,21 @@ import type { NextConfig } from 'next';
 const config: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
+  async rewrites() {
+    const backendUrl =
+      process.env.BACKEND_URL ||
+      (process.env.VERCEL_ENV === 'production'
+        ? 'https://founder-circle-backend.onrender.com'
+        : undefined);
+    return {
+      // Run before local API routes, including the live-update stream.
+      beforeFiles: backendUrl
+        ? [{ source: '/api/:path*', destination: `${backendUrl.replace(/\/$/, '')}/api/:path*` }]
+        : [],
+      afterFiles: [],
+      fallback: [],
+    };
+  },
   async headers() {
     return [
       {

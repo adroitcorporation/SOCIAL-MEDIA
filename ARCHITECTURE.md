@@ -63,6 +63,10 @@ UI code calls named methods such as `api.ideas.resonate(id, { enabled: true })`.
 
 ## Connecting or replacing services
 
+Production Vercel deployments forward `/api/:path*` to `https://founder-circle-backend.onrender.com/api/:path*` through a `beforeFiles` rewrite in `next.config.ts`. This includes `/api/live`. The browser continues using same-origin `/api` URLs, and its bearer token, request body, and origin pass through to Render. Render's `APP_URL` is `https://lnmiitsocialmedia.vercel.app`, so mutation origin checks remain enforced.
+
+Set the build-time `BACKEND_URL` on the frontend deployment to override the destination. Leave it unset on Render to avoid proxying the backend back to itself. Local development and previews keep their local handlers unless this override is explicitly configured. No frontend database connection is needed for requests routed to Render.
+
 The app's composition point is `frontend/hooks/use-circle-controller.ts`. It creates the API client, supplies the browser access token, and manages client state. A replacement backend can implement the same contracts without changing UI components:
 
 ```ts
