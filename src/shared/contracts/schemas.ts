@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { connectionActions, groupActions } from './enums';
+import { connectionActions, groupActions, verificationMethods } from './enums';
+import { MAX_VERIFICATION_DATA_URL_LENGTH } from './verification';
 const text = (max: number) => z.string().trim().min(1).max(max);
 const list = z.array(text(50)).max(20);
 const requiredProfileText = (label: string, max: number) =>
@@ -60,4 +61,35 @@ export const groupActionSchema = z.object({
   action: z.enum(groupActions),
   userId: z.string().max(100).optional(),
   value: z.string().max(2048).optional(),
+});
+export const verificationRequestSchema = z
+  .object({
+    method: z.enum(verificationMethods),
+    collegeEmail: z.string().trim().email().max(254).optional(),
+    documentUrl: z
+      .string()
+      .max(MAX_VERIFICATION_DATA_URL_LENGTH)
+      .refine(
+        (value) => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value),
+        'Upload a JPG, PNG, or WebP image up to 4 MB.',
+      )
+      .optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.method === 'EMAIL' && !value.collegeEmail)
+      context.addIssue({
+        code: 'custom',
+        path: ['collegeEmail'],
+        message: 'College email is required.',
+      });
+    if (value.method === 'COLLEGE_ID' && !value.documentUrl)
+      context.addIssue({
+        code: 'custom',
+        path: ['documentUrl'],
+        message: 'College ID image is required.',
+      });
+  });
+export const verificationReviewSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED']),
+  reviewNote: z.string().trim().max(500).default(''),
 });

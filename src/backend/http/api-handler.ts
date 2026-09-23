@@ -12,7 +12,7 @@ import { present } from './presenters';
 import { connectionActionSchema } from '@/shared/contracts/schemas';
 export async function handleApiRequest(request: Request, path: string[]) {
   try {
-    const [resource, id, action] = path;
+    const [resource, id, action, detail] = path;
     const method = request.method;
     if (resource === 'health') {
       await db.$queryRaw`SELECT 1`;
@@ -27,16 +27,47 @@ export async function handleApiRequest(request: Request, path: string[]) {
       });
     if (method !== 'GET') validateMutationRequest(request);
     const user = await authenticate(request);
+    if (resource === 'moderation')
+      requireThat(service.isModerator(user.id), 403, 'Moderator access required.');
     let input: Record<string, unknown> = {};
     if (method !== 'GET') {
-      input = z.record(z.string(), z.unknown()).parse(await boundedJson(request));
+      input = z
+        .record(z.string(), z.unknown())
+        .parse(await boundedJson(request, resource === 'verification' ? 7_100_000 : 20_000));
       await enforceMutationRateLimit(user.id);
     }
-    if (resource !== 'profile' && resource !== 'state')
-      requireThat(user.onboarded, 403, 'Complete your student profile first.');
     let result: unknown;
     if (resource === 'state' && method === 'GET')
       result = present.state(await service.snapshot(user, new URL(request.url).searchParams));
+    else if (resource === 'verification' && method === 'GET' && !id)
+      result = present.verification(await service.latestVerification(user.id));
+    else if (resource === 'verification' && method === 'POST' && !id)
+      result = present.verification(await service.submitVerification(user.id, input));
+    else if (
+      resource === 'moderation' &&
+      id === 'verifications' &&
+      action &&
+      detail === 'document' &&
+      method === 'GET'
+    ) {
+      const document = await service.verificationDocument(user.id, action);
+      return new Response(new Uint8Array(document.documentBytes), {
+        headers: {
+          'Content-Type': document.documentMime,
+          'Cache-Control': 'private, no-store',
+          'X-Content-Type-Options': 'nosniff',
+        },
+      });
+    } else if (resource === 'moderation' && id === 'verifications' && !action && method === 'GET')
+      result = (await service.listVerificationRequests(user.id)).map(present.verificationReview);
+    else if (
+      resource === 'moderation' &&
+      id === 'verifications' &&
+      action &&
+      !detail &&
+      method === 'PATCH'
+    )
+      result = present.verification(await service.reviewVerification(user.id, action, input));
     else if (resource === 'profile' && method === 'PATCH')
       result = present.student(await service.saveProfile(user.id, input));
     else if (resource === 'students' && id && method === 'GET')

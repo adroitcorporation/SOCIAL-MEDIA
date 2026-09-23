@@ -78,3 +78,17 @@ describe('frontend/backend transport contract', () => {
     });
   });
 });
+
+it('fetches private verification images with authentication and no caching', async () => {
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(new Response('image', { headers: { 'Content-Type': 'image/png' } }));
+  const api = createCommunityClient(
+    createHttpClient({ fetch: fetcher, getAccessToken: async () => 'private-token' }),
+  );
+  expect((await api.moderation.document('request/one')).type).toBe('image/png');
+  expect(fetcher).toHaveBeenCalledWith('/api/moderation/verifications/request%2Fone/document', {
+    headers: { Authorization: 'Bearer private-token' },
+    cache: 'no-store',
+  });
+});

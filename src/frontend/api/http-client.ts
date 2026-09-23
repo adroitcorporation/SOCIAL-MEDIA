@@ -25,6 +25,18 @@ export function createHttpClient(options: HttpClientOptions = {}) {
     };
   }
   return {
+    async blob(path: string): Promise<Blob> {
+      const response = await fetcher(`${baseUrl}/${path}`, {
+        headers: await headers(),
+        cache: 'no-store',
+      });
+      if (!response.ok) {
+        if (response.status === 401) options.onUnauthorized?.();
+        const result = (await response.json()) as ApiErrorResponse;
+        throw new ApiError(response.status, result.error || 'Unable to load image.');
+      }
+      return response.blob();
+    },
     async request<T>(path: string, body?: unknown, method = 'POST'): Promise<T> {
       const response = await fetcher(`${baseUrl}/${path}`, {
         method: body === undefined ? 'GET' : method,

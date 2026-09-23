@@ -9,3 +9,11 @@ export { transaction } from '@/backend/database/transaction';
 export { saveEvent } from './events';
 export { clearSkips, skipStudent } from './skips';
 export { markNotificationsRead } from './notifications';
+export {
+  verificationDocument,
+  latestVerification,
+  submitVerification,
+  listVerificationRequests,
+  reviewVerification,
+  isModerator,
+} from './verification';

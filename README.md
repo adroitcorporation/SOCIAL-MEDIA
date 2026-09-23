@@ -34,11 +34,11 @@ npm run db:migrate
 npm run dev
 ```
 
-Sign up and complete onboarding. Supabase stores and refreshes sessions; the server validates access tokens with `auth.getUser()` on every protected request. Auth screens include login, signup, password recovery, password update, and logout.
+Sign up and browse immediately; complete your profile from the Profile page. Supabase stores and refreshes sessions; the server validates access tokens with `auth.getUser()` on every protected request. Auth screens include login, signup, password recovery, password update, and logout.
 
-**Verification is honest:** email confirmation is disabled for this app and does not establish college enrollment. `collegeVerified` is server-controlled, defaults to false, and cannot be changed through profile APIs. A college-email/institution review workflow is an explicit future integration; the schema and UI already distinguish it.
+**Verification is honest:** email confirmation is disabled for account creation. College verification is a separate moderator-reviewed workflow with college-email and college-ID options. `collegeVerified` is server-controlled, defaults to false, and cannot be changed through profile APIs.
 
-Profile and group images currently accept HTTPS image URLs, with initials as a fallback. File uploads/storage provisioning are not included.
+Profile and group images currently accept HTTPS image URLs, with initials as a fallback. College ID uploads are handled separately and stored privately in PostgreSQL.
 
 ## Production / Render
 
@@ -49,6 +49,26 @@ Profile and group images currently accept HTTPS image URLs, with initials as a f
 3. Supply `APP_URL` (the canonical HTTPS origin, no trailing slash) and the two public Supabase variables. Public auth variables must be present **during the build** as Next.js embeds them in the client bundle. Redeploy after changing them.
 4. Configure the same production origin/redirect URLs and SMTP in Supabase.
 5. Deploy. `npm start` validates configuration, runs **`prisma migrate deploy`**, and only starts Next.js after migrations succeed. The health endpoint checks the database. No resets or `db push` occur.
+
+Set `MODERATOR_USER_IDS` on the backend to a comma-separated list of trusted application user IDs. These users can review college-email and college-ID submissions at `/moderation`. An empty value denies all moderation access. Never expose this variable with a `NEXT_PUBLIC_` prefix.
+
+Only sending new connection requests requires approval; browsing, profile editing, ideas, events, and existing conversations remain available. College emails are manually reviewed, not automatically approved or verified by OTP. Rejected submissions retain their review note and allow a new submission.
+
+A freshly seeded local demo gives the fictional `demo-aarav` account approved status so existing connection demos and browser regressions still work. Seeding never changes an existing account's verification status; real accounts always default to unverified.
+
+ID uploads accept JPG, PNG, and WebP up to 4,000,000 bytes. The backend verifies and decodes the actual image, strips metadata, and rejects animated images or images over 20 megapixels. Images are stored as private database bytes with RLS enabled; state/list responses never contain image data. Moderators retrieve previews through an authenticated endpoint. Legacy inline images remain privately readable; legacy remote URLs are never fetched and must be resubmitted if unavailable.
+
+Apply the two college-verification migrations with `npm run db:migrate` before starting the updated app (production startup already does this). The second migration enforces one pending submission per user. If an earlier partial deployment contains duplicate pending submissions, resolve them before applying it. This implementation does not modify the production database during local validation.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/verification` | Current user's latest submission summary or null |
+| `POST /api/verification` | `{ method: "EMAIL", collegeEmail }` or `{ method: "COLLEGE_ID", documentUrl: "data:image/...;base64,..." }` |
+| `GET /api/moderation/verifications` | Up to 100 pending summaries with applicant profiles, oldest first |
+| `PATCH /api/moderation/verifications/:id` | `{ status: "APPROVED" | "REJECTED", reviewNote?: string }` |
+| `GET /api/moderation/verifications/:id/document` | Private image bytes; moderator-only, no-store |
+
+Review decisions and the user's verification flag update in one serializable transaction. Duplicate submissions and repeat decisions return 409. Profiles cannot set verification fields.
 
 The Blueprint defaults to free resources for evaluation. Choose paid web/database plans with the retention, backups, and uptime you need before a public launch. Keep your database backup/restore procedure and email delivery monitoring configured. For multiple application instances, the connection limit in `DATABASE_URL` must fit your database capacity. Use rolling, backwards-compatible migrations for future releases.
 
@@ -145,7 +165,7 @@ Database tests use an isolated in-memory PGlite PostgreSQL engine with the real 
 
 Browser tests run against the local demo only and verify cancellation across refresh, group creation/member management/message persistence, persistent idea-group reuse, live refresh in another browser, and all eight mobile screens. They must never run against a real user database.
 
-Verification completed in this workspace: **24 database/security/transport tests and 5 browser flow tests pass**, TypeScript and the production build pass, the dependency audit reports zero vulnerabilities, and `render.yaml` validates against Render's official JSON schema. GitHub Actions runs the build, database/security tests, and browser flows on pushes and pull requests.
+GitHub Actions runs the build, database/security tests, and browser flows on pushes and pull requests.
 
 On Windows, stop the development server before running `npm run build`: Prisma cannot replace its loaded query-engine DLL while Next.js is running. Restart with `npm run demo` afterward.
 

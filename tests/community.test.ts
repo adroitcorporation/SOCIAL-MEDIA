@@ -22,6 +22,18 @@ beforeAll(async () => {
       'utf8',
     ),
   );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202609230001_college_verification/migration.sql',
+      'utf8',
+    ),
+  );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202609230002_private_verification_documents/migration.sql',
+      'utf8',
+    ),
+  );
   server = new PGLiteSocketServer({ db: pg, host: '127.0.0.1', port: 54330 });
   await server.start();
   process.env.DATABASE_URL =
@@ -30,7 +42,13 @@ beforeAll(async () => {
   service = await import('../src/backend/services/community');
   for (const id of ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'])
     await db.user.create({
-      data: { id, name: `Student ${id}`, college: 'Test College', onboarded: true },
+      data: {
+        id,
+        name: `Student ${id}`,
+        college: 'Test College',
+        onboarded: true,
+        collegeVerified: true,
+      },
     });
 });
 afterAll(async () => {
@@ -39,6 +57,20 @@ afterAll(async () => {
   await pg?.close();
 });
 describe('Connection lifecycle', () => {
+  it('requires college verification before sending a request', async () => {
+    await db.user.update({ where: { id: 'a' }, data: { collegeVerified: false } });
+    await expect(service.requestConnection('a', 'b')).rejects.toMatchObject({ status: 403 });
+    const request = await service.submitVerification('a', {
+      method: 'EMAIL',
+      collegeEmail: 'a@test.edu',
+    });
+    process.env.MODERATOR_USER_IDS = 'b';
+    await service.reviewVerification('b', request.id, { status: 'APPROVED' });
+    expect((await db.user.findUniqueOrThrow({ where: { id: 'a' } })).collegeVerified).toBe(true);
+    const connection = await service.requestConnection('a', 'b');
+    await service.transitionConnection('a', connection.id, 'cancel');
+    delete process.env.MODERATOR_USER_IDS;
+  });
   it('persists cancellation, rejects receiver cancellation, removes incoming request, and allows resend', async () => {
     const request = await service.requestConnection('a', 'b');
     await expect(service.transitionConnection('b', request.id, 'cancel')).rejects.toMatchObject({
@@ -221,6 +253,10 @@ describe('Database constraints and discovery safety', () => {
     await expect(service.readMessages('a', direct.id)).rejects.toMatchObject({ status: 403 });
   });
   it('does not allow profile input to set verification or identity', async () => {
+    await db.user.update({
+      where: { id: 'l' },
+      data: { collegeVerified: false, emailVerified: false },
+    });
     const profile = await service.saveProfile('l', {
       id: 'a',
       collegeVerified: true,

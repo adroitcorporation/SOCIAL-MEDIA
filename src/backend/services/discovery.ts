@@ -1,6 +1,7 @@
 import type { Prisma, User } from '@prisma/client';
 import { db } from '@/backend/database/client';
 import { z } from 'zod';
+import { isModerator, latestVerification } from './verification';
 
 export async function snapshot(user: User, query: URLSearchParams) {
   const blocks = await db.block.findMany({
@@ -51,50 +52,52 @@ export async function snapshot(user: User, query: URLSearchParams) {
     .min(0)
     .max(10000)
     .parse(query.get('page') || 0);
-  const [students, totalStudents, ideas, events, notifications, memberships] = await Promise.all([
-    db.user.findMany({
-      where,
-      orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
-      take: 12,
-      skip: page * 12,
-    }),
-    db.user.count({ where }),
-    db.idea.findMany({
-      where: { authorId: { notIn: blockedIds } },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-      include: {
-        author: true,
-        resonances: { where: { userId: user.id } },
-        _count: { select: { resonances: true } },
-        conversation: { select: { id: true } },
-      },
-    }),
-    db.event.findMany({
-      where: { startsAt: { gte: new Date() } },
-      orderBy: { startsAt: 'asc' },
-      take: 100,
-      include: { savedBy: { where: { userId: user.id } } },
-    }),
-    db.notification.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    }),
-    db.conversationMember.findMany({
-      where: { userId: user.id },
-      include: {
-        conversation: {
-          include: {
-            members: { include: { user: true } },
-            messages: { take: 1, orderBy: { createdAt: 'desc' }, include: { sender: true } },
+  const [students, totalStudents, ideas, events, notifications, memberships, verification] =
+    await Promise.all([
+      db.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
+        take: 12,
+        skip: page * 12,
+      }),
+      db.user.count({ where }),
+      db.idea.findMany({
+        where: { authorId: { notIn: blockedIds } },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        include: {
+          author: true,
+          resonances: { where: { userId: user.id } },
+          _count: { select: { resonances: true } },
+          conversation: { select: { id: true } },
+        },
+      }),
+      db.event.findMany({
+        where: { startsAt: { gte: new Date() } },
+        orderBy: { startsAt: 'asc' },
+        take: 100,
+        include: { savedBy: { where: { userId: user.id } } },
+      }),
+      db.notification.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      db.conversationMember.findMany({
+        where: { userId: user.id },
+        include: {
+          conversation: {
+            include: {
+              members: { include: { user: true } },
+              messages: { take: 1, orderBy: { createdAt: 'desc' }, include: { sender: true } },
+            },
           },
         },
-      },
-      orderBy: { conversation: { updatedAt: 'desc' } },
-      take: 100,
-    }),
-  ]);
+        orderBy: { conversation: { updatedAt: 'desc' } },
+        take: 100,
+      }),
+      latestVerification(user.id),
+    ]);
   const conversations = await Promise.all(
     memberships
       .filter(
@@ -116,6 +119,8 @@ export async function snapshot(user: User, query: URLSearchParams) {
   );
   return {
     me: user,
+    verification,
+    isModerator: isModerator(user.id),
     students,
     totalStudents,
     connections,

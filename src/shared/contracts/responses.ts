@@ -1,4 +1,10 @@
-import type { ConnectionStatus, ConversationType, MemberRole } from './enums';
+import type {
+  ConnectionStatus,
+  ConversationType,
+  MemberRole,
+  VerificationMethod,
+  VerificationStatus,
+} from './enums';
 // Dates cross the HTTP boundary as ISO-8601 strings, never ORM Date objects.
 export type IsoDateTime = string;
 export interface ApiConfig {
@@ -13,6 +19,21 @@ export interface SuccessResponse {
 }
 export interface CountResponse {
   count: number;
+}
+export interface CollegeVerification {
+  id: string;
+  method: VerificationMethod;
+  collegeEmail: string | null;
+  userId: string;
+  reviewerId: string | null;
+  reviewedAt: IsoDateTime | null;
+  status: VerificationStatus;
+  reviewNote: string;
+  createdAt: IsoDateTime;
+  updatedAt: IsoDateTime;
+}
+export interface VerificationReviewItem extends CollegeVerification {
+  user: Student;
 }
 export interface Student {
   id: string;
@@ -136,6 +157,8 @@ export interface NotificationItem {
 }
 export interface AppState {
   me: Student;
+  verification?: CollegeVerification | null;
+  isModerator?: boolean;
   students: Student[];
   totalStudents: number;
   connections: ConnectionItem[];

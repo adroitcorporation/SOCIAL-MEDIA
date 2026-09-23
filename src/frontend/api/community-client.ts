@@ -14,6 +14,8 @@ import type {
   CountResponse,
   SkipResponse,
   SavedEvent,
+  CollegeVerification,
+  VerificationReviewItem,
 } from '@/shared/contracts/responses';
 import type {
   ProfileUpdateRequest,
@@ -27,6 +29,8 @@ import type {
   ResonateRequest,
   IdeaGroupRequest,
   SaveEventRequest,
+  VerificationRequest,
+  VerificationReviewRequest,
 } from '@/shared/contracts/requests';
 const id = encodeURIComponent;
 export function createCommunityClient(http: HttpClient) {
@@ -36,6 +40,22 @@ export function createCommunityClient(http: HttpClient) {
     profiles: {
       get: (userId: string) => http.request<Student>(`students/${id(userId)}`),
       update: (input: ProfileUpdateRequest) => http.request<Student>('profile', input, 'PATCH'),
+    },
+    verification: {
+      latest: () => http.request<CollegeVerification | null>('verification'),
+      submit: (input: VerificationRequest) =>
+        http.request<CollegeVerification>('verification', input),
+    },
+    moderation: {
+      document: (requestId: string) =>
+        http.blob(`moderation/verifications/${id(requestId)}/document`),
+      list: () => http.request<VerificationReviewItem[]>('moderation/verifications'),
+      review: (requestId: string, input: VerificationReviewRequest) =>
+        http.request<CollegeVerification>(
+          `moderation/verifications/${id(requestId)}`,
+          input,
+          'PATCH',
+        ),
     },
     connections: {
       request: (input: ConnectionRequest) => http.request<Connection>('connections', input),

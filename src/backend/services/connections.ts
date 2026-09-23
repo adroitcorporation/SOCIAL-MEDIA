@@ -10,6 +10,8 @@ export const unblockUser = (actor: string, target: string) =>
 export async function requestConnection(actor: string, target: string) {
   requireThat(actor !== target, 400, 'You cannot connect with yourself.');
   return transaction(async (tx) => {
+    const requester = await tx.user.findUnique({ where: { id: actor } });
+    requireThat(requester?.collegeVerified, 403, 'Verify your college email or ID before connecting.');
     await notBlocked(tx, actor, target);
     requireThat(
       await tx.user.findFirst({ where: { id: target, onboarded: true } }),

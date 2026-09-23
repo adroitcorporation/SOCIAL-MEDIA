@@ -20,6 +20,7 @@ import {
   Check,
   Sprout,
   ChevronDown,
+  ShieldCheck,
 } from 'lucide-react';
 import { brand } from '@/shared/config/brand';
 import { useCircleController } from '@/frontend/hooks/use-circle-controller';
@@ -27,7 +28,7 @@ import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
 import { AuthForm } from '@/frontend/features/auth/auth-form';
 import { Avatar, Loading, Modal } from './ui';
-import { ProfileDetails, ProfileForm } from '@/frontend/features/profile/profile-form';
+import { ProfileDetails } from '@/frontend/features/profile/profile-form';
 import {
   HomePage,
   DiscoverPage,
@@ -38,6 +39,7 @@ import {
 } from '@/frontend/pages/community-pages';
 import { IdeasPage } from '@/frontend/features/ideas/ideas-page';
 import { MessagesPage } from '@/frontend/features/messages/messages-page';
+import { ModerationPage } from '@/frontend/features/moderation/moderation-page';
 
 const nav = [
   { path: '/', label: 'Home', icon: Home },
@@ -103,28 +105,6 @@ export function CircleApp() {
       />
     );
   if (!state) return <Loading />;
-  if (!state.me.onboarded)
-    return (
-      <main className="onboarding">
-        <div className="wordmark">
-          <span className="brand-mark">
-            <Circle />
-          </span>
-          {brand.name}
-        </div>
-        <h1>Make yourself at home.</h1>
-        <p>Let’s introduce you to your future collaborators.</p>
-        <section className="panel">
-          <ProfileForm
-            user={state.me}
-            save={async (body) => {
-              await mutate(() => api.profiles.update(body));
-              toast('Your profile is ready. Welcome to the circle!');
-            }}
-          />
-        </section>
-      </main>
-    );
   const unread = state.notifications.filter((n) => !n.readAt).length;
   const messagesUnread = state.conversations.reduce((sum, c) => sum + c.unread, 0);
   const title = nav.find((n) => n.path === path)?.label || 'Home';
@@ -165,6 +145,16 @@ export function CircleApp() {
                 ) : null}
               </Link>
             ))}
+            {state.isModerator && (
+              <Link
+                href="/moderation"
+                onClick={() => setMobile(false)}
+                className={`nav-link ${path === '/moderation' ? 'active' : ''}`}
+              >
+                <ShieldCheck size={19} />
+                <span>Moderation</span>
+              </Link>
+            )}
           </nav>
           <div className="sidebar-note">
             <Sprout size={26} />
@@ -261,6 +251,8 @@ export function CircleApp() {
               <NotificationsPage />
             ) : path === '/profile' ? (
               <ProfilePage />
+            ) : path === '/moderation' ? (
+              <ModerationPage />
             ) : (
               <HomePage />
             )}

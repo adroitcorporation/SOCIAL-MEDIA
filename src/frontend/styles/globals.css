@@ -175,6 +175,70 @@ em {
   vertical-align: middle;
   margin-right: 8px;
 }
+.verification-panel form {
+  margin-top: 16px;
+}
+.verification-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.verification-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: #284d81;
+  font-size: 12px;
+  font-weight: 600;
+}
+.verification-option.selected {
+  border-color: #284d81;
+  background: var(--surface-tint);
+}
+.moderation-list {
+  display: grid;
+  gap: 16px;
+}
+.moderation-item {
+  display: grid;
+  gap: 16px;
+}
+.moderation-person,
+.moderation-proof,
+.moderation-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.moderation-person h3,
+.moderation-person p {
+  margin-bottom: 0;
+}
+.moderation-proof {
+  color: #284d81;
+  font-weight: 600;
+}
+.moderation-proof a {
+  text-decoration: underline;
+}
+.verification-document {
+  display: block;
+  max-width: min(100%, 520px);
+  max-height: 360px;
+  object-fit: contain;
+  object-position: left center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.moderation-actions {
+  flex-wrap: wrap;
+}
 .eyebrow {
   display: block;
   font-size: 10px;

@@ -122,6 +122,8 @@ export async function seed() {
         graduationYear: 2027 + (i % 3),
         onboarded: true,
         emailVerified: true,
+        // The fictional demo actor represents an approved student for connection demos.
+        collegeVerified: p.id === 'demo-aarav',
         createdAt: new Date(Date.now() - (i + 1) * 86400000),
       },
     });

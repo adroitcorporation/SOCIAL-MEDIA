@@ -14,6 +14,7 @@ export default async function Page({ params }: { params: Promise<{ page?: string
       'messages',
       'notifications',
       'profile',
+      'moderation',
       'login',
       'signup',
       'reset-password',

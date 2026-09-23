@@ -7,7 +7,7 @@ import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Tag, Verified } from '@/frontend/components/ui';
 
 export function StudentCard({ student }: { student: Student }) {
-  const { api, state, mutate, busy, viewProfile, toast } = useCircle();
+  const { api, state, mutate, busy, viewProfile, toast, navigate } = useCircle();
   const connection = state.connections.find((c) =>
     [c.requesterId, c.receiverId].includes(student.id),
   );
@@ -81,6 +81,11 @@ export function StudentCard({ student }: { student: Student }) {
               disabled={busy}
               className="button secondary connect"
               onClick={async () => {
+                if (!state.me.collegeVerified) {
+                  navigate('/profile');
+                  toast('Verify your college email or ID before sending connection requests.');
+                  return;
+                }
                 try {
                   await mutate(() => api.connections.request({ userId: student.id }));
                   toast('Request sent. A new connection starts here.');

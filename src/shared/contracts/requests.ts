@@ -5,6 +5,8 @@ import type {
   groupSchema,
   messageSchema,
   groupActionSchema,
+  verificationRequestSchema,
+  verificationReviewSchema,
 } from './schemas';
 import type { ConnectionAction } from './enums';
 export type ProfileUpdateRequest = z.input<typeof profileSchema>;
@@ -12,6 +14,8 @@ export type CreateIdeaRequest = z.infer<typeof ideaSchema>;
 export type CreateGroupRequest = z.infer<typeof groupSchema> & { type: 'GROUP' };
 export type SendMessageRequest = z.infer<typeof messageSchema>;
 export type GroupUpdateRequest = z.infer<typeof groupActionSchema>;
+export type VerificationRequest = z.infer<typeof verificationRequestSchema>;
+export type VerificationReviewRequest = z.infer<typeof verificationReviewSchema>;
 export interface ConnectionRequest {
   userId: string;
 }

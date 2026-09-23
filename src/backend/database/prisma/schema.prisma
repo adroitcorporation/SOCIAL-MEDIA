@@ -25,6 +25,17 @@ enum MemberRole {
   MEMBER
 }
 
+enum VerificationMethod {
+  EMAIL
+  COLLEGE_ID
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id              String               @id
   name            String
@@ -60,8 +71,31 @@ model User {
   skipped         Skip[]               @relation("Skipper")
   skippedBy       Skip[]               @relation("Skipped")
   savedEvents     SavedEvent[]
+  verificationRequests CollegeVerificationRequest[] @relation("VerificationApplicant")
+  reviewedVerifications CollegeVerificationRequest[] @relation("VerificationReviewer")
 
   @@index([college, city])
+}
+
+model CollegeVerificationRequest {
+  id            String             @id @default(cuid())
+  userId        String
+  method        VerificationMethod
+  collegeEmail  String?
+  documentUrl   String?
+  documentBytes Bytes?
+  documentMime  String?
+  status        VerificationStatus @default(PENDING)
+  reviewNote    String             @default("")
+  reviewerId    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  user          User               @relation("VerificationApplicant", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer      User?              @relation("VerificationReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
 }
 
 model Connection {

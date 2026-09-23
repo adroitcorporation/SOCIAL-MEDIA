@@ -196,3 +196,45 @@ test('keeps the profile form within a mobile viewport', async ({ page }, testInf
   await expect(page.getByRole('button', { name: 'Find my circle', exact: true })).toBeEnabled();
   await page.screenshot({ path: testInfo.outputPath('profile-mobile.png'), fullPage: true });
 });
+
+test('new users can browse every regular section before completing their profile', async ({
+  page,
+}) => {
+  await openProfile(page);
+  for (const path of [
+    '/',
+    '/discover',
+    '/connections',
+    '/ideas',
+    '/events',
+    '/messages',
+    '/notifications',
+  ]) {
+    await page.goto(path);
+    await expect(page.locator('.app-shell')).toBeVisible();
+    await expect(page.locator('.profile-form')).toHaveCount(0);
+    await expect(page.locator('main.page-content')).toBeVisible();
+  }
+});
+
+test('college ID input clears an earlier valid file when an invalid replacement is selected', async ({
+  page,
+}) => {
+  await openProfile(page);
+  await page.getByRole('button', { name: 'College ID', exact: true }).click();
+  const input = page.getByLabel('College ID image');
+  const submit = page.getByRole('button', { name: 'Submit for review' });
+  await input.setInputFiles({
+    name: 'id.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from('fixture'),
+  });
+  await expect(submit).toBeEnabled();
+  await input.setInputFiles({
+    name: 'id.svg',
+    mimeType: 'image/svg+xml',
+    buffer: Buffer.from('<svg/>'),
+  });
+  await expect(submit).toBeDisabled();
+  await expect(input).toHaveValue('');
+});
