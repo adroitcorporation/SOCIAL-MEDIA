@@ -7,7 +7,7 @@ import type {
   groupActionSchema,
 } from './schemas';
 import type { ConnectionAction } from './enums';
-export type ProfileUpdateRequest = z.infer<typeof profileSchema>;
+export type ProfileUpdateRequest = z.input<typeof profileSchema>;
 export type CreateIdeaRequest = z.infer<typeof ideaSchema>;
 export type CreateGroupRequest = z.infer<typeof groupSchema> & { type: 'GROUP' };
 export type SendMessageRequest = z.infer<typeof messageSchema>;

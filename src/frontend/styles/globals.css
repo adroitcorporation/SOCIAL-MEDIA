@@ -1731,6 +1731,59 @@ em {
   font-size: 12px;
   margin-bottom: 25px;
 }
+.profile-form .profile-field-error {
+  display: block;
+  font-size: 12px;
+  margin: 5px 0 12px;
+}
+.profile-custom-value {
+  margin-top: 10px;
+}
+.profile-single-select {
+  margin-bottom: 17px;
+}
+.profile-single-select > label {
+  margin-bottom: 7px;
+}
+.profile-options {
+  min-width: 0;
+  margin: 0 0 22px;
+  padding: 14px;
+  border: 1px solid #d9e1ec;
+  border-radius: 8px;
+}
+.profile-options legend {
+  padding: 0 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.profile-options > label {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.profile-option-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.profile-option-list label {
+  flex-direction: row;
+  align-items: center;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid #d9e1ec;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.profile-option-list label:has(input:checked) {
+  background: #fff1e5;
+  border-color: #ff8a35;
+}
+.profile-form [aria-invalid='true'] {
+  border-color: #b42318;
+}
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
