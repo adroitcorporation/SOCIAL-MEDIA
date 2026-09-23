@@ -39,7 +39,9 @@ import {
 } from '@/frontend/pages/community-pages';
 import { IdeasPage } from '@/frontend/features/ideas/ideas-page';
 import { MessagesPage } from '@/frontend/features/messages/messages-page';
-import { ModerationPage } from '@/frontend/features/moderation/moderation-page';
+import { ModerationDashboard, UserManagement } from '@/frontend/features/moderation/dashboard';
+import { ReportUser } from '@/frontend/features/moderation/report-user';
+import { canAssignRole, canViewModerationDashboard } from '@/shared/contracts/permissions';
 
 const nav = [
   { path: '/', label: 'Home', icon: Home },
@@ -93,6 +95,9 @@ export function CircleApp() {
           <button className="button primary" onClick={() => location.reload()}>
             Try again
           </button>
+          <button className="button secondary" onClick={logout}>
+            Sign out
+          </button>
         </section>
       </main>
     );
@@ -107,7 +112,12 @@ export function CircleApp() {
   if (!state) return <Loading />;
   const unread = state.notifications.filter((n) => !n.readAt).length;
   const messagesUnread = state.conversations.reduce((sum, c) => sum + c.unread, 0);
-  const title = nav.find((n) => n.path === path)?.label || 'Home';
+  const title =
+    path === '/moderation/roles'
+      ? 'Role management'
+      : path === '/moderation'
+        ? 'Moderation'
+        : nav.find((n) => n.path === path)?.label || 'Home';
   return (
     <CircleContext.Provider
       value={{ state, busy, mutate, api, refresh, toast, viewProfile: setProfile, navigate }}
@@ -148,6 +158,7 @@ export function CircleApp() {
             {state.isModerator && (
               <Link
                 href="/moderation"
+                prefetch={false}
                 onClick={() => setMobile(false)}
                 className={`nav-link ${path === '/moderation' ? 'active' : ''}`}
               >
@@ -252,7 +263,17 @@ export function CircleApp() {
             ) : path === '/profile' ? (
               <ProfilePage />
             ) : path === '/moderation' ? (
-              <ModerationPage />
+              canViewModerationDashboard(state.me) ? (
+                <ModerationDashboard />
+              ) : (
+                <p role="alert">Moderator access required.</p>
+              )
+            ) : path === '/moderation/roles' ? (
+              canAssignRole(state.me, 'STUDENT') ? (
+                <UserManagement rolesOnly />
+              ) : (
+                <p role="alert">Ultimate Moderator access required.</p>
+              )
             ) : (
               <HomePage />
             )}
@@ -282,6 +303,7 @@ export function CircleApp() {
       {profile && (
         <Modal title="Meet your next collaborator" onClose={() => setProfile(null)}>
           <ProfileDetails user={profile} />
+          {profile.id !== state.me.id && <ReportUser userId={profile.id} />}
           {profile.id !== state.me.id && (
             <button
               className="text-link danger"

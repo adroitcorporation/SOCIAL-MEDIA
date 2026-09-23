@@ -41,7 +41,7 @@ src/
 
 Both backend and frontend may import `shared`. They cannot import each other. Shared contracts contain no Prisma, React, database, session, or platform dependencies. Browser auth belongs to the frontend adapter; trusted identity verification and authorization belong to the backend.
 
-The `app` folder exists because Next.js requires these entry points. API route files call backend handlers; page files render frontend UI. Business rules, database access, and interactive UI implementations live in their respective layers.
+The `app` folder exists because Next.js requires these entry points. API route files call backend handlers; page files render frontend UI. The catch-all page also calls the backend page-session adapter to authorise moderation routes before rendering. `/session` adapts the backend HttpOnly page-session bridge. Business rules, database access, and interactive UI implementations live in their respective layers.
 
 ```text
 UI → frontend hook/context → typed API client → HTTP

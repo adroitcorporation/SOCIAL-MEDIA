@@ -3,6 +3,8 @@ import type { Student, AppState } from '../../src/shared/contracts/responses';
 import type { ProfileUpdateRequest } from '../../src/shared/contracts/requests';
 
 const student: Student = {
+  role: 'STUDENT',
+  accountStatus: 'ACTIVE',
   id: 'profile-test',
   name: 'Aditi Sharma',
   college: 'IIT Bombay',

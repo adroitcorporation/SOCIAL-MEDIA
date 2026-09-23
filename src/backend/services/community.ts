@@ -15,5 +15,4 @@ export {
   submitVerification,
   listVerificationRequests,
   reviewVerification,
-  isModerator,
 } from './verification';

@@ -36,42 +36,72 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum UserRole {
+  STUDENT
+  ORGANISER
+  MODERATOR
+  ULTIMATE_MODERATOR
+}
+
+enum AccountStatus {
+  ACTIVE
+  RESTRICTED
+  SUSPENDED
+  BANNED
+  DEACTIVATED
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+  DISMISSED
+  ESCALATED
+}
+
 model User {
-  id              String               @id
-  name            String
-  photo           String               @default("")
-  college         String               @default("")
-  degree          String               @default("")
-  graduationYear  Int                  @default(2028)
-  city            String               @default("")
-  bio             String               @default("")
-  skills          String[]             @default([])
-  interests       String[]             @default([])
-  domains         String[]             @default([])
-  lookingFor      String[]             @default([])
-  linkedin        String               @default("")
-  github          String               @default("")
-  instagram       String               @default("")
-  portfolio       String               @default("")
-  emailVerified   Boolean              @default(false)
-  collegeVerified Boolean              @default(false)
-  onboarded       Boolean              @default(false)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  sent            Connection[]         @relation("Requester")
-  received        Connection[]         @relation("Receiver")
-  memberships     ConversationMember[]
-  owned           Conversation[]
-  messages        Message[]
-  ideas           Idea[]
-  resonances      IdeaResonance[]
-  notifications   Notification[]
-  blocks          Block[]              @relation("Blocker")
-  blockedBy       Block[]              @relation("Blocked")
-  skipped         Skip[]               @relation("Skipper")
-  skippedBy       Skip[]               @relation("Skipped")
-  savedEvents     SavedEvent[]
-  verificationRequests CollegeVerificationRequest[] @relation("VerificationApplicant")
+  role                  UserRole                     @default(STUDENT)
+  accountStatus         AccountStatus                @default(ACTIVE)
+  events                Event[]
+  reportsFiled          Report[]                     @relation("ReportAuthor")
+  reportsReceived       Report[]                     @relation("ReportTarget")
+  reportsReviewed       Report[]                     @relation("ReportReviewer")
+  moderationActions     ModerationAction[]
+  id                    String                       @id
+  name                  String
+  photo                 String                       @default("")
+  college               String                       @default("")
+  degree                String                       @default("")
+  graduationYear        Int                          @default(2028)
+  city                  String                       @default("")
+  bio                   String                       @default("")
+  skills                String[]                     @default([])
+  interests             String[]                     @default([])
+  domains               String[]                     @default([])
+  lookingFor            String[]                     @default([])
+  linkedin              String                       @default("")
+  github                String                       @default("")
+  instagram             String                       @default("")
+  portfolio             String                       @default("")
+  emailVerified         Boolean                      @default(false)
+  collegeVerified       Boolean                      @default(false)
+  onboarded             Boolean                      @default(false)
+  createdAt             DateTime                     @default(now())
+  updatedAt             DateTime                     @updatedAt
+  sent                  Connection[]                 @relation("Requester")
+  received              Connection[]                 @relation("Receiver")
+  memberships           ConversationMember[]
+  owned                 Conversation[]
+  messages              Message[]
+  ideas                 Idea[]
+  resonances            IdeaResonance[]
+  notifications         Notification[]
+  blocks                Block[]                      @relation("Blocker")
+  blockedBy             Block[]                      @relation("Blocked")
+  skipped               Skip[]                       @relation("Skipper")
+  skippedBy             Skip[]                       @relation("Skipped")
+  savedEvents           SavedEvent[]
+  verificationRequests  CollegeVerificationRequest[] @relation("VerificationApplicant")
   reviewedVerifications CollegeVerificationRequest[] @relation("VerificationReviewer")
 
   @@index([college, city])
@@ -202,6 +232,9 @@ model IdeaResonance {
 }
 
 model Event {
+  ownerId     String?
+  owner       User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
   id          String       @id @default(cuid())
   title       String
   description String
@@ -213,6 +246,38 @@ model Event {
   savedBy     SavedEvent[]
 
   @@index([startsAt])
+  @@index([ownerId])
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  targetId   String
+  reason     String
+  status     ReportStatus @default(OPEN)
+  reviewNote String       @default("")
+  reviewerId String?
+  reviewedAt DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  reporter   User         @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Restrict)
+  target     User         @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Restrict)
+  reviewer   User?        @relation("ReportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([targetId])
+}
+
+model ModerationAction {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action    String
+  targetId  String
+  reason    String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model SavedEvent {

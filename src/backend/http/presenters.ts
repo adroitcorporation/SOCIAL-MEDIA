@@ -26,8 +26,14 @@ import type {
 } from '@/shared/contracts/responses';
 import type { listVerificationRequests, latestVerification } from '@/backend/services/verification';
 import { serialize } from './serialization';
+import type { Dashboard, ReportItem, ModerationUser } from '@/shared/contracts/moderation';
+import type { dashboard, listReports, listModerationUsers } from '@/backend/services/moderation';
 // Explicit return types make ORM/service changes fail compilation if they break the API contract.
 export const present = {
+  dashboard: (value: Awaited<ReturnType<typeof dashboard>>): Dashboard => serialize(value),
+  reports: (value: Awaited<ReturnType<typeof listReports>>): ReportItem[] => serialize(value),
+  moderationUsers: (value: Awaited<ReturnType<typeof listModerationUsers>>): ModerationUser[] =>
+    serialize(value),
   state: (value: Awaited<ReturnType<typeof snapshot>>): AppState => serialize(value),
   student: (value: User): Student => serialize(value),
   connection: (value: DbConnection): Connection => serialize(value),

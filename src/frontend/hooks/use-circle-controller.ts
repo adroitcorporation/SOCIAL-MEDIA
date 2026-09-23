@@ -6,6 +6,7 @@ import { browserAuth } from '@/frontend/auth/browser-auth';
 import { createHttpClient } from '@/frontend/api/http-client';
 import { createCommunityClient } from '@/frontend/api/community-client';
 import { subscribeToLiveUpdates } from '@/frontend/api/live-updates';
+import { syncPageSession, clearPageSession } from '@/frontend/api/page-session';
 
 const publicApi = createCommunityClient(createHttpClient());
 export function useCircleController(
@@ -22,6 +23,7 @@ export function useCircleController(
   const [busy, setBusy] = useState(false);
   const refreshRef = useRef<() => Promise<void>>(async () => {});
   const refreshVersion = useRef(0);
+  const pageToken = useRef<string | undefined>(undefined);
   useEffect(() => {
     let active = true;
     let unsubscribe: (() => void) | undefined;
@@ -70,11 +72,29 @@ export function useCircleController(
   const refresh = useCallback(async () => {
     if (!signedIn) return;
     const version = ++refreshVersion.current;
-    const result = await api.state(path === '/discover' ? query : '');
+    const token =
+      config?.configured && !config.demo ? (await browserAuth.session()).accessToken : undefined;
+    if (token && token !== pageToken.current) {
+      try {
+        await syncPageSession(token);
+      } catch (error) {
+        setState(null);
+        throw error;
+      }
+      pageToken.current = token;
+    }
+    let result: AppState;
+    try {
+      result = await api.state(path === '/discover' ? query : '');
+    } catch (error) {
+      setState(null);
+      setLoadError(error instanceof Error ? error.message : 'Account unavailable.');
+      throw error;
+    }
     if (version !== refreshVersion.current) return;
     setState(result);
     setLoadError('');
-  }, [api, signedIn, path, query]);
+  }, [api, signedIn, path, query, config]);
   refreshRef.current = refresh;
   useEffect(() => {
     if (signedIn) refresh().catch((e) => setLoadError(e.message));
@@ -105,6 +125,8 @@ export function useCircleController(
       return;
     }
     try {
+      await clearPageSession();
+      pageToken.current = undefined;
       await browserAuth.signOut();
     } catch (error) {
       toast((error as Error).message, true);

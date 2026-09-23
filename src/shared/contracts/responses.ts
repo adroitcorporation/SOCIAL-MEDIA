@@ -1,3 +1,4 @@
+import type { UserRole, AccountStatus } from './permissions';
 import type {
   ConnectionStatus,
   ConversationType,
@@ -36,6 +37,8 @@ export interface VerificationReviewItem extends CollegeVerification {
   user: Student;
 }
 export interface Student {
+  role: UserRole;
+  accountStatus: AccountStatus;
   id: string;
   name: string;
   photo: string;
@@ -136,6 +139,8 @@ export interface SavedEvent {
   eventId: string;
 }
 export interface EventItem {
+  ownerId: string | null;
+  createdAt: IsoDateTime;
   id: string;
   title: string;
   description: string;

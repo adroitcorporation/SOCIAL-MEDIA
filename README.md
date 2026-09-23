@@ -50,7 +50,7 @@ Profile and group images currently accept HTTPS image URLs, with initials as a f
 4. Configure the same production origin/redirect URLs and SMTP in Supabase.
 5. Deploy. `npm start` validates configuration, runs **`prisma migrate deploy`**, and only starts Next.js after migrations succeed. The health endpoint checks the database. No resets or `db push` occur.
 
-Set `MODERATOR_USER_IDS` on the backend to a comma-separated list of trusted application user IDs. These users can review college-email and college-ID submissions at `/moderation`. An empty value denies all moderation access. Never expose this variable with a `NEXT_PUBLIC_` prefix.
+Moderation uses database roles. Apply migrations with `npm run db:migrate`, then bootstrap the first Ultimate Moderator with `npm run roles:bootstrap -- <existing-user-id>`. This trusted CLI only works when no active Ultimate Moderator exists. Existing allowlist entries are no longer used; reassign their roles from `/moderation/roles`. See [MODERATION.md](MODERATION.md) for permissions, API routes and activation details.
 
 Only sending new connection requests requires approval; browsing, profile editing, ideas, events, and existing conversations remain available. College emails are manually reviewed, not automatically approved or verified by OTP. Rejected submissions retain their review note and allow a new submission.
 
@@ -60,13 +60,13 @@ ID uploads accept JPG, PNG, and WebP up to 4,000,000 bytes. The backend verifies
 
 Apply the two college-verification migrations with `npm run db:migrate` before starting the updated app (production startup already does this). The second migration enforces one pending submission per user. If an earlier partial deployment contains duplicate pending submissions, resolve them before applying it. This implementation does not modify the production database during local validation.
 
-| Endpoint | Contract |
-| --- | --- |
-| `GET /api/verification` | Current user's latest submission summary or null |
-| `POST /api/verification` | `{ method: "EMAIL", collegeEmail }` or `{ method: "COLLEGE_ID", documentUrl: "data:image/...;base64,..." }` |
-| `GET /api/moderation/verifications` | Up to 100 pending summaries with applicant profiles, oldest first |
-| `PATCH /api/moderation/verifications/:id` | `{ status: "APPROVED" | "REJECTED", reviewNote?: string }` |
-| `GET /api/moderation/verifications/:id/document` | Private image bytes; moderator-only, no-store |
+| Endpoint                                         | Contract                                                                                                    |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `GET /api/verification`                          | Current user's latest submission summary or null                                                            |
+| `POST /api/verification`                         | `{ method: "EMAIL", collegeEmail }` or `{ method: "COLLEGE_ID", documentUrl: "data:image/...;base64,..." }` |
+| `GET /api/moderation/verifications`              | Up to 100 pending summaries with applicant profiles, oldest first                                           |
+| `PATCH /api/moderation/verifications/:id`        | `{ status: "APPROVED"                                                                                       | "REJECTED", reviewNote?: string }` |
+| `GET /api/moderation/verifications/:id/document` | Private image bytes; moderator-only, no-store                                                               |
 
 Review decisions and the user's verification flag update in one serializable transaction. Duplicate submissions and repeat decisions return 409. Profiles cannot set verification fields.
 

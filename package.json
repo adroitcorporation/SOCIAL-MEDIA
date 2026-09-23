@@ -13,6 +13,7 @@
     "db:local": "tsx scripts/local-db.ts",
     "db:migrate": "prisma migrate deploy --schema src/backend/database/prisma/schema.prisma",
     "db:seed": "tsx src/backend/database/prisma/seed.ts",
+    "roles:bootstrap": "tsx scripts/bootstrap-role.ts",
     "demo": "node scripts/demo.mjs",
     "postinstall": "prisma generate --schema src/backend/database/prisma/schema.prisma",
     "format": "prettier --write src scripts tests *.ts *.json *.yaml *.md",

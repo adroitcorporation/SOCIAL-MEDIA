@@ -34,6 +34,12 @@ beforeAll(async () => {
       'utf8',
     ),
   );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202609230003_rbac/migration.sql',
+      'utf8',
+    ),
+  );
   server = new PGLiteSocketServer({ db: pg, host: '127.0.0.1', port: 54330 });
   await server.start();
   process.env.DATABASE_URL =
@@ -64,12 +70,12 @@ describe('Connection lifecycle', () => {
       method: 'EMAIL',
       collegeEmail: 'a@test.edu',
     });
-    process.env.MODERATOR_USER_IDS = 'b';
+    await db.user.update({ where: { id: 'b' }, data: { role: 'MODERATOR' } });
     await service.reviewVerification('b', request.id, { status: 'APPROVED' });
     expect((await db.user.findUniqueOrThrow({ where: { id: 'a' } })).collegeVerified).toBe(true);
     const connection = await service.requestConnection('a', 'b');
     await service.transitionConnection('a', connection.id, 'cancel');
-    delete process.env.MODERATOR_USER_IDS;
+    await db.user.update({ where: { id: 'b' }, data: { role: 'STUDENT' } });
   });
   it('persists cancellation, rejects receiver cancellation, removes incoming request, and allows resend', async () => {
     const request = await service.requestConnection('a', 'b');

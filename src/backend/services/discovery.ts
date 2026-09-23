@@ -1,7 +1,8 @@
+import { canViewModerationDashboard } from '@/shared/contracts/permissions';
 import type { Prisma, User } from '@prisma/client';
 import { db } from '@/backend/database/client';
 import { z } from 'zod';
-import { isModerator, latestVerification } from './verification';
+import { latestVerification } from './verification';
 
 export async function snapshot(user: User, query: URLSearchParams) {
   const blocks = await db.block.findMany({
@@ -28,7 +29,11 @@ export async function snapshot(user: User, query: URLSearchParams) {
       .filter((c) => c.status === 'ACCEPTED')
       .map((c) => (c.requesterId === user.id ? c.receiverId : c.requesterId)),
   ];
-  const where: Prisma.UserWhereInput = { onboarded: true, id: { notIn: excluded } };
+  const where: Prisma.UserWhereInput = {
+    accountStatus: 'ACTIVE',
+    onboarded: true,
+    id: { notIn: excluded },
+  };
   const search = query.get('search')?.slice(0, 100);
   if (search)
     where.OR = ['name', 'college', 'bio', 'city'].map((field) => ({
@@ -120,7 +125,7 @@ export async function snapshot(user: User, query: URLSearchParams) {
   return {
     me: user,
     verification,
-    isModerator: isModerator(user.id),
+    isModerator: canViewModerationDashboard(user),
     students,
     totalStudents,
     connections,

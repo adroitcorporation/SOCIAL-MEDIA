@@ -30,7 +30,10 @@ jobs:
           done
           npm run demo > /tmp/circle-app.log 2>&1 &
           for i in $(seq 1 60); do
-            if curl --fail --silent http://localhost:3000/api/health; then exit 0; fi
+            if curl --fail --silent http://localhost:3000/api/health; then
+              DATABASE_URL='postgresql://postgres:postgres@127.0.0.1:54329/postgres?connection_limit=1&pgbouncer=true&statement_cache_size=0' npm run roles:bootstrap -- demo-aarav
+              exit 0
+            fi
             sleep 1
           done
           cat /tmp/circle-db.log /tmp/circle-app.log

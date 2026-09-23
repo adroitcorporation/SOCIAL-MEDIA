@@ -1,5 +1,13 @@
 import type { HttpClient } from './http-client';
 import type {
+  Dashboard,
+  ModerationUser,
+  ReportItem,
+  EventInput,
+} from '@/shared/contracts/moderation';
+import type { AccountStatus, UserRole, ReportStatus } from '@/shared/contracts/permissions';
+import type { EventItem } from '@/shared/contracts/responses';
+import type {
   ApiConfig,
   AppState,
   Student,
@@ -47,6 +55,28 @@ export function createCommunityClient(http: HttpClient) {
         http.request<CollegeVerification>('verification', input),
     },
     moderation: {
+      dashboard: () => http.request<Dashboard>('moderation/dashboard'),
+      users: (query = '', rolesOnly = false) =>
+        http.request<ModerationUser[]>(`moderation/${rolesOnly ? 'roles' : 'users'}?${query}`),
+      reports: (query = '') => http.request<ReportItem[]>(`moderation/reports?${query}`),
+      reviewReport: (reportId: string, status: ReportStatus, reviewNote: string) =>
+        http.request<ReportItem>(
+          `moderation/reports/${id(reportId)}`,
+          { status, reviewNote },
+          'PATCH',
+        ),
+      changeRole: (userId: string, role: UserRole, reason: string) =>
+        http.request<ModerationUser>(
+          `moderation/users/${id(userId)}/role`,
+          { role, reason },
+          'PATCH',
+        ),
+      changeStatus: (userId: string, accountStatus: AccountStatus, reason: string) =>
+        http.request<ModerationUser>(
+          `moderation/users/${id(userId)}/status`,
+          { accountStatus, reason },
+          'PATCH',
+        ),
       document: (requestId: string) =>
         http.blob(`moderation/verifications/${id(requestId)}/document`),
       list: () => http.request<VerificationReviewItem[]>('moderation/verifications'),
@@ -92,8 +122,19 @@ export function createCommunityClient(http: HttpClient) {
         http.request<Conversation>(`ideas/${id(ideaId)}/group`, input),
     },
     events: {
+      managed: (query = '') =>
+        http.request<EventItem[]>(`events/managed${query ? `?${query}` : ''}`),
+      create: (input: EventInput) => http.request<{ id: string }>('events', input),
+      edit: (eventId: string, input: EventInput) =>
+        http.request<{ id: string }>(`events/${id(eventId)}`, input, 'PATCH'),
+      delete: (eventId: string) =>
+        http.request<SuccessResponse>(`events/${id(eventId)}`, {}, 'DELETE'),
       save: (eventId: string, input: SaveEventRequest) =>
         http.request<SavedEvent | CountResponse>(`events/${id(eventId)}`, input),
+    },
+    reports: {
+      submit: (targetId: string, reason: string) =>
+        http.request<{ id: string }>('reports', { targetId, reason }),
     },
     notifications: {
       markRead: (notificationId?: string) =>

@@ -6,6 +6,10 @@ import { db } from '@/backend/database/client';
 import { AppError, requireThat } from '@/backend/utils/errors';
 import { boundedJson } from '@/backend/http/request';
 import * as service from '@/backend/services/community';
+import * as events from '@/backend/services/events';
+import * as moderation from '@/backend/services/moderation';
+import { requireActiveActor, requirePermission } from '@/backend/services/permissions';
+import { canViewModerationDashboard, canAssignRole } from '@/shared/contracts/permissions';
 
 import { validateMutationRequest, enforceMutationRateLimit } from './middleware';
 import { present } from './presenters';
@@ -26,9 +30,9 @@ export async function handleApiRequest(request: Request, path: string[]) {
         ),
       });
     if (method !== 'GET') validateMutationRequest(request);
-    const user = await authenticate(request);
-    if (resource === 'moderation')
-      requireThat(service.isModerator(user.id), 403, 'Moderator access required.');
+    const identity = await authenticate(request);
+    const user = await requireActiveActor(identity.id);
+    if (resource === 'moderation') await requirePermission(user.id, canViewModerationDashboard);
     let input: Record<string, unknown> = {};
     if (method !== 'GET') {
       input = z
@@ -37,7 +41,58 @@ export async function handleApiRequest(request: Request, path: string[]) {
       await enforceMutationRateLimit(user.id);
     }
     let result: unknown;
-    if (resource === 'state' && method === 'GET')
+    if (resource === 'session' && !id && method === 'GET')
+      result = { id: user.id, role: user.role, accountStatus: user.accountStatus };
+    else if (resource === 'moderation' && id === 'access' && method === 'GET') {
+      if (new URL(request.url).searchParams.get('roles') === 'true')
+        await requirePermission(user.id, (actor) => canAssignRole(actor, 'STUDENT'));
+      result = { ok: true };
+    } else if (resource === 'moderation' && id === 'dashboard' && !action && method === 'GET')
+      result = present.dashboard(await moderation.dashboard(user.id));
+    else if (resource === 'moderation' && id === 'reports' && !action && method === 'GET')
+      result = present.reports(
+        await moderation.listReports(user.id, new URL(request.url).searchParams),
+      );
+    else if (
+      resource === 'moderation' &&
+      id === 'reports' &&
+      action &&
+      !detail &&
+      method === 'PATCH'
+    )
+      result = await moderation.reviewReport(user.id, action, input);
+    else if (
+      resource === 'moderation' &&
+      (id === 'users' || id === 'roles') &&
+      !action &&
+      method === 'GET'
+    )
+      result = present.moderationUsers(
+        await moderation.listModerationUsers(
+          user.id,
+          new URL(request.url).searchParams,
+          id === 'roles',
+        ),
+      );
+    else if (
+      resource === 'moderation' &&
+      id === 'users' &&
+      action &&
+      (detail === 'role' || detail === 'status') &&
+      method === 'PATCH'
+    )
+      result = await moderation.changeUser(user.id, action, input, detail);
+    else if (resource === 'reports' && !id && method === 'POST')
+      result = await moderation.submitReport(user.id, input);
+    else if (resource === 'events' && id === 'managed' && method === 'GET')
+      result = await events.managedEvents(user.id, new URL(request.url).searchParams);
+    else if (resource === 'events' && !id && method === 'POST')
+      result = await events.createEvent(user.id, input);
+    else if (resource === 'events' && id && !action && method === 'PATCH')
+      result = await events.editEvent(user.id, id, input);
+    else if (resource === 'events' && id && !action && method === 'DELETE')
+      result = await events.deleteEvent(user.id, id);
+    else if (resource === 'state' && method === 'GET')
       result = present.state(await service.snapshot(user, new URL(request.url).searchParams));
     else if (resource === 'verification' && method === 'GET' && !id)
       result = present.verification(await service.latestVerification(user.id));

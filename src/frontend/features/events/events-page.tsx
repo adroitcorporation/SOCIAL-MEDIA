@@ -9,6 +9,8 @@ import { useCircle } from '@/frontend/state/circle-context';
 import { Empty, Modal } from '@/frontend/components/ui';
 
 import { PageHeading } from '@/frontend/components/page-heading';
+import { canCreateEvent } from '@/shared/contracts/permissions';
+import { EventManager } from './event-manager';
 export function EventsPage() {
   const { api, state, mutate, busy } = useCircle();
   const [category, setCategory] = useState('All events');
@@ -29,6 +31,7 @@ export function EventsPage() {
         title="Something worth showing up for."
         description="Hackathons, creative challenges, workshops, and everything in between."
       />
+      {canCreateEvent(state.me) && <EventManager />}
       <div className="filter-panel filter-top">
         <div className="search-field">
           <Search size={18} />

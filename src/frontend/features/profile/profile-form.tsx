@@ -1,4 +1,5 @@
 'use client';
+import { roleLabels } from '@/shared/contracts/permissions';
 import { useState } from 'react';
 import type { Student } from '@/shared/contracts/responses';
 import type { ProfileUpdateRequest } from '@/shared/contracts/requests';
@@ -240,6 +241,10 @@ export function ProfileDetails({ user }: { user: Student }) {
       </p>
       <p className="muted">
         {user.college} · {user.city}
+      </p>
+      <p>
+        <span className="tag">{roleLabels[user.role]}</span>{' '}
+        <span className="tag">{user.accountStatus}</span>
       </p>
       <p className="bio">{user.bio || 'This student is still writing their story.'}</p>
       {listFields.map((key) => (

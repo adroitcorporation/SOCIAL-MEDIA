@@ -1,5 +1,7 @@
 # College verification implementation
 
+This is the historical verification implementation report. The environment allowlist described below has since been replaced by database roles; see [MODERATION.md](MODERATION.md) for current activation and permissions.
+
 Completed the existing partial implementation without committing or deploying changes.
 
 - Authenticated users can browse every regular section before profile completion or college verification.

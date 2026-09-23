@@ -1,3 +1,5 @@
+import { requirePermission, requireActiveActor } from './permissions';
+import { canApproveVerification } from '@/shared/contracts/permissions';
 import type { Prisma } from '@prisma/client';
 import { db } from '@/backend/database/client';
 import { transaction } from '@/backend/database/transaction';
@@ -18,13 +20,6 @@ const summary = {
   updatedAt: true,
 } satisfies Prisma.CollegeVerificationRequestSelect;
 
-export const isModerator = (userId: string) =>
-  (process.env.MODERATOR_USER_IDS || '')
-    .split(',')
-    .map((id) => id.trim())
-    .filter(Boolean)
-    .includes(userId);
-
 export async function latestVerification(userId: string) {
   return db.collegeVerificationRequest.findFirst({
     where: { userId },
@@ -38,7 +33,7 @@ export async function submitVerification(userId: string, input: unknown) {
   const document =
     data.method === 'COLLEGE_ID' ? await decodeVerificationImage(data.documentUrl!) : {};
   return transaction(async (tx) => {
-    const user = await tx.user.findUnique({ where: { id: userId } });
+    const user = await requireActiveActor(userId, tx);
     requireThat(user, 404, 'Student not found.');
     requireThat(!user.collegeVerified, 409, 'Your college verification is already approved.');
     const pending = await tx.collegeVerificationRequest.findFirst({
@@ -58,7 +53,7 @@ export async function submitVerification(userId: string, input: unknown) {
 }
 
 export async function listVerificationRequests(actor: string) {
-  requireThat(isModerator(actor), 403, 'Moderator access required.');
+  await requirePermission(actor, canApproveVerification);
   return db.collegeVerificationRequest.findMany({
     where: { status: 'PENDING' },
     select: { ...summary, user: true },
@@ -68,7 +63,7 @@ export async function listVerificationRequests(actor: string) {
 }
 
 export async function verificationDocument(actor: string, id: string) {
-  requireThat(isModerator(actor), 403, 'Moderator access required.');
+  await requirePermission(actor, canApproveVerification);
   const request = await db.collegeVerificationRequest.findUnique({
     where: { id },
     select: { documentBytes: true, documentMime: true, documentUrl: true },
@@ -82,9 +77,10 @@ export async function verificationDocument(actor: string, id: string) {
 }
 
 export async function reviewVerification(actor: string, id: string, input: unknown) {
-  requireThat(isModerator(actor), 403, 'Moderator access required.');
+  await requirePermission(actor, canApproveVerification);
   const data = verificationReviewSchema.parse(input);
   return transaction(async (tx) => {
+    await requirePermission(actor, canApproveVerification, tx);
     const request = await tx.collegeVerificationRequest.findUnique({
       where: { id },
       select: summary,
@@ -104,6 +100,14 @@ export async function reviewVerification(actor: string, id: string, input: unkno
     await tx.user.update({
       where: { id: request.userId },
       data: { collegeVerified: data.status === 'APPROVED' },
+    });
+    await tx.moderationAction.create({
+      data: {
+        actorId: actor,
+        action: `VERIFICATION_${data.status}`,
+        targetId: id,
+        reason: data.reviewNote,
+      },
     });
     return tx.collegeVerificationRequest.findUniqueOrThrow({ where: { id }, select: summary });
   });

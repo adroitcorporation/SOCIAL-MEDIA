@@ -84,9 +84,10 @@ for (const file of await files(root)) {
     if (layer === 'backend' && /^(react|react-dom|lucide-react)(\/|$)/.test(specifier))
       fail(`UI dependency in backend: ${specifier}`);
     if (layer === 'app' && targetLayer) {
-      const allowed = relative.startsWith('app/api/')
-        ? ['backend', 'shared']
-        : ['frontend', 'shared'];
+      const allowed =
+        relative.startsWith('app/api/') || relative === 'app/session/route.ts'
+          ? ['backend', 'shared']
+          : ['frontend', 'shared', ...(relative === 'app/[[...page]]/page.tsx' ? ['backend'] : [])];
       if (!allowed.includes(targetLayer)) fail(`Route adapter cannot import ${specifier}`);
     }
   }

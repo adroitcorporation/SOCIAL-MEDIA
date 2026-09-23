@@ -75,7 +75,7 @@ export function ModerationPage() {
     setReviewing(id);
     try {
       await mutate(() => api.moderation.review(id, { status, reviewNote: notes[id] || '' }));
-      setRequests((current) => current.filter((request) => request.id !== id));
+      setRequests(await api.moderation.list());
       toast(status === 'APPROVED' ? 'Student verified.' : 'Verification rejected.');
     } catch {
     } finally {

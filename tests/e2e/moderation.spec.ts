@@ -6,6 +6,8 @@ import type {
 } from '../../src/shared/contracts/responses';
 
 const user: Student = {
+  role: 'MODERATOR',
+  accountStatus: 'ACTIVE',
   id: 'reviewer',
   name: 'Moderator',
   college: 'Test College',
@@ -91,6 +93,7 @@ test('moderators can inspect private images and submit approve/reject decisions 
     return route.abort();
   });
   await page.goto('/moderation');
+  await page.getByRole('button', { name: 'Verification', exact: true }).click();
   const idCard = page.locator('article').filter({ hasText: 'ID Applicant' });
   const image = idCard.getByRole('img', { name: 'College ID submitted by ID Applicant' });
   await expect(image).toBeVisible();
@@ -117,7 +120,10 @@ test('an unauthorized moderation page displays the access error instead of an em
   await page.route('**/api/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === '/api/config') return route.fulfill({ json: { demo: true, configured: false } });
-    if (path === '/api/state') return route.fulfill({ json: { ...state, isModerator: false } });
+    if (path === '/api/state')
+      return route.fulfill({
+        json: { ...state, me: { ...user, role: 'STUDENT' }, isModerator: false },
+      });
     if (path === '/api/live')
       return route.fulfill({
         contentType: 'text/event-stream',
