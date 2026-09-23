@@ -35,8 +35,7 @@ export function AuthForm({
       } else if (mode === 'signup') {
         const result = await browserAuth.signUp(email, password, location.origin);
         if (result.signedIn) onAuthenticated();
-        else
-          setNotice('Check your inbox to verify your email, then sign in to create your profile.');
+        else setNotice('Account created. Sign in to continue.');
       } else {
         await browserAuth.signIn(email, password);
         onAuthenticated();

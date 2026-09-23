@@ -26,7 +26,7 @@ Open **http://localhost:3000**. The demo applies the checked-in migrations, seed
 1. Copy `.env.example` to `.env`. Never commit credentials.
 2. Set `DATABASE_URL` to a PostgreSQL direct/session connection with schema-owner permissions. For hosted databases use the provider's required TLS parameters. A transaction pooler is not appropriate for migrations.
 3. Create a Supabase project for **Auth**. Its database does not need to be the application's database. Set the project URL and publishable key in both your local/build and runtime environments. No service-role key is used by this app.
-4. Enable email/password auth and email confirmation. Configure the Site URL to your `APP_URL`, and allow both `APP_URL/` and `APP_URL/reset-password` as redirect URLs. Set a minimum password length of 12 in Supabase, enable leaked-password protection if available, and configure production SMTP. Sign-up confirmation and password-reset delivery depend on these settings.
+4. Enable email/password auth and disable **Confirm email** so sign-up creates an active session immediately. Configure the Site URL to your `APP_URL`, and allow both `APP_URL/` and `APP_URL/reset-password` as redirect URLs. Set a minimum password length of 12 in Supabase and enable leaked-password protection if available. Password-reset delivery still requires production SMTP.
 5. Leave `LOCAL_DEMO=false`. Run:
 
 ```sh
@@ -34,9 +34,9 @@ npm run db:migrate
 npm run dev
 ```
 
-Sign up, confirm your email, and complete onboarding. Until email is confirmed, protected API operations return 403. Supabase stores and refreshes sessions; the server validates access tokens with `auth.getUser()` on every protected request. Auth screens include login, signup, password recovery, password update, and logout.
+Sign up and complete onboarding. Supabase stores and refreshes sessions; the server validates access tokens with `auth.getUser()` on every protected request. Auth screens include login, signup, password recovery, password update, and logout.
 
-**Verification is honest:** email verification does not establish college enrollment. `collegeVerified` is server-controlled, defaults to false, and cannot be changed through profile APIs. A college-email/institution review workflow is an explicit future integration; the schema and UI already distinguish it.
+**Verification is honest:** email confirmation is disabled for this app and does not establish college enrollment. `collegeVerified` is server-controlled, defaults to false, and cannot be changed through profile APIs. A college-email/institution review workflow is an explicit future integration; the schema and UI already distinguish it.
 
 Profile and group images currently accept HTTPS image URLs, with initials as a fallback. File uploads/storage provisioning are not included.
 
@@ -149,4 +149,4 @@ Verification completed in this workspace: **24 database/security/transport tests
 
 On Windows, stop the development server before running `npm run build`: Prisma cannot replace its loaded query-engine DLL while Next.js is running. Restart with `npm run demo` afterward.
 
-Live Supabase signup, confirmation, recovery, SMTP delivery, and Render deployment require your project configuration and have not been exercised against a hosted account in this workspace. The pasted brief ends mid-sentence in section 15; requirements beyond that point were not available.
+Live Supabase signup, recovery, SMTP delivery, and Render deployment require your project configuration and have not been exercised against a hosted account in this workspace. The pasted brief ends mid-sentence in section 15; requirements beyond that point were not available.

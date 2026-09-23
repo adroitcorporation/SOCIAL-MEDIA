@@ -20,7 +20,6 @@ export async function authenticate(request: Request) {
   });
   const { data, error } = await client.auth.getUser(token);
   requireThat(!error && data.user, 401, 'Your session has expired. Please sign in again.');
-  requireThat(data.user.email_confirmed_at, 403, 'Verify your email before continuing.');
   return db.user.upsert({
     where: { id: data.user.id },
     update: { emailVerified: true },
