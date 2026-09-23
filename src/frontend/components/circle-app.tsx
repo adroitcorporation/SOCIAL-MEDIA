@@ -42,6 +42,7 @@ import { MessagesPage } from '@/frontend/features/messages/messages-page';
 import { ModerationDashboard, UserManagement } from '@/frontend/features/moderation/dashboard';
 import { ReportUser } from '@/frontend/features/moderation/report-user';
 import { canAssignRole, canViewModerationDashboard } from '@/shared/contracts/permissions';
+import { ThemeToggle } from './theme-toggle';
 
 const nav = [
   { path: '/', label: 'Home', icon: Home },
@@ -228,6 +229,7 @@ export function CircleApp() {
               <kbd>↵</kbd>
             </form>
             <div className="topbar-actions">
+              <ThemeToggle />
               <Link
                 href="/notifications"
                 className="icon-button notification-button"

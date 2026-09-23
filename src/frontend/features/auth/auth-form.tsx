@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ArrowRight, Circle, Mail, ShieldCheck } from 'lucide-react';
 import { browserAuth } from '@/frontend/auth/browser-auth';
 import { brand } from '@/shared/config/brand';
+import { ThemeToggle } from '@/frontend/components/theme-toggle';
 export function AuthForm({
   configured,
   initialMode = 'login',
@@ -48,6 +49,9 @@ export function AuthForm({
   }
   return (
     <main className="auth-page">
+      <div className="auth-theme-control">
+        <ThemeToggle />
+      </div>
       <div className="auth-story">
         <div className="wordmark">
           <span className="brand-mark">
