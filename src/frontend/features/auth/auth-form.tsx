@@ -3,6 +3,11 @@ import { useState } from 'react';
 import { ArrowRight, Circle, Mail, ShieldCheck } from 'lucide-react';
 import { browserAuth } from '@/frontend/auth/browser-auth';
 import { brand } from '@/shared/config/brand';
+import {
+  allowedEmailDomain,
+  collegeName,
+  isAllowedCollegeEmail,
+} from '@/shared/config/college-access';
 import { ThemeToggle } from '@/frontend/components/theme-toggle';
 export function AuthForm({
   configured,
@@ -26,6 +31,9 @@ export function AuthForm({
     const email = String(form.get('email') || '');
     const password = String(form.get('password') || '');
     try {
+      if ((mode === 'signup' || mode === 'login') && !isAllowedCollegeEmail(email)) {
+        throw new Error(`Use your @${allowedEmailDomain} college email to continue.`);
+      }
       if (mode === 'forgot') {
         await browserAuth.requestPasswordReset(email, location.origin);
         setNotice('If an account exists, a reset link is on its way. Check your inbox.');
@@ -36,7 +44,10 @@ export function AuthForm({
       } else if (mode === 'signup') {
         const result = await browserAuth.signUp(email, password, location.origin);
         if (result.signedIn) onAuthenticated();
-        else setNotice('Account created. Sign in to continue.');
+        else
+          setNotice(
+            'Check your inbox and click the confirmation link to verify your email and sign in.',
+          );
       } else {
         await browserAuth.signIn(email, password);
         onAuthenticated();
@@ -90,8 +101,8 @@ export function AuthForm({
         </h2>
         <p>
           {mode === 'signup'
-            ? 'Your next collaborator could be one hello away.'
-            : 'Pick up where inspiration left off.'}
+            ? `${collegeName} students: your next collaborator could be one hello away.`
+            : `${collegeName} students: pick up where inspiration left off.`}
         </p>
         {!configured && (
           <div className="notice">
@@ -106,7 +117,7 @@ export function AuthForm({
               <input
                 name="email"
                 type="email"
-                placeholder="you@college.edu"
+                placeholder={`you@${allowedEmailDomain}`}
                 autoComplete="email"
                 required
               />
