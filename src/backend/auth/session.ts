@@ -7,6 +7,10 @@ import { isAllowedCollegeEmail } from '@/shared/config/college-access';
 export const isLocalDemo = () =>
   process.env.NODE_ENV !== 'production' && process.env.LOCAL_DEMO === 'true';
 const isEmailConfirmed = (confirmedAt: string | null | undefined) => Boolean(confirmedAt);
+export const isConfirmedLoginEmail = (
+  email: string | undefined,
+  confirmedAt: string | null | undefined,
+) => Boolean(email && isEmailConfirmed(confirmedAt));
 export const isVerifiedCollegeEmail = (
   email: string | undefined,
   confirmedAt: string | null | undefined,
@@ -27,20 +31,16 @@ export async function authenticate(request: Request) {
   });
   const { data, error } = await client.auth.getUser(token);
   requireThat(!error && data.user, 401, 'Your session has expired. Please sign in again.');
-  requireThat(
-    data.user.email && isAllowedCollegeEmail(data.user.email),
-    403,
-    'Use your @lnmiit.ac.in college email to access this app.',
-  );
+  const emailVerified = isConfirmedLoginEmail(data.user.email, data.user.email_confirmed_at);
+  requireThat(emailVerified, 403, 'Confirm your email using the link we sent before continuing.');
   const collegeVerified = isVerifiedCollegeEmail(data.user.email, data.user.email_confirmed_at);
-  requireThat(collegeVerified, 403, 'Confirm your email using the link we sent before continuing.');
   const user = await db.user.upsert({
     where: { id: data.user.id },
-    update: { emailVerified: collegeVerified, collegeVerified },
+    update: { emailVerified, ...(collegeVerified ? { collegeVerified: true } : {}) },
     create: {
       id: data.user.id,
       name: 'New student',
-      emailVerified: collegeVerified,
+      emailVerified,
       collegeVerified,
     },
   });
