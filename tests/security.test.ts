@@ -1,10 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { boundedJson } from '../src/backend/http/request';
-import {
-  isConfirmedLoginEmail,
-  isLocalDemo,
-  isVerifiedCollegeEmail,
-} from '../src/backend/auth/session';
+import { isLocalDemo, isVerifiedCollegeEmail } from '../src/backend/auth/session';
 import { profileSchema } from '../src/shared/contracts/schemas';
 import { isAllowedCollegeEmail } from '../src/shared/config/college-access';
 afterEach(() => vi.unstubAllEnvs());
@@ -22,12 +18,6 @@ describe('Request and environment safety', () => {
     expect(isVerifiedCollegeEmail('student@othercollege.ac.in', '2026-09-26T10:00:00.000Z')).toBe(
       false,
     );
-  });
-  it('allows any domain to log in only after Supabase confirms the email', () => {
-    expect(isConfirmedLoginEmail('student@example.com', '2026-09-26T10:00:00.000Z')).toBe(true);
-    expect(isConfirmedLoginEmail('student@example.com', null)).toBe(false);
-    expect(isConfirmedLoginEmail(undefined, '2026-09-26T10:00:00.000Z')).toBe(false);
-    expect(isVerifiedCollegeEmail('student@example.com', '2026-09-26T10:00:00.000Z')).toBe(false);
   });
   it('allows only LNMIIT college email addresses', () => {
     expect(isAllowedCollegeEmail('student@lnmiit.ac.in')).toBe(true);

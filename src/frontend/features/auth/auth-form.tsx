@@ -3,6 +3,11 @@ import { useState } from 'react';
 import { ArrowRight, Circle, Mail, ShieldCheck } from 'lucide-react';
 import { browserAuth } from '@/frontend/auth/browser-auth';
 import { brand } from '@/shared/config/brand';
+import {
+  allowedEmailDomain,
+  collegeName,
+  isAllowedCollegeEmail,
+} from '@/shared/config/college-access';
 import { ThemeToggle } from '@/frontend/components/theme-toggle';
 export function AuthForm({
   configured,
@@ -26,6 +31,9 @@ export function AuthForm({
     const email = String(form.get('email') || '');
     const password = String(form.get('password') || '');
     try {
+      if ((mode === 'signup' || mode === 'login') && !isAllowedCollegeEmail(email)) {
+        throw new Error(`Use your @${allowedEmailDomain} college email to continue.`);
+      }
       if (mode === 'forgot') {
         await browserAuth.requestPasswordReset(email, location.origin);
         setNotice('If an account exists, a reset link is on its way. Check your inbox.');
@@ -93,8 +101,8 @@ export function AuthForm({
         </h2>
         <p>
           {mode === 'signup'
-            ? 'Create your account and find people to build with.'
-            : 'Pick up where inspiration left off.'}
+            ? `${collegeName} students: your next collaborator could be one hello away.`
+            : `${collegeName} students: pick up where inspiration left off.`}
         </p>
         {!configured && (
           <div className="notice">
@@ -109,7 +117,7 @@ export function AuthForm({
               <input
                 name="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={`you@${allowedEmailDomain}`}
                 autoComplete="email"
                 required
               />

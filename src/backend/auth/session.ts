@@ -31,6 +31,11 @@ export async function authenticate(request: Request) {
   });
   const { data, error } = await client.auth.getUser(token);
   requireThat(!error && data.user, 401, 'Your session has expired. Please sign in again.');
+  requireThat(
+    data.user.email && isAllowedCollegeEmail(data.user.email),
+    403,
+    'Use your @lnmiit.ac.in college email to access this app.',
+  );
   const emailVerified = isConfirmedLoginEmail(data.user.email, data.user.email_confirmed_at);
   requireThat(emailVerified, 403, 'Confirm your email using the link we sent before continuing.');
   const collegeVerified = isVerifiedCollegeEmail(data.user.email, data.user.email_confirmed_at);

@@ -34,9 +34,9 @@ npm run db:migrate
 npm run dev
 ```
 
-Sign up with any email address and click the confirmation link sent by Supabase; the link returns to the app and signs the user in. Complete your profile from the Profile page. Supabase stores and refreshes sessions; the server validates access tokens and requires Supabase email confirmation on every protected request. Auth screens include login, signup, password recovery, password update, and logout.
+Sign up with an `@lnmiit.ac.in` address and click the confirmation link sent by Supabase; the link returns to the app and signs the user in. Complete your profile from the Profile page. Supabase stores and refreshes sessions; the server validates access tokens and requires Supabase email confirmation on every protected request. Auth screens include login, signup, password recovery, password update, and logout.
 
-App login and signup accept any email domain after Supabase confirms the email. Only confirmed `@lnmiit.ac.in` addresses are automatically marked college-verified and allowed to send connection requests; other students can browse but need moderator-reviewed college verification before connecting.
+App login and signup are limited to The LNM Institute of Information Technology Jaipur addresses ending in `@lnmiit.ac.in`. Once Supabase confirms the email, the server automatically marks both the email and college as verified, so no manual college-ID/email review is needed to connect. Other college-verification submissions remain moderator-reviewed.
 
 **Verification is honest:** the email-verified indicator follows Supabase's confirmed-email state, and a confirmed allowlisted college email automatically verifies the college. `collegeVerified` is server-controlled, defaults to false, and cannot be changed through profile APIs. Manual college-email and college-ID review remains available where needed.
 
