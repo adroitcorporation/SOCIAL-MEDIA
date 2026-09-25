@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { boundedJson } from '../src/backend/http/request';
-import { isEmailConfirmed, isLocalDemo } from '../src/backend/auth/session';
+import { isLocalDemo, isVerifiedCollegeEmail } from '../src/backend/auth/session';
 import { profileSchema } from '../src/shared/contracts/schemas';
 import { isAllowedCollegeEmail } from '../src/shared/config/college-access';
 afterEach(() => vi.unstubAllEnvs());
@@ -12,10 +12,12 @@ describe('Request and environment safety', () => {
     vi.stubEnv('NODE_ENV', 'development');
     expect(isLocalDemo()).toBe(true);
   });
-  it('requires Supabase email confirmation before marking an account verified', () => {
-    expect(isEmailConfirmed(null)).toBe(false);
-    expect(isEmailConfirmed(undefined)).toBe(false);
-    expect(isEmailConfirmed('2026-09-26T10:00:00.000Z')).toBe(true);
+  it('requires a confirmed allowlisted college email before college verification', () => {
+    expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', '2026-09-26T10:00:00.000Z')).toBe(true);
+    expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', null)).toBe(false);
+    expect(isVerifiedCollegeEmail('student@othercollege.ac.in', '2026-09-26T10:00:00.000Z')).toBe(
+      false,
+    );
   });
   it('allows only LNMIIT college email addresses', () => {
     expect(isAllowedCollegeEmail('student@lnmiit.ac.in')).toBe(true);

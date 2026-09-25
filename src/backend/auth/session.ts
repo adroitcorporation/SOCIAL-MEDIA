@@ -6,7 +6,11 @@ import { requireThat } from '@/backend/utils/errors';
 import { isAllowedCollegeEmail } from '@/shared/config/college-access';
 export const isLocalDemo = () =>
   process.env.NODE_ENV !== 'production' && process.env.LOCAL_DEMO === 'true';
-export const isEmailConfirmed = (confirmedAt: string | null | undefined) => Boolean(confirmedAt);
+const isEmailConfirmed = (confirmedAt: string | null | undefined) => Boolean(confirmedAt);
+export const isVerifiedCollegeEmail = (
+  email: string | undefined,
+  confirmedAt: string | null | undefined,
+) => Boolean(email && isAllowedCollegeEmail(email) && isEmailConfirmed(confirmedAt));
 export async function authenticate(request: Request) {
   if (isLocalDemo()) {
     const user = await db.user.findUnique({ where: { id: 'demo-aarav' } });
@@ -28,12 +32,17 @@ export async function authenticate(request: Request) {
     403,
     'Use your @lnmiit.ac.in college email to access this app.',
   );
-  const emailVerified = isEmailConfirmed(data.user.email_confirmed_at);
-  requireThat(emailVerified, 403, 'Confirm your email using the link we sent before continuing.');
+  const collegeVerified = isVerifiedCollegeEmail(data.user.email, data.user.email_confirmed_at);
+  requireThat(collegeVerified, 403, 'Confirm your email using the link we sent before continuing.');
   const user = await db.user.upsert({
     where: { id: data.user.id },
-    update: { emailVerified },
-    create: { id: data.user.id, name: 'New student', emailVerified },
+    update: { emailVerified: collegeVerified, collegeVerified },
+    create: {
+      id: data.user.id,
+      name: 'New student',
+      emailVerified: collegeVerified,
+      collegeVerified,
+    },
   });
   return requireActiveActor(user.id);
 }

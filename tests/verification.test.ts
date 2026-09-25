@@ -387,6 +387,21 @@ describe('college verification workflow', () => {
     expect(retry.status).toBe('PENDING');
     expect(await db.collegeVerificationRequest.count({ where: { userId: user.id } })).toBe(2);
   });
+  it('does not revoke domain verification when rejecting an older pending submission', async () => {
+    const user = await student();
+    const pending = await service.submitVerification(user.id, email);
+    await db.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, collegeVerified: true },
+    });
+    await service.reviewVerification('reviewer', pending.id, {
+      status: 'REJECTED',
+      reviewNote: 'Already verified by college email.',
+    });
+    expect((await db.user.findUniqueOrThrow({ where: { id: user.id } })).collegeVerified).toBe(
+      true,
+    );
+  });
   it('denies non-moderators list, review and private image APIs and service calls', async () => {
     const user = await student();
     const pending = await service.submitVerification(user.id, email);

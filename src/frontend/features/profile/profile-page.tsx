@@ -100,7 +100,7 @@ export function ProfilePage() {
                 : 'Browse every section of the app now. Verify your college to start connecting.'}
             </p>
             {state.me.collegeVerified ? (
-              <small>Approved verification stays attached to your account.</small>
+              <small>Your verified college status lets you send connection requests.</small>
             ) : verification?.status === 'PENDING' ? (
               <p className="notice">
                 Your {verification.method === 'EMAIL' ? 'college email' : 'ID'} submission is under
