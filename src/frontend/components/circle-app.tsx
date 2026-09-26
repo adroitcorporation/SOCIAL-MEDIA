@@ -30,6 +30,15 @@ import { CircleContext } from '@/frontend/state/circle-context';
 import { Avatar, Loading, Modal } from './ui';
 import { canAssignRole, canViewModerationDashboard } from '@/shared/contracts/permissions';
 import { ThemeToggle } from './theme-toggle';
+import { HomePage } from '@/frontend/pages/home-page';
+import { DiscoverPage } from '@/frontend/features/discover/discover-page';
+import { ConnectionsPage } from '@/frontend/features/connections/connections-page';
+import { ProfilePage } from '@/frontend/features/profile/profile-page';
+import { NotificationsPage } from '@/frontend/features/notifications/notifications-page';
+import { EventsPage } from '@/frontend/features/events/events-page';
+import { IdeasPage } from '@/frontend/features/ideas/ideas-page';
+import { MessagesPage } from '@/frontend/features/messages/messages-page';
+import { ModerationDashboard, UserManagement } from '@/frontend/features/moderation/dashboard';
 
 const AuthForm = dynamic(
   () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
@@ -37,53 +46,6 @@ const AuthForm = dynamic(
 );
 const ProfileDetails = dynamic(
   () => import('@/frontend/features/profile/profile-form').then((module) => module.ProfileDetails),
-  { loading: () => <Loading /> },
-);
-const HomePage = dynamic(
-  () => import('@/frontend/pages/home-page').then((module) => module.HomePage),
-  { loading: () => <Loading /> },
-);
-const DiscoverPage = dynamic(
-  () => import('@/frontend/features/discover/discover-page').then((module) => module.DiscoverPage),
-  { loading: () => <Loading /> },
-);
-const ConnectionsPage = dynamic(
-  () =>
-    import('@/frontend/features/connections/connections-page').then(
-      (module) => module.ConnectionsPage,
-    ),
-  { loading: () => <Loading /> },
-);
-const ProfilePage = dynamic(
-  () => import('@/frontend/features/profile/profile-page').then((module) => module.ProfilePage),
-  { loading: () => <Loading /> },
-);
-const NotificationsPage = dynamic(
-  () =>
-    import('@/frontend/features/notifications/notifications-page').then(
-      (module) => module.NotificationsPage,
-    ),
-  { loading: () => <Loading /> },
-);
-const EventsPage = dynamic(
-  () => import('@/frontend/features/events/events-page').then((module) => module.EventsPage),
-  { loading: () => <Loading /> },
-);
-const IdeasPage = dynamic(
-  () => import('@/frontend/features/ideas/ideas-page').then((module) => module.IdeasPage),
-  { loading: () => <Loading /> },
-);
-const MessagesPage = dynamic(
-  () => import('@/frontend/features/messages/messages-page').then((module) => module.MessagesPage),
-  { loading: () => <Loading /> },
-);
-const ModerationDashboard = dynamic(
-  () =>
-    import('@/frontend/features/moderation/dashboard').then((module) => module.ModerationDashboard),
-  { loading: () => <Loading /> },
-);
-const UserManagement = dynamic(
-  () => import('@/frontend/features/moderation/dashboard').then((module) => module.UserManagement),
   { loading: () => <Loading /> },
 );
 const ReportUser = dynamic(
