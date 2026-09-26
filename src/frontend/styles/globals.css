@@ -467,14 +467,6 @@ em {
   gap: 12px;
   color: var(--text-secondary, #556986);
 }
-.spin {
-  animation: spin 1.5s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 .app-shell {
   display: flex;
   min-height: 100vh;

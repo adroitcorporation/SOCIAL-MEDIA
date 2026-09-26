@@ -100,7 +100,7 @@ export function Empty({
 export function Loading() {
   return (
     <div className="loading" role="status">
-      <LoaderCircle className="spin" size={24} />
+      <LoaderCircle size={24} />
       <span>Finding your circle…</span>
     </div>
   );
