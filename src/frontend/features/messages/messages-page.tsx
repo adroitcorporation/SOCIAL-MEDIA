@@ -17,7 +17,7 @@ import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Empty, Modal } from '@/frontend/components/ui';
 import { PageHeading } from '@/frontend/components/page-heading';
 export function MessagesPage() {
-  const { state, api, mutate, toast } = useCircle();
+  const { state, api, toast } = useCircle();
   const [create, setCreate] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -27,44 +27,83 @@ export function MessagesPage() {
   const [manage, setManage] = useState(false);
   const [error, setError] = useState('');
   const [hasOlder, setHasOlder] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const scroll = useRef<HTMLDivElement>(null);
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
   const retryMessage = useRef<{ body: string; clientId: string } | null>(null);
+  const cursor = useRef<string | undefined>(undefined);
+  const generation = useRef(0);
+  const pending = useRef<Promise<void> | null>(null);
+  const olderPending = useRef(false);
+  const prependScroll = useRef<number | null>(null);
+  // Revalidate cached history when membership visibility changes (including blocks).
+  const membershipKey =
+    state.conversations
+      .find((item) => item.id === selected)
+      ?.members.map((member) => member.userId)
+      .join(',') || '';
   useEffect(() => {
     const p = new URLSearchParams(location.search);
     if (p.get('create') === 'group') setCreate(true);
     if (p.get('conversation')) setSelected(p.get('conversation'));
   }, []);
-  const loadMessages = useCallback(async () => {
-    if (!selected) return;
-    try {
-      const result = await api.conversations.messages(selected);
-      if (selectedRef.current !== selected) return;
-      setMessages((previous) => {
-        if (!result.length) return [];
-        const older = previous.filter((m) => m.createdAt < result[0].createdAt);
-        return [...older, ...result];
-      });
-      setHasOlder(result.length === 50);
-      setError('');
-    } catch (e) {
-      if (selectedRef.current === selected) {
-        setMessages([]);
-        setError((e as Error).message);
+  const loadMessages = useCallback((): Promise<void> => {
+    if (!selected) return Promise.resolve();
+    if (pending.current) return pending.current;
+    const version = generation.current;
+    const promise = (async () => {
+      try {
+        const after = cursor.current;
+        const result = await api.conversations.messages(selected, undefined, after);
+        if (selectedRef.current !== selected || generation.current !== version) return;
+        if (result.length) cursor.current = result[result.length - 1].id;
+        setMessages((previous) => {
+          if (!result.length) return previous;
+          const ids = new Set(previous.map((message) => message.id));
+          return [...previous, ...result.filter((message) => !ids.has(message.id))];
+        });
+        if (!after) setHasOlder(result.length === 50);
+        setError('');
+      } catch (e) {
+        if (selectedRef.current === selected && generation.current === version) {
+          setMessages([]);
+          cursor.current = undefined;
+          setError((e as Error).message);
+        }
       }
-    }
-  }, [selected, api]);
+    })().finally(() => {
+      if (pending.current === promise) pending.current = null;
+    });
+    pending.current = promise;
+    return promise;
+  }, [selected, api, membershipKey]);
   useEffect(() => {
     setMessages([]);
+    cursor.current = undefined;
+    pending.current = null;
+    olderPending.current = false;
+    setLoadingOlder(false);
+    setHasOlder(false);
+    prependScroll.current = null;
+    generation.current++;
     retryMessage.current = null;
     setError('');
     void loadMessages();
     window.addEventListener('circle-refresh', loadMessages);
-    return () => window.removeEventListener('circle-refresh', loadMessages);
+    return () => {
+      generation.current++;
+      window.removeEventListener('circle-refresh', loadMessages);
+    };
   }, [loadMessages]);
   useEffect(() => {
-    if (scroll.current) scroll.current.scrollTop = scroll.current.scrollHeight;
+    if (scroll.current) {
+      scroll.current.scrollTop =
+        prependScroll.current === null
+          ? scroll.current.scrollHeight
+          : scroll.current.scrollHeight - prependScroll.current;
+      prependScroll.current = null;
+    }
   }, [messages.length, selected]);
   const conversation = state.conversations.find((c) => c.id === selected);
   useEffect(() => {
@@ -91,11 +130,12 @@ export function MessagesPage() {
         : { body: text.trim(), clientId: crypto.randomUUID() };
     retryMessage.current = payload;
     try {
-      await mutate(() => api.conversations.send(selected, payload));
+      await api.conversations.send(selected, payload);
       setText('');
       retryMessage.current = null;
       await loadMessages();
-    } catch {
+    } catch (e) {
+      toast((e as Error).message, true);
     } finally {
       setSending(false);
     }
@@ -195,16 +235,33 @@ export function MessagesPage() {
                 {hasOlder && messages.length > 0 && (
                   <button
                     className="text-link load-older"
+                    disabled={loadingOlder}
                     onClick={async () => {
+                      if (olderPending.current) return;
+                      olderPending.current = true;
+                      setLoadingOlder(true);
+                      const version = generation.current;
                       try {
                         const older = await api.conversations.messages(
                           conversation.id,
                           messages[0].id,
                         );
-                        setMessages([...older, ...messages]);
+                        if (version !== generation.current) return;
+                        if (scroll.current)
+                          prependScroll.current =
+                            scroll.current.scrollHeight - scroll.current.scrollTop;
+                        setMessages((current) => {
+                          const ids = new Set(current.map((message) => message.id));
+                          return [...older.filter((message) => !ids.has(message.id)), ...current];
+                        });
                         setHasOlder(older.length === 50);
                       } catch (e) {
                         toast((e as Error).message, true);
+                      } finally {
+                        if (version === generation.current) {
+                          olderPending.current = false;
+                          setLoadingOlder(false);
+                        }
                       }
                     }}
                   >

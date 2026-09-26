@@ -1,6 +1,7 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   Home,
@@ -26,23 +27,69 @@ import { brand } from '@/shared/config/brand';
 import { useCircleController } from '@/frontend/hooks/use-circle-controller';
 import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
-import { AuthForm } from '@/frontend/features/auth/auth-form';
 import { Avatar, Loading, Modal } from './ui';
-import { ProfileDetails } from '@/frontend/features/profile/profile-form';
-import {
-  HomePage,
-  DiscoverPage,
-  ConnectionsPage,
-  ProfilePage,
-  NotificationsPage,
-  EventsPage,
-} from '@/frontend/pages/community-pages';
-import { IdeasPage } from '@/frontend/features/ideas/ideas-page';
-import { MessagesPage } from '@/frontend/features/messages/messages-page';
-import { ModerationDashboard, UserManagement } from '@/frontend/features/moderation/dashboard';
-import { ReportUser } from '@/frontend/features/moderation/report-user';
 import { canAssignRole, canViewModerationDashboard } from '@/shared/contracts/permissions';
 import { ThemeToggle } from './theme-toggle';
+
+const AuthForm = dynamic(
+  () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
+  { loading: () => <Loading /> },
+);
+const ProfileDetails = dynamic(
+  () => import('@/frontend/features/profile/profile-form').then((module) => module.ProfileDetails),
+  { loading: () => <Loading /> },
+);
+const HomePage = dynamic(
+  () => import('@/frontend/pages/home-page').then((module) => module.HomePage),
+  { loading: () => <Loading /> },
+);
+const DiscoverPage = dynamic(
+  () => import('@/frontend/features/discover/discover-page').then((module) => module.DiscoverPage),
+  { loading: () => <Loading /> },
+);
+const ConnectionsPage = dynamic(
+  () =>
+    import('@/frontend/features/connections/connections-page').then(
+      (module) => module.ConnectionsPage,
+    ),
+  { loading: () => <Loading /> },
+);
+const ProfilePage = dynamic(
+  () => import('@/frontend/features/profile/profile-page').then((module) => module.ProfilePage),
+  { loading: () => <Loading /> },
+);
+const NotificationsPage = dynamic(
+  () =>
+    import('@/frontend/features/notifications/notifications-page').then(
+      (module) => module.NotificationsPage,
+    ),
+  { loading: () => <Loading /> },
+);
+const EventsPage = dynamic(
+  () => import('@/frontend/features/events/events-page').then((module) => module.EventsPage),
+  { loading: () => <Loading /> },
+);
+const IdeasPage = dynamic(
+  () => import('@/frontend/features/ideas/ideas-page').then((module) => module.IdeasPage),
+  { loading: () => <Loading /> },
+);
+const MessagesPage = dynamic(
+  () => import('@/frontend/features/messages/messages-page').then((module) => module.MessagesPage),
+  { loading: () => <Loading /> },
+);
+const ModerationDashboard = dynamic(
+  () =>
+    import('@/frontend/features/moderation/dashboard').then((module) => module.ModerationDashboard),
+  { loading: () => <Loading /> },
+);
+const UserManagement = dynamic(
+  () => import('@/frontend/features/moderation/dashboard').then((module) => module.UserManagement),
+  { loading: () => <Loading /> },
+);
+const ReportUser = dynamic(
+  () => import('@/frontend/features/moderation/report-user').then((module) => module.ReportUser),
+  { loading: () => <Loading /> },
+);
 
 const nav = [
   { path: '/', label: 'Home', icon: Home },
@@ -82,10 +129,20 @@ export function CircleApp() {
     logout,
     onAuthenticated,
   } = useCircleController(path, query, toast);
-  const navigate = (to: string) => {
-    setMobile(false);
-    router.push(to);
-  };
+  const navigate = useCallback(
+    (to: string) => {
+      setMobile(false);
+      router.push(to);
+    },
+    [router],
+  );
+  const contextValue = useMemo(
+    () =>
+      state
+        ? { state, busy, mutate, api, refresh, toast, viewProfile: setProfile, navigate }
+        : null,
+    [state, busy, mutate, api, refresh, toast, navigate],
+  );
   if (!ready) return <Loading />;
   if (loadError && !state)
     return (
@@ -120,9 +177,7 @@ export function CircleApp() {
         ? 'Moderation'
         : nav.find((n) => n.path === path)?.label || 'Home';
   return (
-    <CircleContext.Provider
-      value={{ state, busy, mutate, api, refresh, toast, viewProfile: setProfile, navigate }}
-    >
+    <CircleContext.Provider value={contextValue}>
       <div className="app-shell">
         <aside className={`sidebar ${mobile ? 'open' : ''}`}>
           <Link href="/" className="wordmark">

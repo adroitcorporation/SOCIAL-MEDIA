@@ -11,19 +11,25 @@ import { Empty, Modal } from '@/frontend/components/ui';
 import { PageHeading } from '@/frontend/components/page-heading';
 import { canCreateEvent } from '@/shared/contracts/permissions';
 import { EventManager } from './event-manager';
+import { useFeedFilters } from '@/frontend/hooks/use-feed-filters';
+import { FeedPagination } from '@/frontend/components/feed-pagination';
 export function EventsPage() {
   const { api, state, mutate, busy } = useCircle();
-  const [category, setCategory] = useState('All events');
-  const [saved, setSaved] = useState(false);
-  const [search, setSearch] = useState('');
+  const {
+    category,
+    setCategory,
+    only: saved,
+    setOnly: setSaved,
+    search,
+    setSearch,
+    setPage,
+  } = useFeedFilters('All events');
   const [detail, setDetail] = useState<AppState['events'][number] | null>(null);
-  const categories = ['All events', ...new Set(state.events.map((e) => e.category))];
-  const events = state.events.filter(
-    (e) =>
-      (category === 'All events' || e.category === category) &&
-      (!saved || e.savedBy.length) &&
-      `${e.title} ${e.location}`.toLowerCase().includes(search.toLowerCase()),
-  );
+  const categories = [
+    'All events',
+    ...(state.feed?.categories || [...new Set(state.events.map((e) => e.category))]),
+  ];
+  const events = state.events;
   return (
     <>
       <PageHeading
@@ -116,6 +122,7 @@ export function EventsPage() {
           </article>
         ))}
       </div>
+      <FeedPagination feed={state.feed} setPage={setPage} />
       {!events.length && (
         <Empty
           title="The next opportunity is on its way."

@@ -39,15 +39,28 @@ export async function authenticate(request: Request) {
   const emailVerified = isConfirmedLoginEmail(data.user.email, data.user.email_confirmed_at);
   requireThat(emailVerified, 403, 'Confirm your email using the link we sent before continuing.');
   const collegeVerified = isVerifiedCollegeEmail(data.user.email, data.user.email_confirmed_at);
-  const user = await db.user.upsert({
-    where: { id: data.user.id },
-    update: { emailVerified, ...(collegeVerified ? { collegeVerified: true } : {}) },
-    create: {
-      id: data.user.id,
-      name: 'New student',
-      emailVerified,
-      collegeVerified,
-    },
-  });
-  return requireActiveActor(user.id);
+  const existing = await db.user.findUnique({ where: { id: data.user.id } });
+  // Do not write updatedAt (and invalidate every profile consumer) on ordinary reads.
+  const user =
+    existing &&
+    existing.emailVerified === emailVerified &&
+    (!collegeVerified || existing.collegeVerified)
+      ? existing
+      : await db.user.upsert({
+          where: { id: data.user.id },
+          update: { emailVerified, ...(collegeVerified ? { collegeVerified: true } : {}) },
+          create: {
+            id: data.user.id,
+            name: 'New student',
+            emailVerified,
+            collegeVerified,
+          },
+        });
+  if (user !== existing) return requireActiveActor(user.id);
+  requireThat(
+    user.accountStatus === 'ACTIVE',
+    403,
+    `Your account is ${user.accountStatus.toLowerCase()}. Contact the moderation team.`,
+  );
+  return user;
 }

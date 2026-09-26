@@ -9,6 +9,7 @@ import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Empty, Tag, Verified } from '@/frontend/components/ui';
 
 import { PageHeading } from '@/frontend/components/page-heading';
+import { applyConnection } from '@/frontend/state/connection-update';
 export function ConnectionsPage() {
   const { api, state, mutate, busy, viewProfile, navigate, toast } = useCircle();
   const [tab, setTab] = useState('accepted');
@@ -21,7 +22,7 @@ export function ConnectionsPage() {
   };
   async function act(id: string, action: ConnectionAction) {
     try {
-      await mutate(() => api.connections.update(id, { action }));
+      await mutate(() => api.connections.update(id, { action }), applyConnection);
       toast(
         action === 'accept'
           ? 'You’re connected. Say hello!'

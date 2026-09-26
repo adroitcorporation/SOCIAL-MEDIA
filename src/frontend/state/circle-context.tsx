@@ -5,7 +5,10 @@ import type { CommunityClient } from '@/frontend/api/community-client';
 export interface CircleContextValue {
   state: AppState;
   busy: boolean;
-  mutate: <T>(operation: () => Promise<T>) => Promise<T>;
+  mutate: <T>(
+    operation: () => Promise<T>,
+    update?: (state: AppState, result: T) => AppState,
+  ) => Promise<T>;
   api: CommunityClient;
   refresh: () => Promise<void>;
   toast: (message: string, error?: boolean) => void;

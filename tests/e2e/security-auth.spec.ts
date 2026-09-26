@@ -28,7 +28,9 @@ test('login and signup visibly reject non-LNMIIT email without calling the provi
         exact: true,
       })
       .click();
-    await expect(page.getByRole('alert')).toContainText('Use your @lnmiit.ac.in college email');
+    await expect(page.locator('.auth-card').getByRole('alert')).toContainText(
+      'Use your @lnmiit.ac.in college email',
+    );
   }
   expect(providerCalls).toBe(0);
 });
@@ -46,6 +48,6 @@ test('shows an email-not-confirmed provider error', async ({ page }) => {
   await page.getByLabel('Email address').fill('synthetic@lnmiit.ac.in');
   await page.getByLabel('Password', { exact: true }).fill('synthetic-password-123');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Email not confirmed');
+  await expect(page.locator('.auth-card').getByRole('alert')).toContainText('Email not confirmed');
   expect(providerCalls).toBe(1);
 });

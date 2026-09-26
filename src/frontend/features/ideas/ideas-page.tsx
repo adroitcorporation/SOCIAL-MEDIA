@@ -6,6 +6,8 @@ import type { IdeaItem, ResonanceItem } from '@/shared/contracts/responses';
 import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Empty, Modal, Tag } from '@/frontend/components/ui';
 import { PageHeading } from '@/frontend/components/page-heading';
+import { useFeedFilters } from '@/frontend/hooks/use-feed-filters';
+import { FeedPagination } from '@/frontend/components/feed-pagination';
 
 export function IdeaCard({ idea, compact = false }: { idea: IdeaItem; compact?: boolean }) {
   const { api, state, mutate, busy, viewProfile } = useCircle();
@@ -79,15 +81,21 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
   const existing = state.conversations.find((c) => c.ideaId === idea.id);
   useEffect(() => {
     if (!mine) return;
+    let active = true;
     const load = () =>
       api.ideas
         .resonances(idea.id)
-        .then(setPeople)
-        .catch((e) => setError(e.message));
+        .then((rows) => {
+          if (active) setPeople(rows);
+        })
+        .catch((e) => {
+          if (active) setError(e.message);
+        });
     void load();
-    window.addEventListener('circle-refresh', load);
-    return () => window.removeEventListener('circle-refresh', load);
-  }, [api, idea.id, mine]);
+    return () => {
+      active = false;
+    };
+  }, [api, idea.id, mine, idea._count.resonances, state.blockedIds]);
   return (
     <Modal title="One idea. A world of possibility." onClose={onClose} wide>
       <div className="idea-detail">
@@ -224,20 +232,22 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
 export function IdeasPage() {
   const { api, state, mutate, toast } = useCircle();
   const [create, setCreate] = useState(false);
-  const [mine, setMine] = useState(false);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('All ideas');
+  const {
+    category,
+    setCategory,
+    only: mine,
+    setOnly: setMine,
+    search,
+    setSearch,
+    setPage,
+  } = useFeedFilters('All ideas');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const categories = ['All ideas', ...new Set(state.ideas.map((i) => i.category))];
-  const items = state.ideas.filter(
-    (i) =>
-      (!mine || i.authorId === state.me.id) &&
-      (category === 'All ideas' || category === i.category) &&
-      `${i.title} ${i.description} ${i.skills.join(' ')}`
-        .toLowerCase()
-        .includes(search.toLowerCase()),
-  );
+  const categories = [
+    'All ideas',
+    ...(state.feed?.categories || [...new Set(state.ideas.map((i) => i.category))]),
+  ];
+  const items = state.ideas;
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -315,6 +325,7 @@ export function IdeasPage() {
           <IdeaCard idea={i} key={i.id} />
         ))}
       </div>
+      <FeedPagination feed={state.feed} setPage={setPage} />
       {!items.length && (
         <Empty
           title="A blank canvas. Your move."

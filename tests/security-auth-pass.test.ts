@@ -43,6 +43,22 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 describe('real authentication function with mocked Supabase provider', () => {
+  it('does not rewrite or reread an unchanged verified profile and still checks current account status', async () => {
+    const verified = { ...actor, emailVerified: true, collegeVerified: true };
+    doubles.findUnique.mockResolvedValue(verified);
+    doubles.getUser.mockResolvedValue({
+      data: {
+        user: { id: actor.id, email: 'person@lnmiit.ac.in', email_confirmed_at: '2026-01-01' },
+      },
+      error: null,
+    });
+    expect(await authenticate(request())).toEqual(verified);
+    expect(doubles.findUnique).toHaveBeenCalledOnce();
+    expect(doubles.upsert).not.toHaveBeenCalled();
+    doubles.findUnique.mockResolvedValue({ ...verified, accountStatus: 'SUSPENDED' });
+    await expect(authenticate(request())).rejects.toMatchObject({ status: 403 });
+    expect(doubles.getUser).toHaveBeenCalledTimes(2);
+  });
   it.each(['person@example.com', 'person@lnmiit.ac.in.attacker.test'])(
     'rejects confirmed foreign address %s',
     async (email) => {

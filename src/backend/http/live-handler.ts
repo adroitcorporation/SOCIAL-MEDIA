@@ -13,10 +13,12 @@ export async function handleLiveRequest(request: Request) {
   let timer: ReturnType<typeof setInterval>;
   let closeTimer: ReturnType<typeof setTimeout>;
   let stopped = false;
+  let onAbort: (() => void) | undefined;
   const cleanup = () => {
     stopped = true;
     clearInterval(timer);
     clearTimeout(closeTimer);
+    if (onAbort) request.signal.removeEventListener('abort', onAbort);
   };
   const stream = new ReadableStream({
     start(controller) {
@@ -27,7 +29,12 @@ export async function handleLiveRequest(request: Request) {
           controller.close();
         }
       };
+      onAbort = close;
       request.signal.addEventListener('abort', close, { once: true });
+      if (request.signal.aborted) {
+        close();
+        return;
+      }
       controller.enqueue(encoder.encode('event: ready\ndata: {}\n\n'));
       // Stateless invalidations work across Render instances. Every subsequent data read
       // revalidates auth and membership; removed users never receive private payloads here.

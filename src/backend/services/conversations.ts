@@ -4,6 +4,7 @@ import { accepted, notBlocked, pairKey, membership } from './access';
 import { notify } from './notifications';
 import { z } from 'zod';
 import { groupSchema, groupActionSchema, safeUrl } from '@/shared/contracts/schemas';
+import { visibleTo } from './query-shapes';
 
 export async function directConversation(actor: string, target: string) {
   return transaction(async (tx) => {
@@ -25,7 +26,17 @@ export async function createGroup(actor: string, input: unknown) {
   const ids = [...new Set(memberIds)].filter((id) => id !== actor);
   requireThat(ids.length > 0, 400, 'Select at least one connection.');
   return transaction(async (tx) => {
-    for (const id of ids) await accepted(tx, actor, id);
+    const eligible = await tx.user.count({
+      where: {
+        id: { in: ids },
+        ...visibleTo(actor),
+        OR: [
+          { sent: { some: { receiverId: actor, status: 'ACCEPTED' } } },
+          { received: { some: { requesterId: actor, status: 'ACCEPTED' } } },
+        ],
+      },
+    });
+    requireThat(eligible === ids.length, 403, 'Only accepted connections can be invited.');
     const group = await tx.conversation.create({
       data: {
         type: 'GROUP',
@@ -39,14 +50,14 @@ export async function createGroup(actor: string, input: unknown) {
         },
       },
     });
-    for (const id of ids)
-      await notify(
-        tx,
-        id,
-        'Welcome to the group',
-        `You were added to ${name}.`,
-        `/messages?conversation=${group.id}`,
-      );
+    await tx.notification.createMany({
+      data: ids.map((userId) => ({
+        userId,
+        title: 'Welcome to the group',
+        body: `You were added to ${name}.`,
+        href: `/messages?conversation=${group.id}`,
+      })),
+    });
     return group;
   });
 }

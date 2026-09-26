@@ -3,6 +3,7 @@ import { transaction } from '@/backend/database/transaction';
 import { membership } from './access';
 import { z } from 'zod';
 import { messageSchema } from '@/shared/contracts/schemas';
+import { chatIdentity, visibleTo } from './query-shapes';
 
 export async function sendMessage(actor: string, conversationId: string, input: unknown) {
   const data = messageSchema.parse(input);
@@ -28,37 +29,58 @@ export async function sendMessage(actor: string, conversationId: string, input: 
   });
 }
 
-export async function readMessages(actor: string, conversationId: string, before?: string) {
+export async function readMessages(
+  actor: string,
+  conversationId: string,
+  before?: string,
+  after?: string,
+) {
+  requireThat(!(before && after), 400, 'Use only one message cursor.');
   return transaction(async (tx) => {
-    await membership(tx, actor, conversationId);
-    const boundary = before
+    const member = await membership(tx, actor, conversationId);
+    const cursor = before || after;
+    const boundary = cursor
       ? await tx.message.findFirst({
-          where: { id: z.string().max(100).parse(before), conversationId },
+          where: { id: z.string().max(100).parse(cursor), conversationId },
+          select: { id: true, createdAt: true },
         })
       : undefined;
-    requireThat(!before || boundary, 400, 'Invalid message cursor.');
+    requireThat(!cursor || boundary, 400, 'Invalid message cursor.');
     const readAt = new Date();
     const messages = await tx.message.findMany({
       where: {
         conversationId,
+        sender: visibleTo(actor),
         ...(boundary
           ? {
               OR: [
-                { createdAt: { lt: boundary.createdAt } },
-                { createdAt: boundary.createdAt, id: { lt: boundary.id } },
+                { createdAt: after ? { gt: boundary.createdAt } : { lt: boundary.createdAt } },
+                {
+                  createdAt: boundary.createdAt,
+                  id: after ? { gt: boundary.id } : { lt: boundary.id },
+                },
               ],
             }
           : {}),
       },
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      orderBy: [{ createdAt: after ? 'asc' : 'desc' }, { id: after ? 'asc' : 'desc' }],
       take: 50,
-      include: { sender: true },
+      include: { sender: { select: chatIdentity } },
     });
-    if (!before)
+    if (
+      !before &&
+      (!after || messages.length || (boundary && member.lastReadAt < boundary.createdAt))
+    )
       await tx.conversationMember.update({
         where: { conversationId_userId: { conversationId, userId: actor } },
-        data: { lastReadAt: readAt },
+        // A full batch may end within a timestamp shared by undelivered messages.
+        data: {
+          lastReadAt:
+            after && messages.length === 50
+              ? new Date(messages[messages.length - 1].createdAt.getTime() - 1)
+              : readAt,
+        },
       });
-    return messages.reverse();
+    return after ? messages : messages.reverse();
   });
 }

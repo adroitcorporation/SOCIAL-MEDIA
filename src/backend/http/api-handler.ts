@@ -158,6 +158,7 @@ export async function handleApiRequest(request: Request, path: string[]) {
           user.id,
           id,
           new URL(request.url).searchParams.get('before') || undefined,
+          new URL(request.url).searchParams.get('after') || undefined,
         ),
       );
     else if (resource === 'ideas' && !id && method === 'POST')

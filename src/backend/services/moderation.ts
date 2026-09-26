@@ -197,10 +197,8 @@ export async function dashboard(actor: string) {
     db.user.count({ where: { collegeVerified: true } }),
     db.user.count({ where: { collegeVerified: false } }),
     db.report.count(),
-    db.report.findMany({
-      where: { status: { in: ['OPEN', 'REVIEWED', 'ESCALATED'] } },
-      distinct: ['targetId'],
-      select: { targetId: true },
+    db.user.count({
+      where: { reportsReceived: { some: { status: { in: ['OPEN', 'REVIEWED', 'ESCALATED'] } } } },
     }),
     db.user.count({ where: { accountStatus: 'SUSPENDED' } }),
     db.user.count({ where: { accountStatus: 'BANNED' } }),
@@ -231,7 +229,7 @@ export async function dashboard(actor: string) {
       verifiedUsers,
       unverifiedUsers,
       totalReports,
-      flaggedUsers: flagged.length,
+      flaggedUsers: flagged,
       suspendedUsers,
       bannedUsers,
       restrictedUsers,

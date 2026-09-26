@@ -101,10 +101,10 @@ export interface Message {
   createdAt: IsoDateTime;
 }
 export interface ChatMessage extends Message {
-  sender: Student;
+  sender: Pick<Student, 'id' | 'name' | 'photo'>;
 }
 export interface ConversationItem extends Conversation {
-  members: (ConversationMember & { user: Student })[];
+  members: (ConversationMember & { user: Pick<Student, 'id' | 'name' | 'photo'> })[];
   messages: ChatMessage[];
   myRole: MemberRole;
   unread: number;
@@ -161,6 +161,7 @@ export interface NotificationItem {
   createdAt: IsoDateTime;
 }
 export interface AppState {
+  feed?: { page: number; hasNext: boolean; categories: string[] };
   me: Student;
   verification?: CollegeVerification | null;
   isModerator?: boolean;

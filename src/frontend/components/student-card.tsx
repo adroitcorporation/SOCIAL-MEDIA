@@ -5,6 +5,7 @@ import type { Student } from '@/shared/contracts/responses';
 
 import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Tag, Verified } from '@/frontend/components/ui';
+import { applyConnection } from '@/frontend/state/connection-update';
 
 export function StudentCard({ student }: { student: Student }) {
   const { api, state, mutate, busy, viewProfile, toast, navigate } = useCircle();
@@ -63,10 +64,12 @@ export function StudentCard({ student }: { student: Student }) {
               className="button small secondary"
               onClick={async () => {
                 try {
-                  await mutate(() =>
-                    api.connections.update(connection.id, {
-                      action: outgoing ? 'cancel' : 'accept',
-                    }),
+                  await mutate(
+                    () =>
+                      api.connections.update(connection.id, {
+                        action: outgoing ? 'cancel' : 'accept',
+                      }),
+                    applyConnection,
                   );
                   toast(outgoing ? 'Request cancelled.' : 'You’re connected!');
                 } catch {}
@@ -87,7 +90,10 @@ export function StudentCard({ student }: { student: Student }) {
                   return;
                 }
                 try {
-                  await mutate(() => api.connections.request({ userId: student.id }));
+                  await mutate(
+                    () => api.connections.request({ userId: student.id }),
+                    applyConnection,
+                  );
                   toast('Request sent. A new connection starts here.');
                 } catch {}
               }}

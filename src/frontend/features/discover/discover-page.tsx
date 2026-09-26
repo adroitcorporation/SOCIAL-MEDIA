@@ -10,7 +10,7 @@ import { Empty } from '@/frontend/components/ui';
 import { PageHeading } from '@/frontend/components/page-heading';
 import { StudentCard } from '@/frontend/components/student-card';
 export function DiscoverPage() {
-  const { api, state, refresh, mutate, toast } = useCircle();
+  const { api, state, navigate, mutate, toast } = useCircle();
   const [filters, setFilters] = useState(false);
   const [search, setSearch] = useState('');
   useEffect(() => {
@@ -22,12 +22,7 @@ export function DiscoverPage() {
     new FormData(event.currentTarget).forEach((value, key) => {
       if (String(value).trim()) params.set(key, String(value).trim());
     });
-    history.replaceState(null, '', `/discover?${params}`);
-    try {
-      await refresh();
-    } catch (e) {
-      toast((e as Error).message, true);
-    }
+    navigate(`/discover?${params}`);
   }
   const page =
     typeof window !== 'undefined'
@@ -118,8 +113,7 @@ export function DiscoverPage() {
           onClick={async () => {
             const p = new URLSearchParams(location.search);
             p.set('page', String(page - 1));
-            history.replaceState(null, '', `/discover?${p}`);
-            await refresh();
+            navigate(`/discover?${p}`);
           }}
         >
           Previous
@@ -131,8 +125,7 @@ export function DiscoverPage() {
           onClick={async () => {
             const p = new URLSearchParams(location.search);
             p.set('page', String(page + 1));
-            history.replaceState(null, '', `/discover?${p}`);
-            await refresh();
+            navigate(`/discover?${p}`);
           }}
         >
           Next <ArrowRight size={15} />

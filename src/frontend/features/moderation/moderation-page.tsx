@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Mail, X } from 'lucide-react';
 import { useCircle } from '@/frontend/state/circle-context';
 import type { VerificationReviewItem } from '@/shared/contracts/responses';
@@ -11,7 +11,24 @@ function DocumentPreview({ request }: { request: VerificationReviewItem }) {
   const { api } = useCircle();
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
+  const preview = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
   useEffect(() => {
+    if (!preview.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(preview.current);
+    return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!visible) return;
     let active = true;
     let objectUrl: string | undefined;
     api.moderation
@@ -28,21 +45,25 @@ function DocumentPreview({ request }: { request: VerificationReviewItem }) {
       active = false;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [api, request.id]);
+  }, [api, request.id, visible]);
   if (error)
     return (
       <p role="alert" className="error">
         {error}
       </p>
     );
-  return url ? (
-    <img
-      className="verification-document"
-      src={url}
-      alt={`College ID submitted by ${request.user.name}`}
-    />
-  ) : (
-    <p className="muted">Loading private image...</p>
+  return (
+    <div ref={preview}>
+      {url ? (
+        <img
+          className="verification-document"
+          src={url}
+          alt={`College ID submitted by ${request.user.name}`}
+        />
+      ) : (
+        <p className="muted">Loading private image...</p>
+      )}
+    </div>
   );
 }
 

@@ -105,6 +105,7 @@ model User {
   reviewedVerifications CollegeVerificationRequest[] @relation("VerificationReviewer")
 
   @@index([college, city])
+  @@index([accountStatus, onboarded, createdAt(sort: Desc), id])
 }
 
 model CollegeVerificationRequest {
@@ -150,6 +151,7 @@ model Block {
   blocked   User   @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
 
   @@id([blockerId, blockedId])
+  @@index([blockedId])
 }
 
 model Skip {
@@ -201,7 +203,7 @@ model Message {
   sender         User         @relation(fields: [senderId], references: [id])
 
   @@unique([senderId, clientId])
-  @@index([conversationId, createdAt])
+  @@index([conversationId, createdAt, id])
 }
 
 model Idea {
@@ -218,7 +220,7 @@ model Idea {
   resonances   IdeaResonance[]
   conversation Conversation?
 
-  @@index([createdAt])
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
 }
 
 model IdeaResonance {
@@ -245,7 +247,7 @@ model Event {
   url         String
   savedBy     SavedEvent[]
 
-  @@index([startsAt])
+  @@index([startsAt, id])
   @@index([ownerId])
 }
 
@@ -306,4 +308,6 @@ model RateLimit {
   key       String   @id
   count     Int      @default(1)
   expiresAt DateTime
+
+  @@index([expiresAt])
 }

@@ -4,6 +4,8 @@ import { transaction } from '@/backend/database/transaction';
 import { notBlocked } from './access';
 import { notify } from './notifications';
 import { ideaSchema } from '@/shared/contracts/schemas';
+import { visibleTo } from './query-shapes';
+import { requireActiveActor } from './permissions';
 
 export async function listResonances(actor: string, ideaId: string) {
   requireThat(
@@ -12,7 +14,7 @@ export async function listResonances(actor: string, ideaId: string) {
     'Only the idea author can see who resonated.',
   );
   return db.ideaResonance.findMany({
-    where: { ideaId },
+    where: { ideaId, user: visibleTo(actor) },
     include: { user: true },
     orderBy: { createdAt: 'desc' },
     take: 500,
@@ -30,14 +32,14 @@ export async function getOrCreateIdeaGroup(actor: string, ideaId: string, member
       'Only the idea owner can manage its collaboration group.',
     );
     const ids = [...new Set(memberIds)].filter((id) => id !== actor);
-    for (const userId of ids) {
-      await notBlocked(tx, actor, userId);
-      requireThat(
-        await tx.ideaResonance.findUnique({ where: { ideaId_userId: { ideaId, userId } } }),
-        403,
-        'Only students who resonated can be invited.',
-      );
-    }
+    const eligible = await tx.ideaResonance.count({
+      where: { ideaId, userId: { in: ids }, user: visibleTo(actor) },
+    });
+    requireThat(
+      eligible === ids.length,
+      403,
+      'Only unblocked students who resonated can be invited.',
+    );
     const group = await tx.conversation.upsert({
       where: { ideaId },
       update: {},
@@ -59,20 +61,18 @@ export async function getOrCreateIdeaGroup(actor: string, ideaId: string, member
       400,
       'Groups support up to 100 members.',
     );
-    for (const userId of newIds) {
-      const exists = await tx.conversationMember.findUnique({
-        where: { conversationId_userId: { conversationId: group.id, userId } },
+    if (newIds.length) {
+      await tx.conversationMember.createMany({
+        data: newIds.map((userId) => ({ conversationId: group.id, userId })),
       });
-      if (!exists) {
-        await tx.conversationMember.create({ data: { conversationId: group.id, userId } });
-        await notify(
-          tx,
+      await tx.notification.createMany({
+        data: newIds.map((userId) => ({
           userId,
-          'Let’s build this together',
-          `You were invited to ${idea.title}.`,
-          `/messages?conversation=${group.id}`,
-        );
-      }
+          title: 'Let’s build this together',
+          body: `You were invited to ${idea.title}.`,
+          href: `/messages?conversation=${group.id}`,
+        })),
+      });
     }
     return group;
   });
@@ -104,5 +104,10 @@ export async function resonate(actor: string, ideaId: string, enabled: boolean) 
   });
 }
 
-export const createIdea = (actor: string, input: unknown) =>
-  db.idea.create({ data: { ...ideaSchema.parse(input), authorId: actor } });
+export const createIdea = (actor: string, input: unknown) => {
+  const data = ideaSchema.parse(input);
+  return transaction(async (tx) => {
+    await requireActiveActor(actor, tx);
+    return tx.idea.create({ data: { ...data, authorId: actor } });
+  });
+};

@@ -105,9 +105,9 @@ export function createCommunityClient(http: HttpClient) {
         http.request<Conversation>('conversations', input),
       update: (conversationId: string, input: GroupUpdateRequest) =>
         http.request<GroupUpdateResponse>(`conversations/${id(conversationId)}`, input, 'PATCH'),
-      messages: (conversationId: string, before?: string) =>
+      messages: (conversationId: string, before?: string, after?: string) =>
         http.request<ChatMessage[]>(
-          `conversations/${id(conversationId)}/messages${before ? `?before=${id(before)}` : ''}`,
+          `conversations/${id(conversationId)}/messages${before ? `?before=${id(before)}` : after ? `?after=${id(after)}` : ''}`,
         ),
       send: (conversationId: string, input: SendMessageRequest) =>
         http.request<Message>(`conversations/${id(conversationId)}/messages`, input),
