@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { pageIdentity } from '@/backend/auth/page-session';
-import Page from '@/app/[[...page]]/page';
+import Page from '@/app/(circle)/[[...page]]/page';
 import { userRoles } from '@/shared/contracts/permissions';
 vi.mock('@/backend/auth/page-session', () => ({
   pageIdentity: vi.fn(),
@@ -12,7 +12,7 @@ vi.mock('next/navigation', () => ({
     throw new Error('Not found');
   },
 }));
-vi.mock('@/frontend/components/circle-app', () => ({ CircleApp: () => null }));
+vi.mock('@/frontend/components/circle-screen', () => ({ CircleScreen: () => null }));
 describe('server page authorization', () => {
   for (const role of userRoles) {
     it(`checks ${role} before rendering moderation pages`, async () => {

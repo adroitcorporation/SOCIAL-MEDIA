@@ -1,5 +1,81 @@
 import { expect, test } from '@playwright/test';
 
+test('first load still waits for usable state and reports a failed request', async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/state?**', async (route) => {
+    await pending;
+    await route.fulfill({ status: 503, json: { error: 'State service unavailable' } });
+  });
+  try {
+    await page.goto('/connections');
+    await expect(page.getByText('Finding your circle…', { exact: true })).toBeVisible();
+    await expect(page.locator('.app-shell')).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(page.getByText('State service unavailable', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
+});
+
+for (const status of [401, 403, 503]) {
+  test(`a failed navigation (${status}) clears private state and shows the failure`, async ({
+    page,
+  }) => {
+    await page.goto('/events');
+    await expect(page.locator('.event-card').first()).toBeVisible();
+    await page.route('**/api/state?**', (route) =>
+      route.fulfill({
+        status,
+        json: { error: 'Destination unavailable' },
+      }),
+    );
+    await page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true }).click();
+    if (status === 401)
+      await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
+    else await expect(page.getByText('Destination unavailable', { exact: true })).toBeVisible();
+    await expect(page.locator('.app-shell')).toHaveCount(0);
+    await expect(page.locator('.connection-card, .event-card')).toHaveCount(0);
+  });
+}
+
+test('switching to connections keeps the shell while destination state loads', async ({ page }) => {
+  await page.goto('/events');
+  await expect(page.locator('.event-card').first()).toBeVisible();
+  const shell = await page.locator('.app-shell').elementHandle();
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let requested!: () => void;
+  const requestStarted = new Promise<void>((resolve) => {
+    requested = resolve;
+  });
+  await page.route('**/api/state?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('view') === '/connections') {
+      requested();
+      await pending;
+    }
+    await route.continue();
+  });
+  try {
+    await page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true }).click();
+    await requestStarted;
+    await expect(page.locator('.sidebar')).toBeVisible();
+    await expect(page.locator('.topbar')).toBeVisible();
+    expect(await shell!.evaluate((node) => node.isConnected)).toBe(true);
+    // The events snapshot has no connections: do not present it as an empty connections result.
+    await expect(page.getByText('Your circle, growing.', { exact: true })).toHaveCount(0);
+  } finally {
+    release();
+  }
+  await expect(page.getByRole('heading', { name: 'Your circle, growing.' })).toBeVisible();
+  await expect(page.locator('.connection-card').first()).toBeVisible();
+  expect(await shell!.evaluate((node) => node.isConnected)).toBe(true);
+});
+
 test('screen navigation loads state once without repeating the same-token session bridge', async ({
   page,
   request,
@@ -21,9 +97,11 @@ test('screen navigation loads state once without repeating the same-token sessio
     ).toString('base64url'),
     'synthetic',
   ].join('.');
-  await page.route('**/api/config', (route) =>
-    route.fulfill({ json: { demo: false, configured: true } }),
-  );
+  let configReads = 0;
+  await page.route('**/api/config', (route) => {
+    configReads++;
+    return route.fulfill({ json: { demo: false, configured: true } });
+  });
   await page.route('**/api/live', (route) =>
     route.fulfill({ contentType: 'text/event-stream', body: 'event: ready\ndata: {}\n\n' }),
   );
@@ -54,6 +132,7 @@ test('screen navigation loads state once without repeating the same-token sessio
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.locator('.student-card').first()).toBeVisible();
   expect(bridgePosts).toBe(1);
+  const initialConfigReads = configReads;
   for (const [name, selector] of [
     ['Discover', '.discover-grid .student-card'],
     ['Events', '.event-card'],
@@ -64,5 +143,6 @@ test('screen navigation loads state once without repeating the same-token sessio
     await expect(page.locator(selector).first()).toBeVisible();
     expect(stateReads).toHaveLength(before + 1);
     expect(bridgePosts).toBe(1);
+    expect(configReads).toBe(initialConfigReads);
   }
 });

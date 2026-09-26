@@ -19,6 +19,7 @@ export function useCircleController(
   const [signedIn, setSignedIn] = useState(false);
   const [ready, setReady] = useState(false);
   const [state, setState] = useState<AppState | null>(null);
+  const [stateLocation, setStateLocation] = useState<string | null>(null);
   const [loadError, setLoadError] = useState('');
   const [busy, setBusy] = useState(false);
   const refreshRef = useRef<() => Promise<void>>(async () => {});
@@ -111,6 +112,7 @@ export function useCircleController(
         throw error;
       }
       if (version !== refreshVersion.current) return;
+      setStateLocation(`${path}?${query}`);
       setState((previous) => {
         if (!previous) return result;
         // Keep unchanged sections stable so polling does not retrigger dependent effects.
@@ -193,6 +195,7 @@ export function useCircleController(
     signedIn,
     ready,
     state,
+    screenPending: stateLocation !== `${path}?${query}`,
     loadError,
     busy,
     api,

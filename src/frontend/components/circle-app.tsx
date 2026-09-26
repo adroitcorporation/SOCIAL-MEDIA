@@ -28,17 +28,7 @@ import { useCircleController } from '@/frontend/hooks/use-circle-controller';
 import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
 import { Avatar, Loading, Modal } from './ui';
-import { canAssignRole, canViewModerationDashboard } from '@/shared/contracts/permissions';
 import { ThemeToggle } from './theme-toggle';
-import { HomePage } from '@/frontend/pages/home-page';
-import { DiscoverPage } from '@/frontend/features/discover/discover-page';
-import { ConnectionsPage } from '@/frontend/features/connections/connections-page';
-import { ProfilePage } from '@/frontend/features/profile/profile-page';
-import { NotificationsPage } from '@/frontend/features/notifications/notifications-page';
-import { EventsPage } from '@/frontend/features/events/events-page';
-import { IdeasPage } from '@/frontend/features/ideas/ideas-page';
-import { MessagesPage } from '@/frontend/features/messages/messages-page';
-import { ModerationDashboard, UserManagement } from '@/frontend/features/moderation/dashboard';
 
 const AuthForm = dynamic(
   () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
@@ -63,7 +53,7 @@ const nav = [
   { path: '/notifications', label: 'Notifications', icon: Bell },
   { path: '/profile', label: 'Profile', icon: UserRound },
 ];
-export function CircleApp() {
+export function CircleApp({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const query = useSearchParams().toString();
@@ -83,6 +73,7 @@ export function CircleApp() {
     signedIn,
     ready,
     state,
+    screenPending,
     loadError,
     busy,
     api,
@@ -124,6 +115,7 @@ export function CircleApp() {
   if (!signedIn || path === '/reset-password')
     return (
       <AuthForm
+        key={path}
         configured={Boolean(config?.configured)}
         initialMode={path === '/reset-password' ? 'reset' : path === '/signup' ? 'signup' : 'login'}
         onAuthenticated={onAuthenticated}
@@ -267,35 +259,7 @@ export function CircleApp() {
             </div>
           )}
           <main className={`page-content ${path === '/messages' ? 'message-page' : ''}`}>
-            {path === '/discover' ? (
-              <DiscoverPage />
-            ) : path === '/connections' ? (
-              <ConnectionsPage />
-            ) : path === '/ideas' ? (
-              <IdeasPage />
-            ) : path === '/events' ? (
-              <EventsPage />
-            ) : path === '/messages' ? (
-              <MessagesPage />
-            ) : path === '/notifications' ? (
-              <NotificationsPage />
-            ) : path === '/profile' ? (
-              <ProfilePage />
-            ) : path === '/moderation' ? (
-              canViewModerationDashboard(state.me) ? (
-                <ModerationDashboard />
-              ) : (
-                <p role="alert">Moderator access required.</p>
-              )
-            ) : path === '/moderation/roles' ? (
-              canAssignRole(state.me, 'STUDENT') ? (
-                <UserManagement rolesOnly />
-              ) : (
-                <p role="alert">Ultimate Moderator access required.</p>
-              )
-            ) : (
-              <HomePage />
-            )}
+            {screenPending ? <Loading /> : children}
           </main>
           <footer className="footer">
             <span>Made for the ones who make things happen.</span>

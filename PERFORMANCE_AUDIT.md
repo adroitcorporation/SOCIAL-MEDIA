@@ -1,5 +1,14 @@
 # Performance audit — 2026-09-27
 
+## Full-screen navigation pause follow-up
+
+- **P1 root cause:** `CircleApp` was mounted in the changing catch-all page. Switching tabs discarded its controller, auth readiness, and snapshot, triggering the full-screen loading branch. A gated Connections request reproduced the missing sidebar before the fix.
+- **Fix:** moved the shell/controller into `src/app/(circle)/layout.tsx`; moved the existing server page into that group without changing its authorization checks or URLs. Extracted its screen selection to `frontend/components/circle-screen.tsx`. `use-circle-controller.ts` tracks the location of the usable snapshot: destination loading stays inside the shell, and a previous screen's scoped payload is never treated as destination data. The screen also waits for the destination server page. Auth form mode resets on path changes.
+- **Safety:** first-load loading/errors remain; 401 clears state and requires sign-in; 403/503 clear state and display the error. No API contracts, backend queries, hosting settings, or migrations changed in this follow-up.
+- **Deployment evidence:** fetched the live `/connections` HTML and its referenced JavaScript on 2026-09-27. Chunk `14u33zllu11m7.js` already contains the prior same-token `/session` cache (`expiresAt: Date.now()+6e4`) and screen-scoped `view` requests, but still creates the controller inside the page-mounted `CircleApp`. This fix requires a new frontend deployment; the live signed-in flow and exact deployed Git SHA were not verified.
+- **Checks:** navigation regression failed before and passed after, retaining the same shell DOM node during a held request. Six loading/navigation cases plus two auth browser cases passed; ten session/page-authorization unit cases passed; typecheck and direct Next production build passed. `npm run build` encountered a Windows Prisma DLL lock from the running development server before reaching Next; `next build` succeeded with the existing generated client. Boundary-check exception and page-permission test imports follow the moved page.
+- **Files:** grouped layout/page, `circle-app.tsx`, `circle-screen.tsx`, `use-circle-controller.ts`, `tests/e2e/screen-loading.spec.ts`, `tests/page-permissions.test.ts`, `scripts/check-boundaries.mjs`, this audit. Production network/cold-start duration remains unmeasured; it does not explain the confirmed component remount.
+
 ## Confirmed screen-loading cause and targeted follow-up
 
 The catch-all page remounts `CircleApp`/`useCircleController` during screen navigation. Its component-local `pageToken` marker resets, so an unchanged authenticated session repeats `/session` **before** fetching `/api/state`. The bridge itself verifies identity; on split deployments this adds another authentication/network round trip to the critical path.

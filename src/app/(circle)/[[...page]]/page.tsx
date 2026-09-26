@@ -1,5 +1,4 @@
-import { CircleApp } from '@/frontend/components/circle-app';
-import { Suspense } from 'react';
+import { CircleScreen } from '@/frontend/components/circle-screen';
 import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { pageIdentity, pageSessionCookie } from '@/backend/auth/page-session';
@@ -50,9 +49,5 @@ export default async function Page({ params }: { params: Promise<{ page?: string
         </main>
       );
   }
-  return (
-    <Suspense fallback={<div className="loading">Finding your circle…</div>}>
-      <CircleApp />
-    </Suspense>
-  );
+  return <CircleScreen path={`/${route}`} />;
 }

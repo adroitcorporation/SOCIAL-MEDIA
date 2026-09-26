@@ -87,7 +87,11 @@ for (const file of await files(root)) {
       const allowed =
         relative.startsWith('app/api/') || relative === 'app/session/route.ts'
           ? ['backend', 'shared']
-          : ['frontend', 'shared', ...(relative === 'app/[[...page]]/page.tsx' ? ['backend'] : [])];
+          : [
+              'frontend',
+              'shared',
+              ...(relative === 'app/(circle)/[[...page]]/page.tsx' ? ['backend'] : []),
+            ];
       if (!allowed.includes(targetLayer)) fail(`Route adapter cannot import ${specifier}`);
     }
   }
