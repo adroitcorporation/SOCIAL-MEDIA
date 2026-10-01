@@ -76,6 +76,37 @@ test('switching to connections keeps the shell while destination state loads', a
   expect(await shell!.evaluate((node) => node.isConnected)).toBe(true);
 });
 
+test('returning to a visited screen renders its cached state while it refreshes', async ({ page }) => {
+  await page.goto('/events');
+  await expect(page.locator('.event-card').first()).toBeVisible();
+  await page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true }).click();
+  await expect(page.locator('.connection-card').first()).toBeVisible();
+
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let requested!: () => void;
+  const requestStarted = new Promise<void>((resolve) => {
+    requested = resolve;
+  });
+  await page.route('**/api/state?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('view') === '/events') {
+      requested();
+      await pending;
+    }
+    await route.continue();
+  });
+
+  try {
+    await page.locator('.sidebar').getByRole('link', { name: 'Events', exact: true }).click();
+    await requestStarted;
+    await expect(page.locator('.event-card').first()).toBeVisible();
+  } finally {
+    release();
+  }
+});
+
 test('screen navigation loads state once without repeating the same-token session bridge', async ({
   page,
   request,

@@ -8,6 +8,33 @@ import { createCommunityClient } from '@/frontend/api/community-client';
 import { subscribeToLiveUpdates } from '@/frontend/api/live-updates';
 import { syncPageSession, clearPageSession } from '@/frontend/api/page-session';
 
+const maxCachedViews = 8;
+
+function rememberView(cache: Map<string, AppState>, location: string, state: AppState) {
+  cache.delete(location);
+  cache.set(location, state);
+  while (cache.size > maxCachedViews) {
+    const oldest = cache.keys().next().value;
+    if (oldest === undefined) break;
+    cache.delete(oldest);
+  }
+}
+
+function reuseUnchangedSections(previous: AppState | undefined, result: AppState) {
+  if (!previous) return result;
+  const shared = { ...result };
+  for (const key of Object.keys(result) as (keyof AppState)[]) {
+    if (JSON.stringify(previous[key]) === JSON.stringify(result[key]))
+      Object.assign(shared, { [key]: previous[key] });
+  }
+  return Object.keys(shared).length === Object.keys(previous).length &&
+    Object.keys(shared).every(
+      (key) => shared[key as keyof AppState] === previous[key as keyof AppState],
+    )
+    ? previous
+    : shared;
+}
+
 const publicApi = createCommunityClient(createHttpClient());
 export function useCircleController(
   path: string,
@@ -26,6 +53,7 @@ export function useCircleController(
   const refreshVersion = useRef(0);
   const pageToken = useRef<string | undefined>(undefined);
   const inFlight = useRef<{ key: string; promise: Promise<void> } | null>(null);
+  const viewCache = useRef(new Map<string, AppState>());
   useEffect(() => {
     let active = true;
     let unsubscribe: (() => void) | undefined;
@@ -46,6 +74,7 @@ export function useCircleController(
               refreshVersion.current++;
               inFlight.current = null;
               pageToken.current = undefined;
+              viewCache.current.clear();
               setState(null);
             }
             if (session.recoveringPassword) router.push('/reset-password');
@@ -74,6 +103,7 @@ export function useCircleController(
           onUnauthorized: () => {
             refreshVersion.current++;
             inFlight.current = null;
+            viewCache.current.clear();
             setSignedIn(false);
             setState(null);
           },
@@ -83,6 +113,7 @@ export function useCircleController(
   );
   const refresh = useCallback((): Promise<void> => {
     if (!signedIn) return Promise.resolve();
+    const location = `${path}?${query}`;
     const params = new URLSearchParams(query);
     params.set('view', path);
     const key = params.toString();
@@ -96,6 +127,7 @@ export function useCircleController(
           await syncPageSession(token);
         } catch (error) {
           if (version !== refreshVersion.current) return;
+          viewCache.current.clear();
           setState(null);
           throw error;
         }
@@ -107,27 +139,16 @@ export function useCircleController(
         result = await api.state(key);
       } catch (error) {
         if (version !== refreshVersion.current) return;
+        viewCache.current.clear();
         setState(null);
         setLoadError(error instanceof Error ? error.message : 'Account unavailable.');
         throw error;
       }
       if (version !== refreshVersion.current) return;
-      setStateLocation(`${path}?${query}`);
-      setState((previous) => {
-        if (!previous) return result;
-        // Keep unchanged sections stable so polling does not retrigger dependent effects.
-        const shared = { ...result };
-        for (const key of Object.keys(result) as (keyof AppState)[]) {
-          if (JSON.stringify(previous[key]) === JSON.stringify(result[key]))
-            Object.assign(shared, { [key]: previous[key] });
-        }
-        return Object.keys(shared).length === Object.keys(previous).length &&
-          Object.keys(shared).every(
-            (key) => shared[key as keyof AppState] === previous[key as keyof AppState],
-          )
-          ? previous
-          : shared;
-      });
+      const next = reuseUnchangedSections(viewCache.current.get(location), result);
+      rememberView(viewCache.current, location, next);
+      setStateLocation(location);
+      setState(next);
       setLoadError('');
     })().finally(() => {
       if (inFlight.current?.promise === promise) inFlight.current = null;
@@ -157,8 +178,17 @@ export function useCircleController(
         const result = await operation();
         refreshVersion.current++;
         inFlight.current = null;
-        if (update) setState((current) => (current ? update(current, result) : current));
-        else await refresh();
+        if (update) {
+          const location = `${path}?${query}`;
+          const current =
+            viewCache.current.get(location) ?? (stateLocation === location ? state : null);
+          if (current) {
+            const next = update(current, result);
+            rememberView(viewCache.current, location, next);
+            setStateLocation(location);
+            setState(next);
+          }
+        } else await refresh();
         return result;
       } catch (e) {
         toast(e instanceof Error ? e.message : 'Something went wrong.', true);
@@ -167,7 +197,7 @@ export function useCircleController(
         setBusy(false);
       }
     },
-    [refresh, toast],
+    [path, query, refresh, state, stateLocation, toast],
   );
   async function logout() {
     if (config?.demo) {
@@ -183,6 +213,7 @@ export function useCircleController(
       return;
     }
     setState(null);
+    viewCache.current.clear();
     setSignedIn(false);
     router.push('/login');
   }
@@ -190,12 +221,14 @@ export function useCircleController(
     setSignedIn(true);
     router.push('/');
   }
+  const location = `${path}?${query}`;
+  const cachedState = viewCache.current.get(location);
   return {
     config,
     signedIn,
     ready,
-    state,
-    screenPending: stateLocation !== `${path}?${query}`,
+    state: cachedState ?? state,
+    screenPending: stateLocation !== location && !cachedState,
     loadError,
     busy,
     api,
