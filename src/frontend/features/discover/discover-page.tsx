@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { SlidersHorizontal, Search, ArrowRight } from 'lucide-react';
 
@@ -10,13 +11,15 @@ import { Empty } from '@/frontend/components/ui';
 import { PageHeading } from '@/frontend/components/page-heading';
 import { StudentCard } from '@/frontend/components/student-card';
 export function DiscoverPage() {
+  const queryKey = useSearchParams().toString();
+  return <DiscoverFeed key={queryKey} queryKey={queryKey} />;
+}
+
+function DiscoverFeed({ queryKey }: { queryKey: string }) {
   const { api, state, navigate, mutate, toast } = useCircle();
   const [filters, setFilters] = useState(false);
-  const [search, setSearch] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  useEffect(() => {
-    setSearch(new URLSearchParams(location.search).get('search') || '');
-  }, []);
+  const [search, setSearch] = useState(() => new URLSearchParams(queryKey).get('search') || '');
+  const [actedStudentIds, setActedStudentIds] = useState<Set<string>>(() => new Set());
   async function apply(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const params = new URLSearchParams();
@@ -25,17 +28,12 @@ export function DiscoverPage() {
     });
     navigate(`/discover?${params}`);
   }
-  const page =
-    typeof window !== 'undefined'
-      ? Number(new URLSearchParams(location.search).get('page') || 0)
-      : 0;
   const visibleStudent = useMemo(
-    () => state.students[currentIndex] || null,
-    [currentIndex, state.students],
+    () => state.students.find((student) => !actedStudentIds.has(student.id)) || null,
+    [actedStudentIds, state.students],
   );
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [page, state.totalStudents, search]);
+  const finishedQueue =
+    actedStudentIds.size > 0 && state.students.every((student) => actedStudentIds.has(student.id));
   return (
     <div className="discover-page">
       <PageHeading
@@ -62,7 +60,11 @@ export function DiscoverPage() {
             <SlidersHorizontal size={16} />
             Filters
           </button>
-          <button className="button primary discover-submit" aria-label="Search profiles" title="Search profiles">
+          <button
+            className="button primary discover-submit"
+            aria-label="Search profiles"
+            title="Search profiles"
+          >
             <ArrowRight size={17} />
           </button>
         </div>
@@ -111,12 +113,18 @@ export function DiscoverPage() {
             key={visibleStudent.id}
             student={visibleStudent}
             discoverMode
-            onAfterAction={() => setCurrentIndex((index) => Math.min(index + 1, state.students.length - 1))}
+            onAfterAction={(studentId) =>
+              setActedStudentIds((acted) => new Set(acted).add(studentId))
+            }
           />
         ) : (
           <Empty
-            title="A wider circle is out there."
-            body="Try a different skill, city, or college, or bring back your skipped profiles."
+            title={finishedQueue ? "You're all caught up." : 'A wider circle is out there.'}
+            body={
+              finishedQueue
+                ? 'You have seen everyone in this set. Check back for more profiles.'
+                : 'Try a different skill, city, or college, or bring back your skipped profiles.'
+            }
           />
         )}
       </div>

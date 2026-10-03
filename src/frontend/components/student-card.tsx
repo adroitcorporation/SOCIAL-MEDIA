@@ -14,7 +14,7 @@ export function StudentCard({
   discoverMode = false,
 }: {
   student: Student;
-  onAfterAction?: () => void;
+  onAfterAction?: (studentId: string) => void;
   discoverMode?: boolean;
 }) {
   const { api, state, mutate, busy, viewProfile, toast, navigate } = useCircle();
@@ -29,31 +29,45 @@ export function StudentCard({
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const dragStartX = useRef<number | null>(null);
+  const actionInFlight = useRef(false);
   const finishAction = () => {
-    onAfterAction?.();
+    onAfterAction?.(student.id);
   };
   const handleConnect = async () => {
+    if (busy || actionInFlight.current) return;
     if (!state.me.collegeVerified) {
       navigate('/profile');
       toast('Verify your college email or ID before sending connection requests.');
       return;
     }
+    actionInFlight.current = true;
     try {
       await mutate(() => api.connections.request({ userId: student.id }), applyConnection);
       toast('Request sent. A new connection starts here.');
       finishAction();
-    } catch {}
+    } catch {
+    } finally {
+      actionInFlight.current = false;
+    }
   };
   const handleSkip = async () => {
+    if (busy || actionInFlight.current) return;
+    actionInFlight.current = true;
     try {
       await mutate(() => api.skips.add(student.id));
       finishAction();
-    } catch {}
+    } catch {
+    } finally {
+      actionInFlight.current = false;
+    }
   };
   return (
     <article
       className={`student-card ${dragging ? 'is-dragging' : ''}`}
       onPointerDown={(event) => {
+        // Capturing a button's pointer retargets its click to the card.
+        if ((event.target as HTMLElement).closest('button, a, input, select, textarea')) return;
+        if (busy || actionInFlight.current || event.button !== 0) return;
         dragStartX.current = event.clientX;
         setDragging(true);
         event.currentTarget.setPointerCapture(event.pointerId);
