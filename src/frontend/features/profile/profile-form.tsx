@@ -1,13 +1,20 @@
 'use client';
 import { roleLabels } from '@/shared/contracts/permissions';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Upload } from 'lucide-react';
 import type { Student } from '@/shared/contracts/responses';
 import type { ProfileUpdateRequest } from '@/shared/contracts/requests';
 import { Avatar, Verified, Tag, ExternalLink } from '@/frontend/components/ui';
-import { profileSchema } from '@/shared/contracts/schemas';
+import { authClient } from '@/frontend/auth/supabase-browser';
+import { profileSchema, safeUrl } from '@/shared/contracts/schemas';
+import {
+  MAX_VERIFICATION_IMAGE_BYTES,
+  VERIFICATION_IMAGE_TYPES,
+} from '@/shared/contracts/verification';
 import { cities, degrees, graduationYears, profileListOptions } from './profile-options';
 import { ProfileSelect } from './profile-select';
 type Save = (body: ProfileUpdateRequest) => Promise<void>;
+const profilePhotoBucket = 'profile-photos';
 const listFields = ['skills', 'interests', 'domains', 'lookingFor'] as const;
 const labels = {
   skills: 'Skills',
@@ -23,8 +30,19 @@ const splitList = (value: string) =>
 export function ProfileForm({ user, save }: { user: Student; save: Save }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const [photoPreview, setPhotoPreview] = useState('');
+  const uploadInFlight = useRef(false);
+  useEffect(
+    () => () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    },
+    [photoPreview],
+  );
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = useState(false);
+  const photoInput = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState(() => ({
     name: user.name,
     college: user.college,
@@ -61,6 +79,53 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
   const touch = (field: Field) => setTouched((current) => ({ ...current, [field]: true }));
   const change = (field: Field, value: string) =>
     setValues((current) => ({ ...current, [field]: value }));
+  async function uploadPhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (busy || uploadInFlight.current) return;
+    setPhotoError('');
+    if (
+      !VERIFICATION_IMAGE_TYPES.includes(file.type as (typeof VERIFICATION_IMAGE_TYPES)[number]) ||
+      !file.size ||
+      file.size > MAX_VERIFICATION_IMAGE_BYTES
+    ) {
+      setPhotoError('Choose a JPG, PNG, or WebP image up to 4 MB.');
+      return;
+    }
+    uploadInFlight.current = true;
+    setPhotoUploading(true);
+    setPhotoPreview(URL.createObjectURL(file));
+    try {
+      const supabase = authClient();
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!data.session || data.session.user.id !== user.id)
+        throw new Error('Sign in to your account before uploading a profile photo.');
+      const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.slice('image/'.length);
+      const path = `${data.session.user.id}/${crypto.randomUUID()}.${extension}`;
+      const storage = supabase.storage.from(profilePhotoBucket);
+      const { data: uploaded, error: uploadError } = await storage.upload(path, file, {
+        cacheControl: '31536000',
+        contentType: file.type,
+        upsert: false,
+      });
+      if (uploadError) throw uploadError;
+      const publicUrl = safeUrl.parse(storage.getPublicUrl(uploaded.path).data.publicUrl);
+      change('photo', publicUrl);
+    } catch (uploadError) {
+      setPhotoError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : 'Unable to upload this photo. Please try again.',
+      );
+    } finally {
+      uploadInFlight.current = false;
+      setPhotoPreview('');
+      setPhotoUploading(false);
+    }
+  }
   function fieldProps(field: Field) {
     return {
       id: `profile-${field}`,
@@ -83,7 +148,7 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitted(true);
-    if (!validation.success || busy) return;
+    if (!validation.success || busy || uploadInFlight.current) return;
     setBusy(true);
     setError('');
     try {
@@ -151,11 +216,54 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
           onBlur={() => touch('city')}
           error={visibleError('city')}
         />
-        <label>
-          Profile photo URL (HTTPS, optional)
-          <input {...fieldProps('photo')} type="url" maxLength={2048} />
+        <div className="profile-photo-field">
+          <span className="profile-photo-label">Profile photo (optional)</span>
+          <div className="profile-photo-control">
+            <Avatar
+              key={photoPreview || values.photo}
+              user={{ name: values.name || user.name, photo: photoPreview || values.photo }}
+              size="large"
+            />
+            <div className="profile-photo-actions">
+              <input
+                ref={photoInput}
+                id="profile-photo-upload"
+                className="profile-photo-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                aria-label="Choose profile photo file"
+                onChange={uploadPhoto}
+                disabled={busy || photoUploading}
+              />
+              <button
+                type="button"
+                className="button secondary small"
+                disabled={busy || photoUploading}
+                onClick={() => photoInput.current?.click()}
+              >
+                <Upload size={15} />
+                {photoUploading ? 'Uploading…' : values.photo ? 'Change photo' : 'Upload photo'}
+              </button>
+              {values.photo && (
+                <button
+                  type="button"
+                  className="text-link danger"
+                  disabled={busy || photoUploading}
+                  onClick={() => change('photo', '')}
+                >
+                  Remove photo
+                </button>
+              )}
+              <small>JPG, PNG, or WebP · Up to 4 MB</small>
+            </div>
+          </div>
+          {photoError && (
+            <span className="error profile-field-error" role="alert">
+              {photoError}
+            </span>
+          )}
           {fieldError('photo')}
-        </label>
+        </div>
       </div>
       <label>
         Bio (required)
@@ -221,7 +329,7 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
       )}
       <button
         className="button primary"
-        disabled={busy || !validation.success}
+        disabled={busy || photoUploading || !validation.success}
         aria-describedby={!validation.success ? 'profile-validation-hint' : undefined}
       >
         {busy ? 'Saving…' : user.onboarded ? 'Save profile' : 'Find my circle'}

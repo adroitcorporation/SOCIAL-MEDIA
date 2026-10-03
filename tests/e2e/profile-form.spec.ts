@@ -41,6 +41,8 @@ async function openProfile(page: Page, overrides: Partial<Student> = {}) {
     blockedIds: [],
   };
   const saved: ProfileUpdateRequest[] = [];
+  // Block all real Supabase requests, including Storage; individual tests override this.
+  await page.route('https://**.supabase.co/**', (route) => route.abort());
   // Isolate form interactions from the local demo and production databases.
   await page.route('**/api/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -113,6 +115,136 @@ test('creates a profile with suggestions and custom values, leaving optional URL
     instagram: '',
     portfolio: '',
   });
+});
+
+test('rejects unsupported profile photo files before upload', async ({ page }) => {
+  await openProfile(page);
+  await page.locator('#profile-photo-upload').setInputFiles({
+    name: 'not-an-image.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('not an image'),
+  });
+  await expect(page.locator('.profile-photo-field [role="alert"]')).toHaveText(
+    'Choose a JPG, PNG, or WebP image up to 4 MB.',
+  );
+  await expect(page.locator('.profile-photo-control .avatar img')).toHaveCount(0);
+});
+
+const photoFile = {
+  name: 'portrait.png',
+  mimeType: 'image/png',
+  buffer: Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8/8AAAAASUVORK5CYII=',
+    'base64',
+  ),
+};
+
+async function mockPhotoSession(page: Page, userId = student.id) {
+  await page.addInitScript(
+    ({ userId }) => {
+      const original = Storage.prototype.getItem;
+      Storage.prototype.getItem = function (key) {
+        if (/^sb-.*-auth-token$/.test(key))
+          return JSON.stringify({
+            access_token: 'mock-photo-token',
+            refresh_token: 'mock-refresh',
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+            token_type: 'bearer',
+            user: { id: userId },
+          });
+        return original.call(this, key);
+      };
+    },
+    { userId },
+  );
+}
+
+test('previews a photo while uploading, then saves its public URL in the owner folder', async ({
+  page,
+}) => {
+  await mockPhotoSession(page);
+  const saved = await openProfile(page);
+  let release!: () => void;
+  const waiting = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const uploads: string[] = [];
+  await page.route('**/storage/v1/object/**', async (route) => {
+    const request = route.request();
+    if (request.method() !== 'POST')
+      return route.fulfill({ contentType: 'image/png', body: photoFile.buffer });
+    const path = new URL(request.url()).pathname;
+    uploads.push(path);
+    expect(request.headers().authorization).toBe('Bearer mock-photo-token');
+    expect(request.headers()['x-upsert']).toBe('false');
+    await waiting;
+    return route.fulfill({ json: { Key: path.split('/object/')[1] } });
+  });
+  await page.locator('#profile-photo-upload').setInputFiles(photoFile);
+  await expect.poll(() => uploads.length).toBe(1);
+  const preview = page.locator('.profile-photo-control img');
+  await expect(preview).toHaveAttribute('src', /^blob:/);
+  await expect(page.getByRole('button', { name: 'Find my circle', exact: true })).toBeDisabled();
+  await page.locator('form.profile-form').evaluate((form: HTMLFormElement) => form.requestSubmit());
+  expect(saved).toHaveLength(0);
+  release();
+  await expect(preview).toHaveAttribute(
+    'src',
+    /^https:.*\/storage\/v1\/object\/public\/profile-photos\/profile-test\/.*\.png$/,
+  );
+  expect(uploads[0]).toMatch(/^\/storage\/v1\/object\/profile-photos\/profile-test\/[\w-]+\.png$/);
+  const publicUrl = await preview.getAttribute('src');
+  await page.getByRole('button', { name: 'Find my circle', exact: true }).click();
+  await expect.poll(() => saved.length).toBe(1);
+  expect(saved[0].photo).toBe(publicUrl);
+});
+
+test('failed upload preserves the saved photo and allows profile save', async ({ page }) => {
+  await mockPhotoSession(page);
+  const originalPhoto = 'https://images.example.test/old.png';
+  await page.route(originalPhoto, (route) =>
+    route.fulfill({ contentType: 'image/png', body: photoFile.buffer }),
+  );
+  const saved = await openProfile(page, { photo: originalPhoto });
+  await page.route('**/storage/v1/object/profile-photos/**', (route) =>
+    route.fulfill({
+      status: 403,
+      json: { statusCode: '403', error: 'Forbidden', message: 'Upload denied' },
+    }),
+  );
+  await page.locator('#profile-photo-upload').setInputFiles(photoFile);
+  await expect(page.locator('.profile-photo-field [role="alert"]')).toBeVisible();
+  await expect(page.locator('.profile-photo-control img')).toHaveAttribute('src', originalPhoto);
+  await page.getByRole('button', { name: 'Find my circle', exact: true }).click();
+  await expect.poll(() => saved.length).toBe(1);
+  expect(saved[0].photo).toBe(originalPhoto);
+});
+
+test('rejects oversized photos before any Storage request', async ({ page }) => {
+  await mockPhotoSession(page);
+  await openProfile(page);
+  const requests: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/storage/v1/')) requests.push(request.url());
+  });
+  await page
+    .locator('#profile-photo-upload')
+    .setInputFiles({ ...photoFile, buffer: Buffer.alloc(4_000_001) });
+  await expect(page.locator('.profile-photo-field [role="alert"]')).toHaveText(
+    'Choose a JPG, PNG, or WebP image up to 4 MB.',
+  );
+  expect(requests).toHaveLength(0);
+  await expect(page.locator('.profile-photo-control img')).toHaveCount(0);
+});
+
+test('rejects a session belonging to a different profile owner', async ({ page }) => {
+  await mockPhotoSession(page, 'different-user');
+  await openProfile(page);
+  await page.locator('#profile-photo-upload').setInputFiles(photoFile);
+  await expect(page.locator('.profile-photo-field [role="alert"]')).toHaveText(
+    'Sign in to your account before uploading a profile photo.',
+  );
+  await expect(page.locator('.profile-photo-control img')).toHaveCount(0);
 });
 
 for (const field of [

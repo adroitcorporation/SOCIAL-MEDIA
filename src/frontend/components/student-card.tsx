@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { ArrowUpRight, Plus, X, Sparkles, GraduationCap } from 'lucide-react';
+import { ArrowUpRight, Plus, X, Sparkles, GraduationCap, Handshake } from 'lucide-react';
 import type { Student } from '@/shared/contracts/responses';
 
 import { useCircle } from '@/frontend/state/circle-context';
@@ -82,7 +82,7 @@ export function StudentCard({
   };
   return (
     <article
-      className="student-card"
+      className={`student-card ${discoverMode ? 'discover-profile-card' : ''}`}
       onPointerDown={(event) => {
         // Capturing a button's pointer retargets its click to the card.
         if ((event.target as HTMLElement).closest('button, a, input, select, textarea')) return;
@@ -120,7 +120,7 @@ export function StudentCard({
         if (event.pointerId === dragPointerId.current) resetDrag(event.currentTarget);
       }}
     >
-      <div className="student-top">
+      <div className={`student-top ${discoverMode ? 'discover-cover' : ''}`}>
         <Avatar user={student} size="large" />
         <button
           className="icon-button"
@@ -129,36 +129,79 @@ export function StudentCard({
         >
           <ArrowUpRight size={19} />
         </button>
+        {discoverMode && (
+          <div className="discover-cover-copy">
+            <span className="discover-cover-kicker">A PERSON TO BUILD WITH</span>
+            <button className="student-name" onClick={() => viewProfile(student)}>
+              {student.name}
+              <Verified user={student} />
+            </button>
+            <p className="student-degree">
+              {student.degree} <span>· {student.graduationYear}</span>
+            </p>
+          </div>
+        )}
       </div>
-      <button className="student-name" onClick={() => viewProfile(student)}>
-        {student.name}
-        <Verified user={student} />
-      </button>
-      <p className="student-degree">
-        {student.degree} <span>• {student.graduationYear}</span>
-      </p>
-      <p className="college">
-        <GraduationCap size={14} />
-        {student.college}
-      </p>
-      {student.bio && <p className="student-bio">{student.bio}</p>}
-      <div className="tags">
-        {quickSkills.map((s) => (
-          <Tag key={s}>{s}</Tag>
-        ))}
-        {student.skills.length > 2 && <Tag>+{student.skills.length - 2}</Tag>}
-      </div>
-      {lookingLabel && (
-        <div className="looking">
-          <span className="status-dot" />
-          {lookingLabel}
+      {discoverMode ? (
+        <div className="discover-details">
+          <p className="college">
+            <GraduationCap size={15} />
+            {student.college}
+          </p>
+          {student.bio && <p className="student-bio">{student.bio}</p>}
+          {shared.length > 0 && (
+            <div className="discover-common">
+              <Sparkles size={15} />
+              <span>{shared[0]} in common</span>
+            </div>
+          )}
+          <div className="discover-skills-label">GOOD AT</div>
+          <div className="tags">
+            {quickSkills.map((skill) => (
+              <Tag key={skill}>{skill}</Tag>
+            ))}
+            {student.skills.length > 2 && <Tag>+{student.skills.length - 2}</Tag>}
+          </div>
+          {lookingLabel && (
+            <div className="looking">
+              <span className="status-dot" />
+              {lookingLabel}
+            </div>
+          )}
         </div>
-      )}
-      {shared.length > 0 && !discoverMode && (
-        <div className="shared">
-          <Sparkles size={12} />
-          {shared.length} shared interest{shared.length === 1 ? '' : 's'}
-        </div>
+      ) : (
+        <>
+          <button className="student-name" onClick={() => viewProfile(student)}>
+            {student.name}
+            <Verified user={student} />
+          </button>
+          <p className="student-degree">
+            {student.degree} <span>· {student.graduationYear}</span>
+          </p>
+          <p className="college">
+            <GraduationCap size={14} />
+            {student.college}
+          </p>
+          {student.bio && <p className="student-bio">{student.bio}</p>}
+          <div className="tags">
+            {quickSkills.map((skill) => (
+              <Tag key={skill}>{skill}</Tag>
+            ))}
+            {student.skills.length > 2 && <Tag>+{student.skills.length - 2}</Tag>}
+          </div>
+          {lookingLabel && (
+            <div className="looking">
+              <span className="status-dot" />
+              {lookingLabel}
+            </div>
+          )}
+          {shared.length > 0 && (
+            <div className="shared">
+              <Sparkles size={12} />
+              {shared.length} shared interest{shared.length === 1 ? '' : 's'}
+            </div>
+          )}
+        </>
       )}
       <div className="student-actions discover-actions">
         {discoverMode ? (
@@ -167,17 +210,19 @@ export function StudentCard({
               disabled={busy}
               className="button ghost discover-pass"
               aria-label={`Pass ${student.name}`}
+              title="Pass"
               onClick={() => void handleSkip()}
             >
-              <X size={17} />
-              Pass
+              <X size={21} />
             </button>
             <button
               disabled={busy}
               className="button secondary connect discover-connect"
               onClick={() => void handleConnect()}
             >
-              <Plus size={15} />
+              <span className="discover-connect-symbol" aria-hidden="true">
+                <Handshake size={21} strokeWidth={2.5} />
+              </span>
               Connect
             </button>
           </>

@@ -1546,6 +1546,38 @@ em {
   box-shadow: 0 18px 40px rgba(22, 33, 55, 0.08);
   animation: discover-card-enter 280ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
 }
+.discover-single > .discover-profile-card {
+  --discover-surface: #f4efe6;
+  --discover-border: #ded4c7;
+  --discover-text: #2d2a25;
+  --discover-muted: #625d54;
+  --discover-chip: #fffaf2;
+  --discover-chip-border: #ded6c9;
+  --discover-common: #e7eadf;
+  --discover-common-text: #394438;
+  width: min(100%, 900px);
+  min-height: 560px;
+  padding: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  border: 1px solid var(--discover-border);
+  border-radius: 22px;
+  background: var(--discover-surface);
+  color: var(--discover-text);
+  box-shadow: 0 26px 70px rgba(7, 13, 20, 0.25);
+}
+:root[data-theme='dark'] .discover-single > .discover-profile-card {
+  --discover-surface: #1b2926;
+  --discover-border: #394742;
+  --discover-text: #f1eee6;
+  --discover-muted: #c0c7bd;
+  --discover-chip: #273630;
+  --discover-chip-border: #405148;
+  --discover-common: #2a4038;
+  --discover-common-text: #dce9d8;
+}
 .discover-page .page-heading {
   margin-bottom: 20px;
 }
@@ -1583,30 +1615,69 @@ em {
   width: 44px;
   padding: 10px;
 }
-.discover-single > .student-card .student-top {
+.discover-single > .discover-profile-card .discover-cover {
+  grid-column: 1;
+  grid-row: 1 / 3;
   position: relative;
-  height: 248px;
-  margin: -22px -20px 20px;
+  height: 100%;
+  min-height: 560px;
+  margin: 0;
   overflow: hidden;
-  border-radius: 17px 17px 0 0;
-  background: var(--surface-tint);
+  border-radius: 0;
+  background: #806b5b;
 }
-.discover-single > .student-card .student-top > .avatar.large {
+.discover-cover:has(.tone-0) {
+  background: #a56f55;
+}
+.discover-cover:has(.tone-1) {
+  background: #60776d;
+}
+.discover-cover:has(.tone-2) {
+  background: #727b8d;
+}
+.discover-cover:has(.tone-3) {
+  background: #9a7654;
+}
+.discover-cover:has(.tone-4) {
+  background: #705d68;
+}
+.discover-cover::before,
+.discover-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.discover-cover::before {
+  z-index: 1;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 38px,
+    #ffffff0b 39px,
+    transparent 40px
+  );
+}
+.discover-cover::after {
+  z-index: 2;
+  background: linear-gradient(180deg, #0e181000 48%, #101817d9 100%);
+}
+.discover-single > .discover-profile-card .discover-cover > .avatar.large {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   border-radius: 0;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 68px;
-  color: var(--text-secondary, #294f85);
+  font-size: 104px;
+  color: #fff9ee;
 }
-.discover-single > .student-card .student-top > .avatar.large img {
+.discover-single > .discover-profile-card .discover-cover > .avatar.large img {
   object-fit: cover;
 }
-.discover-single > .student-card .student-top > .icon-button {
+.discover-single > .discover-profile-card .discover-cover > .icon-button {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   top: 12px;
   right: 12px;
   width: 38px;
@@ -1618,34 +1689,178 @@ em {
   color: #183653;
   backdrop-filter: blur(8px);
 }
-.discover-single .student-name {
-  font-size: 25px;
-  line-height: 1.25;
+.discover-cover-copy {
+  position: absolute;
+  z-index: 3;
+  left: 30px;
+  right: 25px;
+  bottom: 28px;
 }
-.discover-single .student-degree,
-.discover-single .college {
+.discover-cover-kicker {
+  display: block;
+  margin-bottom: 9px;
+  color: #f6d5aa;
+  font-size: 10px;
+  font-weight: 700;
+}
+.discover-cover-copy .student-name {
+  color: #fffaf2;
+  font-size: 39px;
+  line-height: 1.1;
+  font-weight: 400;
+}
+.discover-cover-copy .verified {
+  color: #f6d5aa;
+}
+.discover-cover-copy .student-degree {
+  color: #f2e8d8c9;
+  font-size: 12px;
+  margin: 9px 0 0;
+}
+.discover-profile-card .discover-details {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 34px 34px 18px;
+  background: var(--discover-surface);
+}
+.discover-profile-card .college {
+  gap: 8px;
+  margin: 0;
+  color: var(--discover-muted);
+  font-size: 12px;
+}
+.discover-profile-card .student-bio {
+  min-height: 0;
+  margin: 0;
+  color: var(--discover-text);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-line-clamp: 4;
+}
+.discover-common {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-left: 2px solid #8a9978;
+  background: var(--discover-common);
+  color: var(--discover-common-text);
   font-size: 11px;
 }
-.discover-single .student-bio {
-  -webkit-line-clamp: 2;
-  min-height: 0;
-  margin: 5px 0 14px;
+.discover-skills-label {
+  color: var(--discover-muted);
+  font-size: 10px;
+  font-weight: 700;
 }
-.discover-single .discover-connect {
-  min-height: 46px;
-  padding: 11px 16px !important;
-  background: var(--accent) !important;
-  border: 1px solid var(--accent) !important;
-  color: #102847 !important;
-  font-size: 12px !important;
+.discover-profile-card .tags {
+  gap: 7px;
+  margin-top: -10px;
 }
-.discover-single .discover-connect:hover:not(:disabled) {
-  background: #ffa45f !important;
-  border-color: #ffa45f !important;
+.discover-profile-card .tag {
+  border-color: var(--discover-chip-border);
+  border-radius: 999px;
+  background: var(--discover-chip);
+  color: var(--discover-text);
+  font-size: 10px;
+  padding: 6px 10px;
+}
+.discover-profile-card .looking {
+  margin-top: auto;
+  color: var(--discover-muted);
+  font-size: 11px;
+}
+.discover-profile-card .status-dot {
+  background: #79866c;
+}
+.discover-profile-card > .student-actions {
+  grid-column: 2;
+  grid-row: 2;
+  flex-wrap: nowrap;
+  gap: 12px;
+  margin: 0;
+  padding: 16px 34px 30px;
+  border-top: 1px solid var(--discover-border);
+  background: var(--discover-surface);
+}
+.discover-single .student-name {
+  font-family: Georgia, 'Times New Roman', serif;
+  letter-spacing: 0;
 }
 .discover-single .discover-pass {
-  min-height: 46px;
-  background: var(--card) !important;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 1px solid var(--discover-chip-border) !important;
+  border-radius: 50%;
+  background: var(--discover-chip) !important;
+  color: var(--discover-muted) !important;
+  font-size: 0;
+}
+.discover-single .discover-connect {
+  min-height: 54px;
+  padding: 12px 20px !important;
+  border: 0 !important;
+  border-radius: 999px;
+  background: #9cc8a4 !important;
+  color: #193a2d !important;
+  font-size: 13px !important;
+}
+.discover-single .discover-connect:hover:not(:disabled) {
+  background: #86b991 !important;
+  border-color: #86b991 !important;
+}
+.discover-connect-symbol {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff3;
+}
+.discover-connect-symbol svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+}
+.discover-single .discover-connect {
+  flex: 1;
+  justify-content: center;
+}
+.discover-single .discover-connect,
+.discover-single .discover-pass {
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+.discover-single .discover-connect:hover:not(:disabled),
+.discover-single .discover-pass:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px #2d2a251f;
+}
+.discover-single .student-degree {
+  font-size: 12px;
+}
+.discover-single .student-degree > span {
+  color: inherit;
+}
+.discover-single .student-bio {
+  -webkit-line-clamp: 4;
+  min-height: 0;
+  margin: 0;
+}
+.discover-single .discover-details .student-bio {
+  font-size: 15px;
+}
+.discover-single .student-name {
+  line-height: 1.25;
 }
 @keyframes discover-card-enter {
   from {
@@ -1709,6 +1924,80 @@ em {
   }
   .discover-single > .student-card .student-top {
     height: 155px;
+  }
+}
+@media (max-width: 800px) {
+  .discover-single > .discover-profile-card {
+    width: min(100%, 560px);
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 270px auto auto;
+  }
+  .discover-single > .discover-profile-card .discover-cover {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 0;
+    height: 270px;
+  }
+  .discover-single > .discover-profile-card .discover-details {
+    grid-column: 1;
+    grid-row: 2;
+    gap: 12px;
+    padding: 20px 22px 14px;
+  }
+  .discover-single > .discover-profile-card > .student-actions {
+    grid-column: 1;
+    grid-row: 3;
+    padding: 13px 22px 22px;
+  }
+}
+@media (max-width: 620px) {
+  .discover-single > .discover-profile-card {
+    grid-template-rows: 205px auto auto;
+    border-radius: 18px;
+  }
+  .discover-single > .discover-profile-card .discover-cover {
+    height: 205px;
+  }
+  .discover-single > .discover-profile-card .discover-cover > .avatar.large {
+    align-items: flex-start;
+    padding-top: 22px;
+    font-size: 58px;
+  }
+  .discover-cover-copy {
+    left: 19px;
+    right: 16px;
+    bottom: 17px;
+  }
+  .discover-cover-kicker {
+    margin-bottom: 6px;
+    font-size: 9px;
+  }
+  .discover-cover-copy .student-name {
+    font-size: 31px;
+  }
+  .discover-cover-copy .student-degree {
+    margin-top: 6px;
+    font-size: 11px;
+  }
+  .discover-single > .discover-profile-card .discover-details {
+    gap: 11px;
+    padding: 17px 18px 13px;
+  }
+  .discover-single > .discover-profile-card .student-bio {
+    font-size: 13px;
+  }
+  .discover-single > .discover-profile-card > .student-actions {
+    gap: 10px;
+    padding: 12px 18px 18px;
+  }
+  .discover-single .discover-pass {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+  }
+  .discover-single .discover-connect {
+    min-height: 48px;
   }
 }
 .discover-card-nav {
@@ -2040,6 +2329,46 @@ em {
 .profile-form > p {
   font-size: 12px;
   margin-bottom: 25px;
+}
+.profile-photo-field {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin-bottom: 17px;
+}
+.profile-photo-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.profile-photo-control {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--border-subtle, #d9e1ec);
+  border-radius: 10px;
+  background: var(--surface-soft, #f7f9fc);
+}
+.profile-photo-control > .avatar.large {
+  width: 68px;
+  height: 68px;
+  flex: 0 0 68px;
+}
+.profile-photo-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px 13px;
+  min-width: 0;
+}
+.profile-photo-actions small {
+  flex-basis: 100%;
+  color: var(--text-muted, #6b81a0);
+}
+.profile-photo-input {
+  display: none;
 }
 .profile-form .profile-field-error {
   display: block;

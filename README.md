@@ -41,7 +41,11 @@ App login and signup are limited to The LNM Institute of Information Technology 
 
 **Verification is honest:** the email-verified indicator follows Supabase's confirmed-email state, and a confirmed allowlisted college email automatically verifies the college. `collegeVerified` is server-controlled, defaults to false, and cannot be changed through profile APIs. Manual college-email and college-ID review remains available where needed.
 
-Profile and group images currently accept HTTPS image URLs, with initials as a fallback. College ID uploads are handled separately and stored privately in PostgreSQL.
+Profile photos can be uploaded directly to a public Supabase Storage bucket; the upload policy restricts writes to each authenticated user's own folder. Before enabling uploads, run [`supabase/profile-photos.sql`](supabase/profile-photos.sql) in the SQL editor for the same Supabase project used for Auth. Images must be JPG, PNG, or WebP up to 4 MB. Group images continue to accept HTTPS URLs, and college ID uploads are stored privately in PostgreSQL.
+
+Storage setup is manual: open the Supabase project matching `NEXT_PUBLIC_SUPABASE_URL` → **SQL Editor → New query**, paste the contents of `supabase/profile-photos.sql`, and run it. The script is transactional and safe to rerun; it does not delete uploaded images. Confirm **Storage → profile-photos** is public, limits files to 4,000,000 bytes and JPG/PNG/WebP, and has the authenticated INSERT policy restricting the first folder to `auth.uid()`. Review any pre-existing broader write policies, which can also grant access. No service-role key is needed. This script must run in the Auth project's Supabase database, even when the app's `DATABASE_URL` points to Render PostgreSQL.
+
+Selecting a photo shows a temporary local preview while uploading. Only a successful upload replaces the form's photo URL; click Save profile (or Find my circle) to persist it. Upload failures preserve the previous photo. Each upload uses a new object name with `upsert: false`; removing or replacing a profile photo does not delete older Storage objects.
 
 ## Production / Render
 
