@@ -86,7 +86,9 @@ test('creates a profile with suggestions and custom values, leaving optional URL
   const submit = page.getByRole('button', { name: 'Find my circle', exact: true });
   await expect(submit).toBeDisabled();
   await page.getByLabel('Full name (required)', { exact: true }).fill(student.name);
-  await page.getByLabel('College (required)', { exact: true }).fill(student.college);
+  await page
+    .getByLabel('College (required)', { exact: true })
+    .selectOption({ label: 'College of Jaipur' });
   await page.getByLabel('Degree / course (required)', { exact: true }).selectOption('B.Tech');
   const year = page.getByRole('combobox', { name: 'Graduation year (required)', exact: true });
   await expect(year.locator('option')).toHaveCount(22);
@@ -105,6 +107,7 @@ test('creates a profile with suggestions and custom values, leaving optional URL
   await expect.poll(() => saved.length).toBe(1);
   expect(saved[0]).toMatchObject({
     name: student.name,
+    college: 'College of Jaipur',
     degree: 'B.Tech',
     graduationYear: 2028,
     city: 'Mumbai',
@@ -220,6 +223,21 @@ test('failed upload preserves the saved photo and allows profile save', async ({
   expect(saved[0].photo).toBe(originalPhoto);
 });
 
+test('explains how to configure Storage when the profile photo bucket is missing', async ({
+  page,
+}) => {
+  await mockPhotoSession(page);
+  await openProfile(page);
+  await page.route('**/storage/v1/object/profile-photos/**', (route) =>
+    route.fulfill({ status: 404, json: { statusCode: '404', message: 'Bucket not found' } }),
+  );
+  await page.locator('#profile-photo-upload').setInputFiles(photoFile);
+  await expect(page.locator('.profile-photo-field [role="alert"]')).toHaveText(
+    'Profile photo storage is not set up. Run supabase/profile-photos.sql in the Supabase project configured for this app.',
+  );
+  await expect(page.locator('.profile-photo-control img')).toHaveCount(0);
+});
+
 test('rejects oversized photos before any Storage request', async ({ page }) => {
   await mockPhotoSession(page);
   await openProfile(page);
@@ -263,7 +281,8 @@ for (const field of [
     const saved = await openProfile(page);
     const input = page.locator(`#profile-${field}`);
     await input.focus();
-    if (['degree', 'graduationYear', 'city'].includes(field)) await input.selectOption('');
+    if (['college', 'degree', 'graduationYear', 'city'].includes(field))
+      await input.selectOption('');
     else
       await input.fill(
         ['skills', 'interests', 'domains', 'lookingFor'].includes(field) ? ' , , ' : '   ',

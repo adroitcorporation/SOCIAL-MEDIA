@@ -1,4 +1,7 @@
+import { collegeName } from '@/shared/config/college-access';
+
 export const degrees = ['B.Tech', 'B.E.', 'BCA', 'MCA', 'BBA', 'MBA', 'M.Tech', 'M.E.', 'PhD'];
+export const colleges = [collegeName, 'College of Jaipur'];
 export const graduationYears = Array.from({ length: 21 }, (_, index) => 2020 + index);
 export const cities = [
   'Ahmedabad',

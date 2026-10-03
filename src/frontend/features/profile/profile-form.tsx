@@ -11,7 +11,7 @@ import {
   MAX_VERIFICATION_IMAGE_BYTES,
   VERIFICATION_IMAGE_TYPES,
 } from '@/shared/contracts/verification';
-import { cities, degrees, graduationYears, profileListOptions } from './profile-options';
+import { cities, colleges, degrees, graduationYears, profileListOptions } from './profile-options';
 import { ProfileSelect } from './profile-select';
 type Save = (body: ProfileUpdateRequest) => Promise<void>;
 const profilePhotoBucket = 'profile-photos';
@@ -115,10 +115,14 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
       const publicUrl = safeUrl.parse(storage.getPublicUrl(uploaded.path).data.publicUrl);
       change('photo', publicUrl);
     } catch (uploadError) {
-      setPhotoError(
+      const message =
         uploadError instanceof Error
           ? uploadError.message
-          : 'Unable to upload this photo. Please try again.',
+          : 'Unable to upload this photo. Please try again.';
+      setPhotoError(
+        /bucket not found/i.test(message)
+          ? 'Profile photo storage is not set up. Run supabase/profile-photos.sql in the Supabase project configured for this app.'
+          : message,
       );
     } finally {
       uploadInFlight.current = false;
@@ -174,11 +178,16 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
           <input {...fieldProps('name')} required maxLength={80} />
           {fieldError('name')}
         </label>
-        <label>
-          College (required)
-          <input {...fieldProps('college')} required maxLength={150} />
-          {fieldError('college')}
-        </label>
+        <ProfileSelect
+          name="college"
+          label="College"
+          value={values.college}
+          options={colleges}
+          maxLength={150}
+          onChange={(value) => change('college', value)}
+          onBlur={() => touch('college')}
+          error={visibleError('college')}
+        />
         <ProfileSelect
           name="degree"
           label="Degree / course"
