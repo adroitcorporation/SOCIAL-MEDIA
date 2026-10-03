@@ -9,9 +9,14 @@ const config: NextConfig = {
         ? 'https://founder-circle-backend.onrender.com'
         : undefined);
     return {
-      // Run before local API routes, including the live-update stream.
+      // Keep public startup config local; data APIs and live updates use the backend.
       beforeFiles: backendUrl
-        ? [{ source: '/api/:path*', destination: `${backendUrl.replace(/\/$/, '')}/api/:path*` }]
+        ? [
+            {
+              source: '/api/:path((?!config(?:/|$)).*)',
+              destination: `${backendUrl.replace(/\/$/, '')}/api/:path*`,
+            },
+          ]
         : [],
       afterFiles: [],
       fallback: [],

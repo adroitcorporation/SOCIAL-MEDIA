@@ -52,6 +52,8 @@ Profile and group images currently accept HTTPS image URLs, with initials as a f
 4. Configure the same production origin/redirect URLs and SMTP in Supabase.
 5. Deploy. `npm start` validates configuration, runs **`prisma migrate deploy`**, and only starts Next.js after migrations succeed. The health endpoint checks the database. No resets or `db push` occur.
 
+For a split Vercel frontend / Render backend, `/api/config` runs locally on the frontend and reports its own public auth configuration without contacting Render. Other API requests still proxy to the backend. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` on both deployments before building, using the same Supabase project, and rebuild after changing them. These public values are embedded at build time; changing runtime variables alone cannot update the browser client.
+
 Moderation uses database roles. Apply migrations with `npm run db:migrate`, then bootstrap the first Ultimate Moderator with `npm run roles:bootstrap -- <existing-user-id>`. This trusted CLI only works when no active Ultimate Moderator exists. Existing allowlist entries are no longer used; reassign their roles from `/moderation/roles`. See [MODERATION.md](MODERATION.md) for permissions, API routes and activation details.
 
 Only sending new connection requests requires approval; browsing, profile editing, ideas, events, and existing conversations remain available. College emails are manually reviewed, not automatically approved or verified by OTP. Rejected submissions retain their review note and allow a new submission.

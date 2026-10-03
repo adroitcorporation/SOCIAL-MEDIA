@@ -1,7 +1,8 @@
 import 'server-only';
 import { errorResponse } from './error-response';
 import { z } from 'zod';
-import { authenticate, isLocalDemo } from '@/backend/auth/session';
+import { authenticate } from '@/backend/auth/session';
+import { handleConfigRequest } from './config-handler';
 import { db } from '@/backend/database/client';
 import { AppError, requireThat } from '@/backend/utils/errors';
 import { boundedJson } from '@/backend/http/request';
@@ -23,12 +24,7 @@ export async function handleApiRequest(request: Request, path: string[]) {
       return Response.json({ status: 'ok' });
     }
     if (resource === 'config' && method === 'GET')
-      return Response.json({
-        demo: isLocalDemo(),
-        configured: Boolean(
-          process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-        ),
-      });
+      return handleConfigRequest();
     if (method !== 'GET') validateMutationRequest(request);
     const identity = await authenticate(request);
     const user = await requireActiveActor(identity.id);

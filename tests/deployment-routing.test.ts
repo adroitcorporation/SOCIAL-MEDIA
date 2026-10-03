@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import config from '../next.config';
+import { createRequire } from 'node:module';
+
+const { pathToRegexp } = createRequire(import.meta.url)('next/dist/compiled/path-to-regexp');
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -10,7 +13,7 @@ describe('frontend to backend routing', () => {
     expect(await config.rewrites!()).toEqual({
       beforeFiles: [
         {
-          source: '/api/:path*',
+          source: '/api/:path((?!config(?:/|$)).*)',
           destination: 'https://founder-circle-backend.onrender.com/api/:path*',
         },
       ],
@@ -30,8 +33,23 @@ describe('frontend to backend routing', () => {
     vi.stubEnv('VERCEL_ENV', 'preview');
     expect(await config.rewrites!()).toMatchObject({
       beforeFiles: [
-        { source: '/api/:path*', destination: 'https://backend.example.test/api/:path*' },
+        {
+          source: '/api/:path((?!config(?:/|$)).*)',
+          destination: 'https://backend.example.test/api/:path*',
+        },
       ],
     });
+  });
+
+  it('keeps startup config local while proxying protected APIs and live updates', async () => {
+    vi.stubEnv('BACKEND_URL', 'https://backend.example.test');
+    const rewrites = await config.rewrites!();
+    if (Array.isArray(rewrites)) throw new Error('Expected phased rewrites');
+    const rewrite = rewrites.beforeFiles?.[0];
+    if (!rewrite) throw new Error('Expected a backend rewrite');
+    const matcher = pathToRegexp(rewrite.source);
+    for (const path of ['/api/config', '/api/config/']) expect(matcher.test(path)).toBe(false);
+    for (const path of ['/api/session', '/api/live', '/api/conversations/123/messages'])
+      expect(matcher.test(path)).toBe(true);
   });
 });
