@@ -1165,6 +1165,16 @@ em {
   min-height: 46px;
   flex-wrap: wrap;
 }
+.discover-connect,
+.discover-pass {
+  flex: 1;
+  justify-content: center;
+}
+.discover-pass {
+  background: var(--surface-soft, #f3f6fb) !important;
+  color: var(--text-secondary, #2d4467) !important;
+  border: 1px solid var(--border-subtle, #dfe7f2) !important;
+}
 .connect {
   flex: 1;
   padding: 7px 10px !important;

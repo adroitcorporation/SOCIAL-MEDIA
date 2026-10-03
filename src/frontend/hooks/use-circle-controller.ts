@@ -223,12 +223,14 @@ export function useCircleController(
   }
   const location = `${path}?${query}`;
   const cachedState = viewCache.current.get(location);
+  const activeState = cachedState ?? state;
   return {
     config,
     signedIn,
     ready,
-    state: cachedState ?? state,
-    screenPending: stateLocation !== location && !cachedState,
+    state: activeState,
+    screenPending:
+      Boolean(stateLocation && stateLocation !== location && !cachedState && !activeState),
     loadError,
     busy,
     api,

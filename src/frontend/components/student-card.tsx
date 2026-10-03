@@ -11,15 +11,17 @@ import { applyConnection } from '@/frontend/state/connection-update';
 export function StudentCard({
   student,
   onAfterAction,
+  discoverMode = false,
 }: {
   student: Student;
   onAfterAction?: () => void;
+  discoverMode?: boolean;
 }) {
   const { api, state, mutate, busy, viewProfile, toast, navigate } = useCircle();
   const connection = state.connections.find((c) =>
     [c.requesterId, c.receiverId].includes(student.id),
   );
-  const pending = connection?.status === 'PENDING';
+  const pending = !discoverMode && connection?.status === 'PENDING';
   const outgoing = connection?.requesterId === state.me.id;
   const shared = student.interests.filter((i) => state.me.interests.includes(i));
   const [dragX, setDragX] = useState(0);
@@ -117,7 +119,27 @@ export function StudentCard({
         </div>
       )}
       <div className="student-actions">
-        {pending ? (
+        {discoverMode ? (
+          <>
+            <button
+              disabled={busy}
+              className="button secondary connect discover-connect"
+              onClick={() => void handleConnect()}
+            >
+              <Plus size={15} />
+              Connect
+            </button>
+            <button
+              disabled={busy}
+              className="button ghost discover-pass"
+              aria-label={`Pass ${student.name}`}
+              onClick={() => void handleSkip()}
+            >
+              <X size={17} />
+              Pass
+            </button>
+          </>
+        ) : pending ? (
           <>
             <span className="pending-label">{outgoing ? 'Request Sent' : 'Wants to connect'}</span>
             <button

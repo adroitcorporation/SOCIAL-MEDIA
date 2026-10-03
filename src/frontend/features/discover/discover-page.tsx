@@ -108,6 +108,7 @@ export function DiscoverPage() {
           <StudentCard
             key={visibleStudent.id}
             student={visibleStudent}
+            discoverMode
             onAfterAction={() => setCurrentIndex((index) => Math.min(index + 1, state.students.length - 1))}
           />
         ) : (
