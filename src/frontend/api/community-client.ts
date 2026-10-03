@@ -111,6 +111,12 @@ export function createCommunityClient(http: HttpClient) {
         ),
       send: (conversationId: string, input: SendMessageRequest) =>
         http.request<Message>(`conversations/${id(conversationId)}/messages`, input),
+      deleteMessage: (conversationId: string, messageId: string) =>
+        http.request<{ ok: true }>(
+          `conversations/${id(conversationId)}/messages/${id(messageId)}`,
+          {},
+          'DELETE',
+        ),
     },
     ideas: {
       create: (input: CreateIdeaRequest) => http.request<Idea>('ideas', input),

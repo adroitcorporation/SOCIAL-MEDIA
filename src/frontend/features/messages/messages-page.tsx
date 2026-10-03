@@ -140,6 +140,16 @@ export function MessagesPage() {
       setSending(false);
     }
   }
+  async function removeMessage(messageId: string) {
+    if (!selected) return;
+    try {
+      await api.conversations.deleteMessage(selected, messageId);
+      setMessages((current) => current.filter((message) => message.id !== messageId));
+      toast('Message deleted.');
+    } catch (e) {
+      toast((e as Error).message, true);
+    }
+  }
   return (
     <>
       <PageHeading
@@ -289,6 +299,16 @@ export function MessagesPage() {
                           minute: '2-digit',
                         })}
                         {m.senderId === state.me.id && <CheckCheck size={12} aria-label="Sent" />}
+                        {m.senderId === state.me.id &&
+                          Date.now() - new Date(m.createdAt).getTime() <= 7 * 60 * 1000 && (
+                            <button
+                              type="button"
+                              className="text-link delete-message"
+                              onClick={() => void removeMessage(m.id)}
+                            >
+                              Delete
+                            </button>
+                          )}
                       </small>
                     </div>
                   </div>

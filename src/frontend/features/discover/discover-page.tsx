@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { ArrowRight, SlidersHorizontal, Search } from 'lucide-react';
 
@@ -13,6 +13,7 @@ export function DiscoverPage() {
   const { api, state, navigate, mutate, toast } = useCircle();
   const [filters, setFilters] = useState(false);
   const [search, setSearch] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
   useEffect(() => {
     setSearch(new URLSearchParams(location.search).get('search') || '');
   }, []);
@@ -28,6 +29,13 @@ export function DiscoverPage() {
     typeof window !== 'undefined'
       ? Number(new URLSearchParams(location.search).get('page') || 0)
       : 0;
+  const visibleStudent = useMemo(
+    () => state.students[currentIndex] || null,
+    [currentIndex, state.students],
+  );
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [page, state.totalStudents, search]);
   return (
     <>
       <PageHeading
@@ -95,16 +103,40 @@ export function DiscoverPage() {
           Show skipped profiles
         </button>
       </div>
-      <div className="student-grid discover-grid">
-        {state.students.map((s) => (
-          <StudentCard key={s.id} student={s} />
-        ))}
+      <div className="discover-single">
+        {visibleStudent ? (
+          <StudentCard
+            key={visibleStudent.id}
+            student={visibleStudent}
+            onAfterAction={() => setCurrentIndex((index) => Math.min(index + 1, state.students.length - 1))}
+          />
+        ) : (
+          <Empty
+            title="A wider circle is out there."
+            body="Try a different skill, city, or college, or bring back your skipped profiles."
+          />
+        )}
       </div>
-      {!state.students.length && (
-        <Empty
-          title="A wider circle is out there."
-          body="Try a different skill, city, or college, or bring back your skipped profiles."
-        />
+      {visibleStudent && state.students.length > 1 && (
+        <div className="discover-card-nav">
+          <button
+            className="button secondary"
+            onClick={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
+            disabled={currentIndex === 0}
+          >
+            Previous
+          </button>
+          <span>
+            {currentIndex + 1} / {state.students.length}
+          </span>
+          <button
+            className="button secondary"
+            onClick={() => setCurrentIndex((index) => Math.min(index + 1, state.students.length - 1))}
+            disabled={currentIndex >= state.students.length - 1}
+          >
+            Next
+          </button>
+        </div>
       )}
       <div className="pagination">
         <button

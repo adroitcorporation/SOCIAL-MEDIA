@@ -148,6 +148,8 @@ export async function handleApiRequest(request: Request, path: string[]) {
       result = present.groupUpdate(await service.manageGroup(user.id, id, input));
     else if (resource === 'conversations' && id && action === 'messages' && method === 'POST')
       result = present.message(await service.sendMessage(user.id, id, input));
+    else if (resource === 'conversations' && id && action === 'messages' && detail && method === 'DELETE')
+      result = await service.deleteMessage(user.id, id, detail);
     else if (resource === 'conversations' && id && action === 'messages' && method === 'GET')
       result = present.messages(
         await service.readMessages(

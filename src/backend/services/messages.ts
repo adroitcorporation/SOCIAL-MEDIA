@@ -5,6 +5,17 @@ import { z } from 'zod';
 import { messageSchema } from '@/shared/contracts/schemas';
 import { chatIdentity, visibleTo } from './query-shapes';
 
+export function canDeleteOwnMessage(
+  senderId: string,
+  actorId: string,
+  createdAt: Date | string,
+  now = new Date(),
+) {
+  if (senderId !== actorId) return false;
+  const elapsedMs = now.getTime() - new Date(createdAt).getTime();
+  return elapsedMs >= 0 && elapsedMs <= 7 * 60 * 1000;
+}
+
 export async function sendMessage(actor: string, conversationId: string, input: unknown) {
   const data = messageSchema.parse(input);
   return transaction(async (tx) => {
@@ -26,6 +37,28 @@ export async function sendMessage(actor: string, conversationId: string, input: 
       data: { updatedAt: new Date() },
     });
     return message;
+  });
+}
+
+export async function deleteMessage(actor: string, conversationId: string, messageId: string) {
+  return transaction(async (tx) => {
+    await membership(tx, actor, conversationId);
+    const message = await tx.message.findUnique({
+      where: { id: messageId, conversationId },
+      select: { id: true, senderId: true, createdAt: true },
+    });
+    requireThat(message, 404, 'Message not found.');
+    requireThat(
+      canDeleteOwnMessage(message.senderId, actor, message.createdAt),
+      403,
+      'Messages can only be deleted within 7 minutes of sending.',
+    );
+    await tx.message.delete({ where: { id: messageId } });
+    await tx.conversation.update({
+      where: { id: conversationId },
+      data: { updatedAt: new Date() },
+    });
+    return { ok: true };
   });
 }
 
