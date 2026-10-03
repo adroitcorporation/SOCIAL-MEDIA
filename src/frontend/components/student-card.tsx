@@ -24,6 +24,8 @@ export function StudentCard({
   const pending = !discoverMode && connection?.status === 'PENDING';
   const outgoing = connection?.requesterId === state.me.id;
   const shared = student.interests.filter((i) => state.me.interests.includes(i));
+  const quickSkills = student.skills.slice(0, 2);
+  const lookingLabel = student.lookingFor[0] || 'Open to connecting';
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
   const dragStartX = useRef<number | null>(null);
@@ -95,40 +97,34 @@ export function StudentCard({
         <Verified user={student} />
       </button>
       <p className="student-degree">
-        {student.degree} <span>· {student.graduationYear}</span>
+        {student.degree} <span>• {student.graduationYear}</span>
       </p>
       <p className="college">
         <GraduationCap size={14} />
         {student.college}
       </p>
-      <p className="student-bio">{student.bio || 'Ready to find a new collaboration.'}</p>
+      {student.bio && <p className="student-bio">{student.bio}</p>}
       <div className="tags">
-        {student.skills.slice(0, 3).map((s) => (
+        {quickSkills.map((s) => (
           <Tag key={s}>{s}</Tag>
         ))}
-        {student.skills.length > 3 && <Tag>+{student.skills.length - 3}</Tag>}
+        {student.skills.length > 2 && <Tag>+{student.skills.length - 2}</Tag>}
       </div>
-      <div className="looking">
-        <span className="status-dot" />
-        {student.lookingFor[0] || 'Open to collaborating'}
-      </div>
-      {shared.length > 0 && (
+      {lookingLabel && (
+        <div className="looking">
+          <span className="status-dot" />
+          {lookingLabel}
+        </div>
+      )}
+      {shared.length > 0 && !discoverMode && (
         <div className="shared">
           <Sparkles size={12} />
           {shared.length} shared interest{shared.length === 1 ? '' : 's'}
         </div>
       )}
-      <div className="student-actions">
+      <div className="student-actions discover-actions">
         {discoverMode ? (
           <>
-            <button
-              disabled={busy}
-              className="button secondary connect discover-connect"
-              onClick={() => void handleConnect()}
-            >
-              <Plus size={15} />
-              Connect
-            </button>
             <button
               disabled={busy}
               className="button ghost discover-pass"
@@ -137,6 +133,14 @@ export function StudentCard({
             >
               <X size={17} />
               Pass
+            </button>
+            <button
+              disabled={busy}
+              className="button secondary connect discover-connect"
+              onClick={() => void handleConnect()}
+            >
+              <Plus size={15} />
+              Connect
             </button>
           </>
         ) : pending ? (

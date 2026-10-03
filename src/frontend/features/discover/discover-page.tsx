@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { ArrowRight, SlidersHorizontal, Search } from 'lucide-react';
+import { SlidersHorizontal, Search, ArrowRight } from 'lucide-react';
 
 import { useCircle } from '@/frontend/state/circle-context';
 import { Empty } from '@/frontend/components/ui';
@@ -37,11 +37,11 @@ export function DiscoverPage() {
     setCurrentIndex(0);
   }, [page, state.totalStudents, search]);
   return (
-    <>
+    <div className="discover-page">
       <PageHeading
-        eyebrow="PEOPLE MAKE THE DIFFERENCE"
-        title="Find your kind of people."
-        description="A future teammate, a fresh perspective, or a friend who just gets it."
+        eyebrow="DISCOVER"
+        title="Find your people."
+        description="Profiles from your campus community."
       />
       <form className="filter-panel" onSubmit={apply}>
         <div className="filter-top">
@@ -49,7 +49,7 @@ export function DiscoverPage() {
             <Search size={18} />
             <input
               name="search"
-              placeholder="Search by name, college, city, or a little curiosity…"
+              placeholder="Search name, college, city"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -62,7 +62,9 @@ export function DiscoverPage() {
             <SlidersHorizontal size={16} />
             Filters
           </button>
-          <button className="button primary">Find people</button>
+          <button className="button primary discover-submit" aria-label="Search profiles" title="Search profiles">
+            <ArrowRight size={17} />
+          </button>
         </div>
         <div className={`filter-fields ${filters ? 'expanded' : ''}`}>
           {[
@@ -89,7 +91,7 @@ export function DiscoverPage() {
       </form>
       <div className="results-bar">
         <span>
-          <strong>{state.totalStudents}</strong> people to discover
+          <strong>{state.totalStudents}</strong> profiles
         </span>
         <button
           className="text-link"
@@ -118,52 +120,6 @@ export function DiscoverPage() {
           />
         )}
       </div>
-      {visibleStudent && state.students.length > 1 && (
-        <div className="discover-card-nav">
-          <button
-            className="button secondary"
-            onClick={() => setCurrentIndex((index) => Math.max(index - 1, 0))}
-            disabled={currentIndex === 0}
-          >
-            Previous
-          </button>
-          <span>
-            {currentIndex + 1} / {state.students.length}
-          </span>
-          <button
-            className="button secondary"
-            onClick={() => setCurrentIndex((index) => Math.min(index + 1, state.students.length - 1))}
-            disabled={currentIndex >= state.students.length - 1}
-          >
-            Next
-          </button>
-        </div>
-      )}
-      <div className="pagination">
-        <button
-          className="button secondary"
-          disabled={page <= 0}
-          onClick={async () => {
-            const p = new URLSearchParams(location.search);
-            p.set('page', String(page - 1));
-            navigate(`/discover?${p}`);
-          }}
-        >
-          Previous
-        </button>
-        <span>Page {page + 1}</span>
-        <button
-          className="button secondary"
-          disabled={(page + 1) * 12 >= state.totalStudents}
-          onClick={async () => {
-            const p = new URLSearchParams(location.search);
-            p.set('page', String(page + 1));
-            navigate(`/discover?${p}`);
-          }}
-        >
-          Next <ArrowRight size={15} />
-        </button>
-      </div>
-    </>
+    </div>
   );
 }
