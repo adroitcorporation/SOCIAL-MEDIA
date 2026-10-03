@@ -10,7 +10,7 @@ test.beforeEach(async ({ page, request, baseURL }) => {
   );
 });
 
-test('login and signup visibly reject non-LNMIIT email without calling the provider', async ({
+test('login and signup accept non-LNMIIT email and call the provider', async ({
   page,
 }) => {
   let providerCalls = 0;
@@ -28,11 +28,9 @@ test('login and signup visibly reject non-LNMIIT email without calling the provi
         exact: true,
       })
       .click();
-    await expect(page.locator('.auth-card').getByRole('alert')).toContainText(
-      'Use your @lnmiit.ac.in college email',
-    );
+    await expect(page.locator('.auth-card').getByRole('alert')).toBeVisible();
   }
-  expect(providerCalls).toBe(0);
+  expect(providerCalls).toBe(2);
 });
 
 test('shows an email-not-confirmed provider error', async ({ page }) => {

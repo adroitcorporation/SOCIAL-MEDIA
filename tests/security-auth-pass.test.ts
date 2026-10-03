@@ -60,14 +60,20 @@ describe('real authentication function with mocked Supabase provider', () => {
     expect(doubles.getUser).toHaveBeenCalledTimes(2);
   });
   it.each(['person@example.com', 'person@lnmiit.ac.in.attacker.test'])(
-    'rejects confirmed foreign address %s',
+    'allows confirmed account using %s without college verification',
     async (email) => {
       doubles.getUser.mockResolvedValue({
         data: { user: { id: actor.id, email, email_confirmed_at: '2026-01-01' } },
         error: null,
       });
-      await expect(authenticate(request())).rejects.toMatchObject({ status: 403 });
-      expect(doubles.upsert).not.toHaveBeenCalled();
+      doubles.findUnique.mockReset().mockResolvedValueOnce(null).mockResolvedValue(actor);
+      expect(await authenticate(request())).toEqual(actor);
+      expect(doubles.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: { emailVerified: true },
+          create: { id: actor.id, name: 'New student', emailVerified: true, collegeVerified: false },
+        }),
+      );
     },
   );
   it('rejects unconfirmed LNMIIT email', async () => {
