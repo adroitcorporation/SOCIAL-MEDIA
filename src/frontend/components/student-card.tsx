@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { ArrowUpRight, Plus, X, Sparkles, GraduationCap } from 'lucide-react';
 import type { Student } from '@/shared/contracts/responses';
 
@@ -26,10 +26,22 @@ export function StudentCard({
   const shared = student.interests.filter((i) => state.me.interests.includes(i));
   const quickSkills = student.skills.slice(0, 2);
   const lookingLabel = student.lookingFor[0] || 'Open to connecting';
-  const [dragX, setDragX] = useState(0);
-  const [dragging, setDragging] = useState(false);
   const dragStartX = useRef<number | null>(null);
+  const dragPointerId = useRef<number | null>(null);
+  const dragX = useRef(0);
+  const dragVelocity = useRef(0);
+  const lastPointerSample = useRef<{ x: number; time: number } | null>(null);
   const actionInFlight = useRef(false);
+  const resetDrag = (card: HTMLElement) => {
+    dragStartX.current = null;
+    dragPointerId.current = null;
+    dragX.current = 0;
+    dragVelocity.current = 0;
+    lastPointerSample.current = null;
+    card.style.setProperty('--drag-x', '0px');
+    card.style.setProperty('--drag-rotation', '0deg');
+    card.classList.remove('is-dragging');
+  };
   const finishAction = () => {
     onAfterAction?.(student.id);
   };
@@ -54,7 +66,14 @@ export function StudentCard({
     if (busy || actionInFlight.current) return;
     actionInFlight.current = true;
     try {
-      await mutate(() => api.skips.add(student.id));
+      await mutate(
+        () => api.skips.add(student.id),
+        (current) => ({
+          ...current,
+          students: current.students.filter((candidate) => candidate.id !== student.id),
+          totalStudents: Math.max(0, current.totalStudents - 1),
+        }),
+      );
       finishAction();
     } catch {
     } finally {
@@ -63,37 +82,42 @@ export function StudentCard({
   };
   return (
     <article
-      className={`student-card ${dragging ? 'is-dragging' : ''}`}
+      className="student-card"
       onPointerDown={(event) => {
         // Capturing a button's pointer retargets its click to the card.
         if ((event.target as HTMLElement).closest('button, a, input, select, textarea')) return;
-        if (busy || actionInFlight.current || event.button !== 0) return;
+        if (busy || actionInFlight.current || !event.isPrimary || event.button !== 0) return;
         dragStartX.current = event.clientX;
-        setDragging(true);
+        dragPointerId.current = event.pointerId;
+        dragX.current = 0;
+        dragVelocity.current = 0;
+        lastPointerSample.current = { x: event.clientX, time: event.timeStamp };
+        event.currentTarget.classList.add('is-dragging');
         event.currentTarget.setPointerCapture(event.pointerId);
       }}
       onPointerMove={(event) => {
-        if (dragStartX.current === null) return;
-        setDragX(event.clientX - dragStartX.current);
+        if (dragStartX.current === null || event.pointerId !== dragPointerId.current) return;
+        const delta = event.clientX - dragStartX.current;
+        const previous = lastPointerSample.current;
+        const elapsed = previous ? event.timeStamp - previous.time : 0;
+        if (previous && elapsed > 0) {
+          dragVelocity.current = (event.clientX - previous.x) / elapsed;
+        }
+        dragX.current = delta;
+        lastPointerSample.current = { x: event.clientX, time: event.timeStamp };
+        event.currentTarget.style.setProperty('--drag-x', `${delta}px`);
+        event.currentTarget.style.setProperty('--drag-rotation', `${delta / 24}deg`);
       }}
-      onPointerUp={() => {
-        if (dragStartX.current === null) return;
-        const delta = dragX;
-        dragStartX.current = null;
-        setDragging(false);
-        if (delta > 120) void handleConnect();
-        else if (delta < -120) void handleSkip();
-        setDragX(0);
+      onPointerUp={(event) => {
+        if (dragStartX.current === null || event.pointerId !== dragPointerId.current) return;
+        const delta = event.clientX - dragStartX.current;
+        const velocity = dragVelocity.current;
+        resetDrag(event.currentTarget);
+        if (delta > 120 || (delta > 45 && velocity > 0.55)) void handleConnect();
+        else if (delta < -120 || (delta < -45 && velocity < -0.55)) void handleSkip();
       }}
-      onPointerLeave={() => {
-        if (!dragging) return;
-        dragStartX.current = null;
-        setDragging(false);
-        setDragX(0);
-      }}
-      style={{
-        transform: `translateX(${dragX}px) rotate(${dragX / 18}deg)`,
-        transition: dragging ? 'none' : 'transform 0.18s ease',
+      onPointerCancel={(event) => {
+        if (event.pointerId === dragPointerId.current) resetDrag(event.currentTarget);
       }}
     >
       <div className="student-top">

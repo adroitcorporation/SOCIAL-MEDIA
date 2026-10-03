@@ -166,7 +166,14 @@ export async function snapshot(user: User, query: URLSearchParams) {
             members: {
               where: { userId: { notIn: blockedIds } },
               take: !view || view === '/messages' ? undefined : 0,
-              include: { user: { select: chatIdentity } },
+              select: {
+                conversationId: true,
+                userId: true,
+                role: true,
+                joinedAt: true,
+                lastReadAt: true,
+                user: { select: chatIdentity },
+              },
             },
             messages: {
               where: { senderId: { notIn: blockedIds } },
@@ -198,12 +205,15 @@ export async function snapshot(user: User, query: URLSearchParams) {
         : [],
     connectionsPromise,
   ]);
-  const unread = memberships.length
+  const visibleMemberships = memberships.filter(
+    (member) => !member.clearedAt || member.conversation.updatedAt > member.clearedAt,
+  );
+  const unread = visibleMemberships.length
     ? await db.message.groupBy({
         by: ['conversationId'],
         where: {
           senderId: { notIn: [user.id, ...blockedIds] },
-          OR: memberships.map((m) => ({
+          OR: visibleMemberships.map((m) => ({
             conversationId: m.conversationId,
             createdAt: { gt: m.lastReadAt },
           })),
@@ -212,10 +222,12 @@ export async function snapshot(user: User, query: URLSearchParams) {
       })
     : [];
   const counts = new Map(unread.map((row) => [row.conversationId, row._count._all]));
-  const conversations = memberships.map((m) => ({
+  const conversations = visibleMemberships.map((m) => ({
     ...m.conversation,
     members: m.conversation.members || [],
-    messages: m.conversation.messages || [],
+    messages: (m.conversation.messages || []).filter(
+      (message) => !m.clearedAt || message.createdAt > m.clearedAt,
+    ),
     myRole: m.role,
     unread: counts.get(m.conversationId) || 0,
   }));

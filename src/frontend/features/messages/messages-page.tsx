@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   MessageCircle,
   CheckCheck,
+  Trash2,
 } from 'lucide-react';
 import type { ChatMessage, ConversationItem, Student } from '@/shared/contracts/responses';
 import type { GroupAction } from '@/shared/contracts/enums';
@@ -17,8 +18,9 @@ import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Empty, Modal } from '@/frontend/components/ui';
 import { PageHeading } from '@/frontend/components/page-heading';
 export function MessagesPage() {
-  const { state, api, toast } = useCircle();
+  const { state, api, toast, mutate, busy } = useCircle();
   const [create, setCreate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState('');
@@ -150,6 +152,29 @@ export function MessagesPage() {
       toast((e as Error).message, true);
     }
   }
+  async function deleteChat() {
+    if (!selected) return;
+    const conversationId = selected;
+    try {
+      await mutate(
+        () => api.conversations.clear(conversationId),
+        (current) => ({
+          ...current,
+          conversations: current.conversations.filter((item) => item.id !== conversationId),
+        }),
+      );
+      generation.current++;
+      pending.current = null;
+      cursor.current = undefined;
+      selectedRef.current = null;
+      setSelected(null);
+      setMessages([]);
+      setManage(false);
+      setConfirmDelete(false);
+      history.replaceState(null, '', '/messages');
+      toast('Chat deleted from your inbox.');
+    } catch {}
+  }
   return (
     <>
       <PageHeading
@@ -240,6 +265,18 @@ export function MessagesPage() {
                     Members
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="icon-button chat-delete"
+                  aria-label="Delete chat"
+                  title="Delete chat"
+                  onClick={() => {
+                    setManage(false);
+                    setConfirmDelete(true);
+                  }}
+                >
+                  <Trash2 size={17} />
+                </button>
               </header>
               <div className="message-scroll" ref={scroll}>
                 {hasOlder && messages.length > 0 && (
@@ -353,6 +390,28 @@ export function MessagesPage() {
           )}
         </section>
       </div>
+      {confirmDelete && conversation && (
+        <Modal title="Delete this chat?" onClose={() => setConfirmDelete(false)}>
+          <p className="muted">
+            This removes the conversation and its current messages from your inbox only. Other
+            participants keep their history. New messages will bring the chat back without the old
+            messages.
+          </p>
+          <div className="dialog-actions">
+            <button className="button secondary" onClick={() => setConfirmDelete(false)}>
+              Keep chat
+            </button>
+            <button
+              className="button danger-button"
+              disabled={busy}
+              onClick={() => void deleteChat()}
+            >
+              <Trash2 size={15} />
+              Delete chat
+            </button>
+          </div>
+        </Modal>
+      )}
       {create && (
         <CreateGroup
           onClose={() => setCreate(false)}

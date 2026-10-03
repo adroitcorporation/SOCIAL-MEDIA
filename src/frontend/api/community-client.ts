@@ -103,6 +103,8 @@ export function createCommunityClient(http: HttpClient) {
     conversations: {
       create: (input: DirectConversationRequest | CreateGroupRequest) =>
         http.request<Conversation>('conversations', input),
+      clear: (conversationId: string) =>
+        http.request<{ ok: true }>(`conversations/${id(conversationId)}`, {}, 'DELETE'),
       update: (conversationId: string, input: GroupUpdateRequest) =>
         http.request<GroupUpdateResponse>(`conversations/${id(conversationId)}`, input, 'PATCH'),
       messages: (conversationId: string, before?: string, after?: string) =>

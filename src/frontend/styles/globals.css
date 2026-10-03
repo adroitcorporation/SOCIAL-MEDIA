@@ -197,9 +197,6 @@ em {
 .error {
   color: var(--danger-ink, #a9443e);
   background: var(--danger-surface, #fff0ee);
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 13px;
 }
 .notice {
   background: var(--surface-soft, #e7edf5);
@@ -1068,9 +1065,12 @@ em {
   display: flex;
   flex-direction: column;
   transition:
+    transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1),
     box-shadow 0.2s,
     border-color 0.2s;
   box-shadow: 0 8px 22px rgba(16, 40, 71, 0.04);
+  transform: translate3d(var(--drag-x, 0px), 0, 0) rotate(var(--drag-rotation, 0deg));
+  touch-action: pan-y;
 }
 .student-card:hover {
   border-color: var(--border-subtle, #cad4e3);
@@ -1079,6 +1079,8 @@ em {
 .student-card.is-dragging {
   cursor: grabbing;
   box-shadow: 0 24px 48px rgba(18, 35, 56, 0.16);
+  transition: none;
+  will-change: transform;
 }
 .student-top {
   display: flex;
@@ -1648,11 +1650,13 @@ em {
 @keyframes discover-card-enter {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.99);
+    translate: 0 10px;
+    scale: 0.99;
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    translate: 0 0;
+    scale: 1;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1661,14 +1665,50 @@ em {
   }
 }
 @media (max-width: 620px) {
+  .discover-page .page-heading {
+    margin-bottom: 14px;
+  }
+  .discover-page .page-heading p {
+    display: none;
+  }
   .discover-page .page-heading h1 {
     font-size: 28px;
   }
+  .discover-page .filter-panel {
+    margin-bottom: 12px;
+  }
+  .discover-page .filter-top {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .discover-page .filter-top .search-field {
+    flex: 1 1 0;
+    flex-basis: auto;
+    width: auto;
+    gap: 6px;
+    padding: 9px 8px;
+  }
+  .discover-page .filter-top .search-field input {
+    font-size: 11px;
+  }
+  .discover-page .filter-top > .button {
+    flex: 0 0 auto;
+    padding: 9px 10px;
+    font-size: 10px;
+  }
   .discover-page .filter-top > .discover-submit {
-    flex: 0 0 44px;
+    flex: 0 0 40px;
+    width: 40px;
+    padding: 9px;
+  }
+  .discover-page .results-bar {
+    margin-bottom: 12px;
+  }
+  .discover-page .discover-single {
+    margin-top: 4px;
   }
   .discover-single > .student-card .student-top {
-    height: 220px;
+    height: 155px;
   }
 }
 .discover-card-nav {
@@ -2375,6 +2415,16 @@ em {
 .chat-header .button {
   margin-left: auto;
 }
+.chat-delete {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-subtle, #dce3ed);
+  color: var(--danger-ink, #a44f47);
+}
+.chat-delete:hover:not(:disabled) {
+  background: var(--danger-surface, #fff0ee);
+}
 .chat-back {
   display: none;
 }
@@ -3042,9 +3092,6 @@ em {
   }
   .hero-copy {
     max-width: 63%;
-  }
-  .home-columns {
-    grid-template-columns: minmax(0, 1fr) 210px;
   }
   .home-right {
     display: block;

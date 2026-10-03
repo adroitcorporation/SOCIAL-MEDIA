@@ -40,6 +40,12 @@ beforeAll(async () => {
       'utf8',
     ),
   );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202610030001_clear_chat/migration.sql',
+      'utf8',
+    ),
+  );
   server = new PGLiteSocketServer({ db: pg, host: '127.0.0.1', port: 54330 });
   await server.start();
   process.env.DATABASE_URL =
@@ -115,6 +121,47 @@ describe('Connection lifecycle', () => {
     ]);
     expect(one.id).toBe(two.id);
     expect(await db.conversationMember.count({ where: { conversationId: one.id } })).toBe(2);
+  });
+  it('clears chat history for one member and starts a clean history on new activity', async () => {
+    const conversation = await service.directConversation('a', 'b');
+    await service.sendMessage('a', conversation.id, {
+      body: 'Old message from a',
+      clientId: crypto.randomUUID(),
+    });
+    await service.sendMessage('b', conversation.id, {
+      body: 'Old message from b',
+      clientId: crypto.randomUUID(),
+    });
+
+    await service.clearConversation('a', conversation.id);
+
+    expect(await service.readMessages('a', conversation.id)).toEqual([]);
+    expect((await service.readMessages('b', conversation.id)).map((message) => message.body)).toEqual(
+      ['Old message from a', 'Old message from b'],
+    );
+    const hidden = await service.snapshot(
+      await db.user.findUniqueOrThrow({ where: { id: 'a' } }),
+      new URLSearchParams({ view: '/messages' }),
+    );
+    expect(hidden.conversations.some((item) => item.id === conversation.id)).toBe(false);
+    await expect(service.clearConversation('c', conversation.id)).rejects.toMatchObject({
+      status: 403,
+    });
+
+    await service.sendMessage('b', conversation.id, {
+      body: 'New message after clearing',
+      clientId: crypto.randomUUID(),
+    });
+    expect((await service.readMessages('a', conversation.id)).map((message) => message.body)).toEqual(
+      ['New message after clearing'],
+    );
+    const restored = await service.snapshot(
+      await db.user.findUniqueOrThrow({ where: { id: 'a' } }),
+      new URLSearchParams({ view: '/messages' }),
+    );
+    expect(restored.conversations.find((item) => item.id === conversation.id)?.messages[0].body).toBe(
+      'New message after clearing',
+    );
   });
 });
 describe('Accepted-connection groups and authorization', () => {

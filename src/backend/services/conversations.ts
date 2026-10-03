@@ -21,6 +21,18 @@ export async function directConversation(actor: string, target: string) {
   });
 }
 
+export async function clearConversation(actor: string, conversationId: string) {
+  return transaction(async (tx) => {
+    const member = await membership(tx, actor, conversationId);
+    const clearedAt = new Date();
+    await tx.conversationMember.update({
+      where: { conversationId_userId: { conversationId, userId: actor } },
+      data: { clearedAt, lastReadAt: clearedAt },
+    });
+    return { ok: true };
+  });
+}
+
 export async function createGroup(actor: string, input: unknown) {
   const { name, memberIds } = groupSchema.parse(input);
   const ids = [...new Set(memberIds)].filter((id) => id !== actor);

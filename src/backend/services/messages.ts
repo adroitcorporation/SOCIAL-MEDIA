@@ -19,7 +19,7 @@ export function canDeleteOwnMessage(
 export async function sendMessage(actor: string, conversationId: string, input: unknown) {
   const data = messageSchema.parse(input);
   return transaction(async (tx) => {
-    await membership(tx, actor, conversationId);
+    const member = await membership(tx, actor, conversationId);
     const previous = await tx.message.findUnique({
       where: { senderId_clientId: { senderId: actor, clientId: data.clientId } },
     });
@@ -31,10 +31,17 @@ export async function sendMessage(actor: string, conversationId: string, input: 
       );
       return previous;
     }
-    const message = await tx.message.create({ data: { ...data, senderId: actor, conversationId } });
+    const latestClear = Math.max(
+      0,
+      ...member.conversation.members.map((item) => item.clearedAt?.getTime() || 0),
+    );
+    const createdAt = new Date(Math.max(Date.now(), latestClear ? latestClear + 1 : 0));
+    const message = await tx.message.create({
+      data: { ...data, senderId: actor, conversationId, createdAt },
+    });
     await tx.conversation.update({
       where: { id: conversationId },
-      data: { updatedAt: new Date() },
+      data: { updatedAt: createdAt },
     });
     return message;
   });
@@ -71,10 +78,11 @@ export async function readMessages(
   requireThat(!(before && after), 400, 'Use only one message cursor.');
   return transaction(async (tx) => {
     const member = await membership(tx, actor, conversationId);
+    const visibleHistory = member.clearedAt ? { createdAt: { gt: member.clearedAt } } : {};
     const cursor = before || after;
     const boundary = cursor
       ? await tx.message.findFirst({
-          where: { id: z.string().max(100).parse(cursor), conversationId },
+          where: { id: z.string().max(100).parse(cursor), conversationId, ...visibleHistory },
           select: { id: true, createdAt: true },
         })
       : undefined;
@@ -84,6 +92,7 @@ export async function readMessages(
       where: {
         conversationId,
         sender: visibleTo(actor),
+        ...visibleHistory,
         ...(boundary
           ? {
               OR: [

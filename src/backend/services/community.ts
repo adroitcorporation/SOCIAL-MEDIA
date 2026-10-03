@@ -1,5 +1,5 @@
 export { requestConnection, transitionConnection, blockUser, unblockUser } from './connections';
-export { directConversation, createGroup, manageGroup } from './conversations';
+export { directConversation, clearConversation, createGroup, manageGroup } from './conversations';
 export { getOrCreateIdeaGroup, resonate, createIdea, listResonances } from './ideas';
 export { sendMessage, readMessages, deleteMessage, canDeleteOwnMessage } from './messages';
 export { saveProfile, getStudent } from './profiles';

@@ -144,6 +144,8 @@ export async function handleApiRequest(request: Request, path: string[]) {
         input.type === 'DIRECT'
           ? await service.directConversation(user.id, z.string().max(100).parse(input.userId))
           : await service.createGroup(user.id, input);
+    else if (resource === 'conversations' && id && !action && method === 'DELETE')
+      result = await service.clearConversation(user.id, id);
     else if (resource === 'conversations' && id && method === 'PATCH')
       result = present.groupUpdate(await service.manageGroup(user.id, id, input));
     else if (resource === 'conversations' && id && action === 'messages' && method === 'POST')
