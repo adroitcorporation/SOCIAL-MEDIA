@@ -8,6 +8,7 @@ import { chatIdentity, visibleTo } from './query-shapes';
 export async function snapshot(user: User, query: URLSearchParams) {
   // Missing view retains the existing API contract for external callers.
   const view = query.get('view');
+  const selectedConversationId = view === '/messages' ? query.get('conversation') : null;
   const needs = (...views: string[]) => !view || view === '/' || views.includes(view);
   const feedView = view === '/ideas' || view === '/events';
   const category = query.get('category')?.slice(0, 60);
@@ -206,7 +207,10 @@ export async function snapshot(user: User, query: URLSearchParams) {
     connectionsPromise,
   ]);
   const visibleMemberships = memberships.filter(
-    (member) => !member.clearedAt || member.conversation.updatedAt > member.clearedAt,
+    (member) =>
+      !member.clearedAt ||
+      member.conversation.updatedAt > member.clearedAt ||
+      member.conversationId === selectedConversationId,
   );
   const unread = visibleMemberships.length
     ? await db.message.groupBy({

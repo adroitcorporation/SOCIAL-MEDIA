@@ -144,6 +144,13 @@ describe('Connection lifecycle', () => {
       new URLSearchParams({ view: '/messages' }),
     );
     expect(hidden.conversations.some((item) => item.id === conversation.id)).toBe(false);
+    const selected = await service.snapshot(
+      await db.user.findUniqueOrThrow({ where: { id: 'a' } }),
+      new URLSearchParams({ view: '/messages', conversation: conversation.id }),
+    );
+    expect(selected.conversations.find((item) => item.id === conversation.id)?.messages).toEqual(
+      [],
+    );
     await expect(service.clearConversation('c', conversation.id)).rejects.toMatchObject({
       status: 403,
     });
