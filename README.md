@@ -24,10 +24,11 @@ Open **http://localhost:3000**. The demo applies the checked-in migrations, seed
 ## Run with real accounts
 
 1. Copy `.env.example` to `.env`. Never commit credentials.
-2. Set `DATABASE_URL` to a PostgreSQL direct/session connection with schema-owner permissions. For hosted databases use the provider's required TLS parameters. A transaction pooler is not appropriate for migrations.
-3. Create a Supabase project for **Auth**. Its database does not need to be the application's database. Set the project URL and publishable key in both your local/build and runtime environments. No service-role key is used by this app.
-4. Enable email/password auth and enable **Confirm email**. Configure the Site URL to your `APP_URL`, and allow both `APP_URL/` and `APP_URL/reset-password` as redirect URLs. Set a minimum password length of 12 in Supabase and enable leaked-password protection if available. Configure production SMTP to deliver confirmation and password-reset emails.
-5. Leave `LOCAL_DEMO=false`. Run:
+2. Set `DATABASE_URL` to the server runtime connection. For serverless deployments on Supabase, use the transaction pooler with a low `connection_limit`.
+3. Set `DIRECT_URL` to a PostgreSQL direct or session-mode connection with schema-owner permissions. Prisma uses it for migrations; do not use a transaction pooler for this URL. Supply the provider's required TLS parameters.
+4. Create a Supabase project for **Auth**. Its database does not need to be the application's database. Set the project URL and publishable key in both your local/build and runtime environments. No service-role key is used by this app.
+5. Enable email/password auth and enable **Confirm email**. Configure the Site URL to your `APP_URL`, and allow both `APP_URL/` and `APP_URL/reset-password` as redirect URLs. Set a minimum password length of 12 in Supabase and enable leaked-password protection if available. Configure production SMTP to deliver confirmation and password-reset emails.
+6. Leave `LOCAL_DEMO=false`. Run:
 
 ```sh
 npm run db:migrate
@@ -48,11 +49,11 @@ Profile and group images currently accept HTTPS image URLs, with initials as a f
 
 1. Push this repository to a connected GitHub/GitLab/Bitbucket repository.
 2. Create a Render Blueprint using `render.yaml`.
-3. Supply `APP_URL` (the canonical HTTPS origin, no trailing slash) and the two public Supabase variables. Public auth variables must be present **during the build** as Next.js embeds them in the client bundle. Redeploy after changing them.
+3. Supply `DATABASE_URL` and `DIRECT_URL` from the Render database, plus `APP_URL` (the canonical HTTPS origin, no trailing slash) and the two public Supabase variables. Public auth variables must be present **during the build** as Next.js embeds them in the client bundle. Redeploy after changing them.
 4. Configure the same production origin/redirect URLs and SMTP in Supabase.
-5. Deploy. `npm start` validates configuration, runs **`prisma migrate deploy`**, and only starts Next.js after migrations succeed. The health endpoint checks the database. No resets or `db push` occur.
+5. Deploy. `npm start` validates configuration, runs **`prisma migrate deploy`** through `DIRECT_URL`, and only starts Next.js after migrations succeed. The health endpoint checks the database. No resets or `db push` occur.
 
-For a split Vercel frontend / Render backend, `/api/config` runs locally on the frontend and reports its own public auth configuration without contacting Render. Other API requests still proxy to the backend. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` on both deployments before building, using the same Supabase project, and rebuild after changing them. These public values are embedded at build time; changing runtime variables alone cannot update the browser client.
+For Vercel with Supabase PostgreSQL, use the transaction-pooler URL for `DATABASE_URL` and the direct or session-mode URL for `DIRECT_URL`; set both in the environments where Prisma builds and migrations run. This keeps migration connections out of the app's small session pool. For a split Vercel frontend / Render backend, `/api/config` runs locally on the frontend and reports its own public auth configuration without contacting Render. Other API requests still proxy to the backend. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` on both deployments before building, using the same Supabase project, and rebuild after changing them. These public values are embedded at build time; changing runtime variables alone cannot update the browser client.
 
 Moderation uses database roles. Apply migrations with `npm run db:migrate`, then bootstrap the first Ultimate Moderator with `npm run roles:bootstrap -- <existing-user-id>`. This trusted CLI only works when no active Ultimate Moderator exists. Existing allowlist entries are no longer used; reassign their roles from `/moderation/roles`. See [MODERATION.md](MODERATION.md) for permissions, API routes and activation details.
 

@@ -1,6 +1,7 @@
 import { spawnSync, spawn } from 'node:child_process';
 const required = [
   'DATABASE_URL',
+  'DIRECT_URL',
   'APP_URL',
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',

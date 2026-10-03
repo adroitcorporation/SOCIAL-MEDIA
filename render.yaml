@@ -19,6 +19,10 @@ services:
         fromDatabase:
           name: founder-circle-db
           property: connectionString
+      - key: DIRECT_URL
+        fromDatabase:
+          name: founder-circle-db
+          property: connectionString
       - key: APP_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_URL
