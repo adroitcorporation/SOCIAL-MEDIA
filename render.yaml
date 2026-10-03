@@ -20,6 +20,7 @@ services:
           name: founder-circle-db
           property: connectionString
       - key: DIRECT_URL
+        # Render Postgres uses the same non-transaction-pooled connection for migrations.
         fromDatabase:
           name: founder-circle-db
           property: connectionString
