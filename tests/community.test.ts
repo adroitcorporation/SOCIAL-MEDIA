@@ -47,6 +47,8 @@ beforeAll(async () => {
     ),
   );
   await pg.exec(await readFile('src/backend/database/prisma/migrations/202610050001_recommendations/migration.sql','utf8'));
+  await pg.exec(await readFile('src/backend/database/prisma/migrations/202610050002_recommendation_queue_locking/migration.sql','utf8'));
+  await pg.exec(await readFile('src/backend/database/prisma/migrations/202610060001_profile_posts/migration.sql','utf8'));
   server = new PGLiteSocketServer({ db: pg, host: '127.0.0.1', port: 54330 });
   await server.start();
   process.env.DATABASE_URL =

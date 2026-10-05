@@ -17,7 +17,7 @@ try {
   }
   if (process.argv.includes('--requeue')) {
     await db.$executeRaw`INSERT INTO "RecommendationJob"(kind,"targetId")
-      SELECT 'PROFILE',id FROM "User" UNION ALL SELECT 'IDEA',id FROM "Idea" UNION ALL SELECT 'EVENT',id FROM "Event"
+      SELECT 'PROFILE',id FROM "User" UNION ALL SELECT 'IDEA',id FROM "Idea" UNION ALL SELECT 'EVENT',id FROM "Event" UNION ALL SELECT 'POST',id FROM "Post" WHERE visibility='PUBLIC'
       ON CONFLICT(kind,"targetId") DO UPDATE SET version="RecommendationJob".version+1,attempts=0,"availableAt"=CURRENT_TIMESTAMP,"lockedUntil"=NULL,"lockToken"=NULL,"lastError"=NULL`;
   }
   const count = await processRecommendationJobs(process.argv.includes('--once') ? 5 : 100);

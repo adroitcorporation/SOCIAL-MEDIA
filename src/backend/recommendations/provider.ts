@@ -36,7 +36,7 @@ export function localInference(text: string): Inference {
   let prose = text;
   try {
     const source = JSON.parse(text);
-    prose = [source.bio, source.title, source.description]
+    prose = [source.bio, source.title, source.description, source.content]
       .filter((v) => typeof v === 'string')
       .join('\n');
   } catch {}
@@ -56,6 +56,8 @@ export function localInference(text: string): Inference {
     lookingFor.push('UI/UX Designer');
   if (/(?:looking for|need|seeking).{0,60}web develop/i.test(prose))
     lookingFor.push('Web Developer');
+  if (/(?:looking for|need|seeking).{0,60}video edit/i.test(prose))
+    lookingFor.push('Video Editor');
   if (/saas/i.test(text)) interests.push('Product', 'Startups & Entrepreneurship');
   return {
     skills: [],

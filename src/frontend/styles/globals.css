@@ -1,5 +1,46 @@
 @import 'tailwindcss';
 
+.profile-sections { display: flex; gap: 24px; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
+.profile-sections button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 10px 2px; color: var(--muted); font-weight: 600; }
+.profile-sections button[aria-pressed='true'] { border-color: var(--accent); color: var(--ink); }
+.profile-posts { display: grid; gap: 16px; min-width: 0; }
+.profile-posts > .button { justify-self: start; }
+.post-page { max-width: 760px; margin-inline: auto; min-width: 0; }
+.post-card { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); min-width: 0; }
+.post-header { display: flex; align-items: flex-start; gap: 12px; justify-content: space-between; margin-bottom: 14px; }
+.post-author { display: flex; align-items: center; gap: 10px; text-align: left; border: 0; background: none; padding: 0; color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.post-author > span:last-child { min-width: 0; }
+.post-author small { display: block; font-size: 12px; line-height: 1.4; }
+.post-date { flex-shrink: 0; color: var(--muted); font-size: 12px; }
+.post-content { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; margin: 12px 0; }
+.post-preview { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; }
+.post-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+.post-actions .button { min-height: 40px; padding: 8px 12px; }
+.post-liked { color: var(--accent-ink) !important; background: var(--accent-soft) !important; }
+.post-editor, .post-report { display: grid; gap: 12px; text-align: left; min-width: 0; }
+.post-editor textarea, .post-comments textarea { width: 100%; resize: vertical; min-height: 100px; }
+.post-editor-footer { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.post-editor-footer label { flex: 1; min-width: 180px; }
+.post-editor-footer select { width: 100%; }
+.post-empty { padding-block: 22px; text-align: center; }
+.post-privacy { display: flex; align-items: center; gap: 5px; color: var(--muted); }
+.post-confirm, .post-report { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.post-confirm .button { margin: 6px 8px 0 0; }
+.post-comments { margin-top: 20px; }
+.post-comments h2 { margin-bottom: 16px; }
+.post-comments form { display: grid; gap: 12px; }
+.post-comments form .button { justify-self: start; }
+.post-comment { padding-block: 18px; border-top: 1px solid var(--line); margin-top: 16px; }
+.post-comment time { display: block; font-size: 12px; margin-top: 6px; }
+@media (max-width: 600px) {
+  .post-card { padding: 14px; }
+  .post-header { flex-wrap: wrap; gap: 6px; }
+  .post-date { margin-left: 42px; }
+  .post-actions { gap: 10px; }
+  .post-actions button, .profile-sections button { min-height: 44px; }
+  .post-author { width: 100%; }
+}
+
 :root {
   color-scheme: light;
   --background: #f5f7fb;

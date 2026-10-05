@@ -13,6 +13,7 @@ import {
 } from '@/shared/recommendations/taxonomy';
 import { teamRequestSchema } from '@/shared/contracts/recommendations';
 import { ranking } from './config';
+import { postSignalSql } from './post-signals';
 import { balancedTeam, matchReasons, type Signals } from './scoring';
 
 const array = (values: string[]) =>
@@ -20,6 +21,7 @@ const array = (values: string[]) =>
 // Empty arrays must stay empty (not [NULL]), especially for cardinality-based denominators.
 const arr = (values: string[]) => (values.length ? array(values) : Prisma.sql`'{}'::text[]`);
 type Ranked = {
+  postSignal: number;
   id: string;
   score: number;
   total: bigint;
@@ -84,7 +86,7 @@ export async function rankedProfiles(
   const w = ranking.weights;
   const rows = await db.$queryRaw<Ranked[]>(Prisma.sql`
     WITH candidates AS (
-      SELECT u.id,u."updatedAt",d.inferred,COALESCE(d.skills,fc_normalize('skills',u.skills)) skills,
+      SELECT u.id,u."updatedAt",d.inferred,${context ? Prisma.sql`0::float` : postSignalSql(user.id, skills, interests)} AS "postSignal",COALESCE(d.skills,fc_normalize('skills',u.skills)) skills,
         COALESCE(d.interests,fc_normalize('interests',u.interests)) interests,
         COALESCE(d."lookingFor",fc_normalize('lookingFor',u."lookingFor")) "lookingFor",
         CASE WHEN d."embeddingModel"<>'' AND d."embeddingModel"=own."embeddingModel" THEN GREATEST(0,fc_cosine(d.embedding,own.embedding)) ELSE 0 END semantic
@@ -106,7 +108,7 @@ export async function rankedProfiles(
         ${w.interests}*LEAST(1,fc_overlap(${arr(interests)},interests)/${Math.max(1, Math.min(interests.length, 3))}::float)+
         ${w.collaboration}*(fc_overlap(${arr(looking)},"lookingFor")>0)::int+
         ${ranking.inferredWeight}*LEAST(1,fc_overlap(${arr(interests)},ARRAY(SELECT jsonb_array_elements_text(COALESCE(inferred->'interests','[]'::jsonb)))))+
-        ${w.semantic}*semantic+${w.freshness}/(1+GREATEST(0,extract(epoch FROM CURRENT_TIMESTAMP-"updatedAt")/86400)/${ranking.profileFreshnessDays})+
+        "postSignal"+${w.semantic}*semantic+${w.freshness}/(1+GREATEST(0,extract(epoch FROM CURRENT_TIMESTAMP-"updatedAt")/86400)/${ranking.profileFreshnessDays})+
         COALESCE((SELECT GREATEST(-${ranking.feedbackLimit},LEAST(${ranking.feedbackLimit},sum(CASE WHEN action IN ('PROFILE_SKIPPED','CONNECTION_REJECTED') THEN -1 ELSE 1 END))) FROM "RecommendationInteraction" ri WHERE ri."userId"=${user.id} AND ri."targetType"='PROFILE' AND ri."targetId"=signals.id AND ri."createdAt">CURRENT_TIMESTAMP-${ranking.feedbackDays}*interval '1 day'),0)
       ))::float score FROM signals
     ), coverage AS (
@@ -114,7 +116,7 @@ export async function rankedProfiles(
       FROM scored CROSS JOIN unnest(${arr(context?.requiredSkills ?? [])}) needed(skill)
       WHERE needed.skill=ANY(skills)
     ), diversity AS (SELECT id,min(skill_rank) skill_rank FROM coverage GROUP BY id)
-    SELECT s.id,score,skills,interests,"lookingFor",count(*) OVER() total FROM scored s
+    SELECT s.id,score,skills,interests,"lookingFor","postSignal",count(*) OVER() total FROM scored s
     LEFT JOIN diversity v ON v.id=s.id
     ORDER BY COALESCE(v.skill_rank,2147483647) ASC,score DESC,s.id ASC LIMIT ${limit} OFFSET ${recommendationPage(query) * limit}
   `);
@@ -140,7 +142,7 @@ export async function rankedProfiles(
                   ...r.skills.filter((s) => context.requiredSkills!.includes(s)),
                   ...matchReasons(a, r),
                 ].slice(0, ranking.maximumReasons)
-              : matchReasons(a, r),
+              : [...matchReasons(a, r).slice(0, r.postSignal >= ranking.posts.reasonThreshold ? ranking.maximumReasons - 1 : ranking.maximumReasons), ...(r.postSignal >= ranking.posts.reasonThreshold ? ['Current interests align'] : [])],
           },
         ]
       : [];

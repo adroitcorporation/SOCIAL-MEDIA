@@ -1,4 +1,5 @@
 import type { HttpClient } from './http-client';
+import type { ProfilePost, PostInput, PostPage, PostComment } from '@/shared/contracts/posts';
 import type {
   Dashboard,
   ModerationUser,
@@ -44,6 +45,18 @@ import type { CollegeOption, TeamRequest, TeamRecommendation } from '@/shared/co
 const id = encodeURIComponent;
 export function createCommunityClient(http: HttpClient) {
   return {
+    posts: {
+      list: (authorId: string, cursor?: string) => http.request<PostPage<ProfilePost>>(`students/${id(authorId)}/posts${cursor ? `?cursor=${id(cursor)}` : ''}`),
+      get: (postId: string) => http.request<ProfilePost>(`posts/${id(postId)}`),
+      create: (input: PostInput & { clientId: string }) => http.request<ProfilePost>('posts', input),
+      edit: (postId: string, input: PostInput) => http.request<ProfilePost>(`posts/${id(postId)}`, input, 'PATCH'),
+      delete: (postId: string) => http.request<SuccessResponse>(`posts/${id(postId)}`, {}, 'DELETE'),
+      like: (postId: string, enabled: boolean) => http.request<{ liked: boolean; likeCount: number }>(`posts/${id(postId)}/like`, { enabled }),
+      comments: (postId: string, cursor?: string) => http.request<PostPage<PostComment>>(`posts/${id(postId)}/comments${cursor ? `?cursor=${id(cursor)}` : ''}`),
+      comment: (postId: string, content: string, clientId: string) => http.request<{ id: string }>(`posts/${id(postId)}/comments`, { content, clientId }),
+      deleteComment: (postId: string, commentId: string) => http.request<SuccessResponse>(`posts/${id(postId)}/comments/${id(commentId)}`, {}, 'DELETE'),
+      report: (postId: string, reason: string) => http.request<{ id: string }>(`posts/${id(postId)}/report`, { reason }),
+    },
     colleges: (search:string) => http.request<CollegeOption[]>(`colleges?search=${id(search)}`),
     recommendations: {
       team: (input:TeamRequest) => http.request<TeamRecommendation>('recommendations/team',input),

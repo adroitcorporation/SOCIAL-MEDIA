@@ -9,6 +9,7 @@ import { boundedJson } from '@/backend/http/request';
 import * as service from '@/backend/services/community';
 import * as events from '@/backend/services/events';
 import * as moderation from '@/backend/services/moderation';
+import * as posts from '@/backend/services/posts';
 import { requireActiveActor, requirePermission } from '@/backend/services/permissions';
 import { canViewModerationDashboard, canAssignRole } from '@/shared/contracts/permissions';
 
@@ -39,11 +40,21 @@ export async function handleApiRequest(request: Request, path: string[]) {
     if (method !== 'GET') {
       input = z
         .record(z.string(), z.unknown())
-        .parse(await boundedJson(request, resource === 'verification' ? 7_100_000 : 20_000));
+        .parse(await boundedJson(request, resource === 'verification' ? 7_100_000 : resource === 'posts' ? 80_000 : 20_000));
       await enforceMutationRateLimit(user.id);
     }
     let result: unknown;
-    if (resource === 'colleges' && !id && method === 'GET')
+    if (resource === 'posts' && !id && method === 'POST') result = await posts.createPost(user.id, input);
+    else if (resource === 'students' && id && action === 'posts' && !detail && method === 'GET') result = await posts.listPosts(user.id, id, new URL(request.url).searchParams.get('cursor'));
+    else if (resource === 'posts' && id && !action && method === 'GET') result = await posts.getPost(user.id, id);
+    else if (resource === 'posts' && id && !action && method === 'PATCH') result = await posts.editPost(user.id, id, input);
+    else if (resource === 'posts' && id && !action && method === 'DELETE') result = await posts.deletePost(user.id, id);
+    else if (resource === 'posts' && id && action === 'like' && !detail && method === 'POST') result = await posts.likePost(user.id, id, input);
+    else if (resource === 'posts' && id && action === 'comments' && !detail && method === 'GET') result = await posts.listComments(user.id, id, new URL(request.url).searchParams.get('cursor'));
+    else if (resource === 'posts' && id && action === 'comments' && !detail && method === 'POST') result = await posts.createComment(user.id, id, input);
+    else if (resource === 'posts' && id && action === 'comments' && detail && method === 'DELETE') result = await posts.deleteComment(user.id, id, detail);
+    else if (resource === 'posts' && id && action === 'report' && !detail && method === 'POST') result = await posts.reportPost(user.id, id, input);
+    else if (resource === 'colleges' && !id && method === 'GET')
       result = await searchColleges(new URL(request.url).searchParams.get('search') || '');
     else if (resource === 'recommendations' && id === 'people' && method === 'GET')
       result = await rankedProfiles(user, new URL(request.url).searchParams);

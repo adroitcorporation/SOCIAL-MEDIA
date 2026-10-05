@@ -61,6 +61,9 @@ enum ReportStatus {
 }
 
 model User {
+  posts                      Post[]
+  postLikes                  PostLike[]
+  postComments               PostComment[]
   role                       UserRole                     @default(STUDENT)
   accountStatus              AccountStatus                @default(ACTIVE)
   events                     Event[]
@@ -255,22 +258,73 @@ model Event {
 }
 
 model Report {
-  id         String       @id @default(cuid())
-  reporterId String
-  targetId   String
-  reason     String
-  status     ReportStatus @default(OPEN)
-  reviewNote String       @default("")
-  reviewerId String?
-  reviewedAt DateTime?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  reporter   User         @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Restrict)
-  target     User         @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Restrict)
-  reviewer   User?        @relation("ReportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  postId      String?
+  postContent String?
+  post        Post?        @relation(fields: [postId], references: [id], onDelete: SetNull)
+  id          String       @id @default(cuid())
+  reporterId  String
+  targetId    String
+  reason      String
+  status      ReportStatus @default(OPEN)
+  reviewNote  String       @default("")
+  reviewerId  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  reporter    User         @relation("ReportAuthor", fields: [reporterId], references: [id], onDelete: Restrict)
+  target      User         @relation("ReportTarget", fields: [targetId], references: [id], onDelete: Restrict)
+  reviewer    User?        @relation("ReportReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
   @@index([targetId])
+  @@index([postId])
+}
+
+enum PostVisibility {
+  PUBLIC
+  CONNECTIONS_ONLY
+}
+
+model Post {
+  id         String         @id @default(cuid())
+  authorId   String
+  clientId   String
+  content    String
+  visibility PostVisibility @default(PUBLIC)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  author     User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes      PostLike[]
+  comments   PostComment[]
+  reports    Report[]
+
+  @@unique([authorId, clientId])
+  @@index([authorId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([visibility, createdAt(sort: Desc)])
+}
+
+model PostLike {
+  postId String
+  userId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId])
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  clientId  String
+  content   String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([authorId, clientId])
+  @@index([postId, createdAt(sort: Desc), id(sort: Desc)])
 }
 
 model ModerationAction {

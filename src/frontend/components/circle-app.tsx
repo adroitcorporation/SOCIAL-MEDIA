@@ -33,7 +33,7 @@ const AuthForm = dynamic(
   { loading: () => <Loading /> },
 );
 const ProfileDetails = dynamic(
-  () => import('@/frontend/features/profile/profile-form').then((module) => module.ProfileDetails),
+  () => import('@/frontend/features/profile/profile-content').then((module) => module.ProfileContent),
   { loading: () => <Loading /> },
 );
 const ReportUser = dynamic(
@@ -139,7 +139,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
       ? 'Role management'
       : path === '/moderation'
         ? 'Moderation'
-        : nav.find((n) => n.path === path)?.label || 'Home';
+        : path.startsWith('/posts/') ? 'Post' : nav.find((n) => n.path === path)?.label || 'Home';
   return (
     <CircleContext.Provider value={contextValue}>
       <div className="app-shell">
@@ -274,7 +274,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
       </div>
       {profile && (
         <Modal title="Profile" onClose={() => setProfile(null)}>
-          <ProfileDetails user={profile} />
+          <ProfileDetails key={profile.id} user={profile} onOpenPost={() => setProfile(null)} />
           {profile.id !== state.me.id && <ReportUser userId={profile.id} />}
           {profile.id !== state.me.id && (
             <button

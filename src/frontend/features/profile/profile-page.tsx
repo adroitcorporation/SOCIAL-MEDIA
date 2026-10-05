@@ -6,7 +6,8 @@ import { CheckCircle2, FileImage, Mail, Pencil, Globe, Upload } from 'lucide-rea
 
 import { useCircle } from '@/frontend/state/circle-context';
 
-import { ProfileDetails, ProfileForm } from '@/frontend/features/profile/profile-form';
+import { ProfileForm } from '@/frontend/features/profile/profile-form';
+import { ProfileContent } from '@/frontend/features/profile/profile-content';
 
 import { PageHeading } from '@/frontend/components/page-heading';
 import {
@@ -81,7 +82,7 @@ export function ProfilePage() {
               }}
             />
           ) : (
-            <ProfileDetails user={state.me} />
+            <ProfileContent user={state.me} />
           )}
         </section>
         <aside>

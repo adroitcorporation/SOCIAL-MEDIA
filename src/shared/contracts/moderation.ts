@@ -39,6 +39,8 @@ export interface ModerationUser {
   collegeVerified: boolean;
 }
 export interface ReportItem {
+  postId?: string | null;
+  postContent?: string | null;
   id: string;
   targetId: string;
   reporterId: string;

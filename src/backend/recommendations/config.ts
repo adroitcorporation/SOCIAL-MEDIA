@@ -22,6 +22,7 @@ export const ranking = {
   leaseSeconds: 180,
   profileFreshnessDays: 30,
   inferredWeight: 3,
+  posts: { maxWeight: 10, topicWeight: 4, halfLifeDays: 14, maxAgeDays: 90, recentLimit: 5, reasonThreshold: 1 },
   feeds: {
     interest: 20,
     skill: 25,
