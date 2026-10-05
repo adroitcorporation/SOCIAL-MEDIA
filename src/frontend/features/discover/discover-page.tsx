@@ -36,18 +36,15 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
     actedStudentIds.size > 0 && state.students.every((student) => actedStudentIds.has(student.id));
   return (
     <div className="discover-page">
-      <PageHeading
-        eyebrow="DISCOVER"
-        title="Find your people."
-        description="Profiles from your campus community."
-      />
+      <PageHeading title="Discover people" />
       <form className="filter-panel" onSubmit={apply}>
         <div className="filter-top">
           <div className="search-field">
             <Search size={18} />
             <input
               name="search"
-              placeholder="Search name, college, city"
+              aria-label="Search people"
+              placeholder="Name, college, city"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -100,7 +97,7 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
           onClick={async () => {
             try {
               await mutate(() => api.skips.clear());
-              toast('Skipped profiles are back in your discovery feed.');
+              toast('Skipped profiles restored.');
             } catch {}
           }}
         >
@@ -119,11 +116,11 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
           />
         ) : (
           <Empty
-            title={finishedQueue ? "You're all caught up." : 'A wider circle is out there.'}
+            title={finishedQueue ? "You're all caught up." : 'No people found.'}
             body={
               finishedQueue
-                ? 'You have seen everyone in this set. Check back for more profiles.'
-                : 'Try a different skill, city, or college, or bring back your skipped profiles.'
+                ? 'Check back for more people.'
+                : 'Try other filters or show skipped profiles.'
             }
           />
         )}

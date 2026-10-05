@@ -165,13 +165,6 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
   }
   return (
     <form onSubmit={submit} className="profile-form" noValidate>
-      <p className="muted">
-        {user.onboarded
-          ? 'Update your profile to help the right people find you.'
-          : 'Complete your profile to find your circle.'}{' '}
-        All fields marked required must be completed. Choose suggestions or add your own
-        comma-separated values.
-      </p>
       <div className="form-grid">
         <label>
           Full name (required)
@@ -289,9 +282,7 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
         {listFields.map((key) => (
           <fieldset key={key} className="profile-options">
             <legend>{labels[key]} (required)</legend>
-            <label htmlFor={`profile-${key}`}>
-              Selected or custom {labels[key].toLowerCase()} (comma-separated)
-            </label>
+            <label htmlFor={`profile-${key}`}>Custom values (comma-separated)</label>
             <input {...fieldProps(key)} required placeholder="Choose below or type your own" />
             {fieldError(key)}
             <div className="profile-option-list">
@@ -341,7 +332,7 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
         disabled={busy || photoUploading || !validation.success}
         aria-describedby={!validation.success ? 'profile-validation-hint' : undefined}
       >
-        {busy ? 'Saving…' : user.onboarded ? 'Save profile' : 'Find my circle'}
+        {busy ? 'Saving…' : user.onboarded ? 'Save' : 'Continue'}
       </button>
     </form>
   );
@@ -359,11 +350,13 @@ export function ProfileDetails({ user }: { user: Student }) {
       <p className="muted">
         {user.college} · {user.city}
       </p>
-      <p>
-        <span className="tag">{roleLabels[user.role]}</span>{' '}
-        <span className="tag">{user.accountStatus}</span>
-      </p>
-      <p className="bio">{user.bio || 'This student is still writing their story.'}</p>
+      {(user.role !== 'STUDENT' || user.accountStatus !== 'ACTIVE') && (
+        <p>
+          {user.role !== 'STUDENT' && <span className="tag">{roleLabels[user.role]}</span>}
+          {user.accountStatus !== 'ACTIVE' && <span className="tag">{user.accountStatus}</span>}
+        </p>
+      )}
+      {user.bio && <p className="bio">{user.bio}</p>}
       {listFields.map((key) => (
         <section key={key}>
           <h4>{key === 'lookingFor' ? 'Looking for' : key[0].toUpperCase() + key.slice(1)}</h4>

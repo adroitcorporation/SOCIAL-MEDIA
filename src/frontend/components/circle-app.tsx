@@ -12,14 +12,12 @@ import {
   MessageCircle,
   Bell,
   UserRound,
-  ArrowUpRight,
   Search,
   LogOut,
   Circle,
   Menu,
   X,
   Check,
-  Sprout,
   ChevronDown,
   ShieldCheck,
 } from 'lucide-react';
@@ -47,7 +45,7 @@ const nav = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/connections', label: 'Connections', icon: Users },
-  { path: '/ideas', label: 'IdeaBoard', icon: Lightbulb },
+  { path: '/ideas', label: 'Idea Board', icon: Lightbulb },
   { path: '/events', label: 'Events', icon: CalendarDays },
   { path: '/messages', label: 'Messages', icon: MessageCircle },
   { path: '/notifications', label: 'Notifications', icon: Bell },
@@ -177,22 +175,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
               </Link>
             )}
           </nav>
-          <div className="sidebar-note">
-            <Sprout size={26} />
-            <h4>
-              Great things grow
-              <br />
-              in good company.
-            </h4>
-            <p>
-              Your next big thing starts
-              <br />
-              with a small hello.
-            </p>
-            <Link href="/discover">
-              Find your people <ArrowUpRight size={15} />
-            </Link>
-          </div>
+
           <div className="sidebar-user">
             <button onClick={() => navigate('/profile')}>
               <Avatar user={state.me} size="small" />
@@ -231,7 +214,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
               <Search size={17} />
               <input
                 aria-label="Search students"
-                placeholder="Find people, find possibilities…"
+                placeholder="Search people"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -261,12 +244,6 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
           <main className={`page-content ${path === '/messages' ? 'message-page' : ''}`}>
             {screenPending ? <Loading /> : children}
           </main>
-          <footer className="footer">
-            <span>Made for the ones who make things happen.</span>
-            <span>
-              {brand.name} <span className="footer-dot">✳</span>
-            </span>
-          </footer>
         </div>
         <nav className="bottom-nav">
           {nav
@@ -284,7 +261,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
         </nav>
       </div>
       {profile && (
-        <Modal title="Meet your next collaborator" onClose={() => setProfile(null)}>
+        <Modal title="Profile" onClose={() => setProfile(null)}>
           <ProfileDetails user={profile} />
           {profile.id !== state.me.id && <ReportUser userId={profile.id} />}
           {profile.id !== state.me.id && (

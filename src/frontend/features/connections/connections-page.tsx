@@ -25,7 +25,7 @@ export function ConnectionsPage() {
       await mutate(() => api.connections.update(id, { action }), applyConnection);
       toast(
         action === 'accept'
-          ? 'You’re connected. Say hello!'
+          ? 'You’re connected.'
           : action === 'cancel'
             ? 'Request cancelled.'
             : 'Request declined.',
@@ -34,11 +34,7 @@ export function ConnectionsPage() {
   }
   return (
     <>
-      <PageHeading
-        eyebrow="GOOD COMPANY, GREAT POSSIBILITIES"
-        title="Your circle, growing."
-        description="Keep the connections that turn ‘what if’ into ‘let’s do it’."
-      >
+      <PageHeading title="Connections">
         <button className="button primary" onClick={() => navigate('/messages?create=group')}>
           <Plus size={16} />
           Create group
@@ -139,15 +135,10 @@ export function ConnectionsPage() {
         <Empty
           title={
             tab === 'accepted'
-              ? 'Every circle starts with a hello.'
+              ? 'No connections yet.'
               : tab === 'sent'
-                ? 'No requests out in the world.'
-                : 'You’re all caught up.'
-          }
-          body={
-            tab === 'accepted'
-              ? 'Discover students who share your curiosity and send your first request.'
-              : 'Your connection requests will appear here.'
+                ? 'No sent requests.'
+                : 'No incoming requests.'
           }
         >
           <Link className="button primary" href="/discover">

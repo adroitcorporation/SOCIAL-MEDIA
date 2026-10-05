@@ -14,11 +14,7 @@ export function NotificationsPage() {
   const items = state.notifications.filter((n) => !unread || !n.readAt);
   return (
     <>
-      <PageHeading
-        eyebrow="YOU’RE PART OF SOMETHING"
-        title="A little update from your circle."
-        description="New connections, fresh collaborations, and ideas that resonate."
-      >
+      <PageHeading title="Notifications">
         <button
           className="button secondary"
           disabled={busy}
@@ -65,12 +61,7 @@ export function NotificationsPage() {
           </button>
         ))}
       </div>
-      {!items.length && (
-        <Empty
-          title="All quiet, in a good way."
-          body="We’ll let you know when something new happens in your circle."
-        />
-      )}
+      {!items.length && <Empty title="No notifications yet." />}
     </>
   );
 }

@@ -3324,7 +3324,8 @@ em {
     grid-template-columns: minmax(0, 1fr);
   }
   .profile-layout > aside {
-    display: none;
+    display: grid;
+    gap: 16px;
   }
   .chat-layout {
     grid-template-columns: 240px minmax(0, 1fr);
@@ -4267,4 +4268,124 @@ em {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+/* Compact social feeds: details stay in profiles and dialogs. */
+@media (min-width: 801px) {
+  .discover-single > .discover-profile-card .discover-cover {
+    min-height: 360px;
+  }
+}
+.page-heading {
+  gap: 16px;
+  margin-bottom: 22px;
+}
+.page-heading h1 {
+  margin: 0;
+}
+.hero {
+  min-height: 230px;
+  align-items: center;
+}
+.hero h2 {
+  margin-bottom: 22px;
+}
+.sidebar-user {
+  margin-top: auto;
+}
+.idea-description,
+.idea-card.compact .idea-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 0;
+}
+.empty {
+  padding: 28px 18px;
+}
+.empty h3 {
+  margin-top: 0;
+}
+.student-card .tags {
+  gap: 6px;
+}
+.student-name,
+.college,
+.looking,
+.idea-title,
+.event-body h2 {
+  overflow-wrap: anywhere;
+}
+.discover-single > .discover-profile-card {
+  min-height: 360px;
+}
+.discover-profile-card .discover-details {
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+}
+.discover-single .discover-pass {
+  width: auto;
+  flex-basis: auto;
+  padding-inline: 16px;
+  gap: 6px;
+}
+.event-meta {
+  flex-wrap: wrap;
+}
+@media (max-width: 800px) {
+  .discover-single > .discover-profile-card {
+    min-height: 0;
+  }
+}
+@media (max-width: 620px) {
+  .hero {
+    min-height: 190px;
+    padding: 22px;
+  }
+  .hero h2 {
+    font-size: 30px;
+  }
+  .page-heading {
+    gap: 12px;
+  }
+  .tabs {
+    overflow-x: auto;
+  }
+  .tabs > button {
+    flex-shrink: 0;
+  }
+  .dialog-actions,
+  .connection-actions {
+    flex-wrap: wrap;
+  }
+  .tags .tag {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  .discover-single .discover-pass {
+    width: auto;
+    flex-basis: auto;
+  }
+}
+
+.discover-single .discover-pass {
+  font-size: 13px;
+  border-radius: 999px;
+}
+
+label.select-person {
+  flex-direction: row;
+  align-items: center;
+  text-align: left;
+  margin: 0;
+}
+label.select-person input {
+  flex: 0 0 auto;
+}
+
+.discover-profile-card .looking {
+  margin-top: 0;
 }

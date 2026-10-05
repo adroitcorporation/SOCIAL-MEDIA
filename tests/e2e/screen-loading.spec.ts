@@ -11,7 +11,7 @@ test('first load still waits for usable state and reports a failed request', asy
   });
   try {
     await page.goto('/connections');
-    await expect(page.getByText('Finding your circle…', { exact: true })).toBeVisible();
+    await expect(page.getByText('Loading…', { exact: true })).toBeVisible();
     await expect(page.locator('.app-shell')).toHaveCount(0);
   } finally {
     release();
@@ -67,16 +67,18 @@ test('switching to connections keeps the shell while destination state loads', a
     await expect(page.locator('.topbar')).toBeVisible();
     expect(await shell!.evaluate((node) => node.isConnected)).toBe(true);
     // The events snapshot has no connections: do not present it as an empty connections result.
-    await expect(page.getByText('Your circle, growing.', { exact: true })).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Connections', exact: true })).toHaveCount(0);
   } finally {
     release();
   }
-  await expect(page.getByRole('heading', { name: 'Your circle, growing.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Connections' })).toBeVisible();
   await expect(page.locator('.connection-card').first()).toBeVisible();
   expect(await shell!.evaluate((node) => node.isConnected)).toBe(true);
 });
 
-test('returning to a visited screen renders its cached state while it refreshes', async ({ page }) => {
+test('returning to a visited screen renders its cached state while it refreshes', async ({
+  page,
+}) => {
   await page.goto('/events');
   await expect(page.locator('.event-card').first()).toBeVisible();
   await page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true }).click();
@@ -165,9 +167,9 @@ test('screen navigation loads state once without repeating the same-token sessio
   expect(bridgePosts).toBe(1);
   const initialConfigReads = configReads;
   for (const [name, selector] of [
-    ['Discover', '.discover-grid .student-card'],
+    ['Discover', '.discover-single .student-card'],
     ['Events', '.event-card'],
-    ['Discover', '.discover-grid .student-card'],
+    ['Discover', '.discover-single .student-card'],
   ]) {
     const before = stateReads.length;
     await page.locator('.sidebar').getByRole('link', { name, exact: true }).click();

@@ -32,11 +32,7 @@ export function EventsPage() {
   const events = state.events;
   return (
     <>
-      <PageHeading
-        eyebrow="TAKE YOUR CURIOSITY PLACES"
-        title="Something worth showing up for."
-        description="Hackathons, creative challenges, workshops, and everything in between."
-      />
+      <PageHeading title="Events" />
       {canCreateEvent(state.me) && <EventManager />}
       <div className="filter-panel filter-top">
         <div className="search-field">
@@ -83,7 +79,7 @@ export function EventsPage() {
             <div className="event-body">
               <span className="eyebrow">{event.organizer}</span>
               <h2>{event.title}</h2>
-              <p>{event.description}</p>
+
               <div className="event-meta">
                 <span>
                   <MapPin size={15} />
@@ -123,12 +119,7 @@ export function EventsPage() {
         ))}
       </div>
       <FeedPagination feed={state.feed} setPage={setPage} />
-      {!events.length && (
-        <Empty
-          title="The next opportunity is on its way."
-          body="Try a different category or check back for new events."
-        />
-      )}
+      {!events.length && <Empty title="No events found." body="Try another category." />}
       {detail && (
         <Modal title={detail.title} onClose={() => setDetail(null)}>
           <span className="tag">{detail.category}</span>
@@ -138,7 +129,12 @@ export function EventsPage() {
           </p>
           <p>
             {detail.location} ·{' '}
-            {new Date(detail.startsAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
+            {new Date(detail.startsAt).toLocaleString('en-IN', {
+              timeZone: 'Asia/Kolkata',
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            })}{' '}
+            IST
           </p>
           {detail.url.startsWith('https://') ? (
             <a
@@ -147,7 +143,7 @@ export function EventsPage() {
               rel="noopener noreferrer"
               target="_blank"
             >
-              Visit event website <ArrowUpRight size={16} />
+              Event website <ArrowUpRight size={16} />
             </a>
           ) : (
             <p className="notice">

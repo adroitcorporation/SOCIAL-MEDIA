@@ -62,7 +62,6 @@ export function AuthForm({
           </span>
           {brand.name}
         </div>
-        <span className="eyebrow">YOUR NEXT CHAPTER STARTS HERE</span>
         <h1>
           Find your people.
           <br />
@@ -77,25 +76,20 @@ export function AuthForm({
           <div>together.</div>
         </div>
         <small>
-          <ShieldCheck size={16} /> Real students. Meaningful connections.
+          <ShieldCheck size={16} /> Student community
         </small>
       </div>
       <section className="auth-card">
-        <span className="eyebrow">A LITTLE INTRODUCTION, A LOT OF POSSIBILITY</span>
         <h2>
           {mode === 'signup'
             ? 'Join the circle.'
             : mode === 'forgot'
               ? 'Forgot your password?'
               : mode === 'reset'
-                ? 'A fresh start.'
+                ? 'Reset password'
                 : 'Welcome back.'}
         </h2>
-        <p>
-          {mode === 'signup'
-            ? 'Your next collaborator could be one hello away.'
-            : 'Pick up where inspiration left off.'}
-        </p>
+
         {!configured && (
           <div className="notice">
             Authentication needs configuration. Add your Supabase URL and publishable key to start,
@@ -144,7 +138,7 @@ export function AuthForm({
             {busy
               ? 'One moment…'
               : mode === 'signup'
-                ? 'Create your account'
+                ? 'Create account'
                 : mode === 'forgot'
                   ? 'Send reset link'
                   : mode === 'reset'
@@ -166,7 +160,7 @@ export function AuthForm({
           </button>
         )}
         <div className="auth-switch">
-          {mode === 'login' ? 'New around here?' : 'Already part of the circle?'}{' '}
+          {mode === 'login' ? 'New here?' : 'Have an account?'}{' '}
           <button
             className="text-link"
             onClick={() => {

@@ -63,11 +63,7 @@ export function ProfilePage() {
   }
   return (
     <>
-      <PageHeading
-        eyebrow="THIS IS YOUR LITTLE CORNER"
-        title="Let your people find you."
-        description="Your story, your skills, and the things you’re excited to make."
-      >
+      <PageHeading title="Profile">
         <button className="button primary" onClick={() => setEdit(!edit)}>
           <Pencil size={16} />
           {edit ? 'View profile' : 'Edit profile'}
@@ -81,7 +77,7 @@ export function ProfilePage() {
               save={async (body) => {
                 await mutate(() => api.profiles.update(body));
                 setEdit(false);
-                toast('Profile updated. Looking good!');
+                toast('Profile saved.');
               }}
             />
           ) : (
@@ -93,15 +89,13 @@ export function ProfilePage() {
             <span className="stat-icon mint">
               {state.me.collegeVerified ? <CheckCircle2 size={22} /> : <Globe size={22} />}
             </span>
-            <h3>{state.me.collegeVerified ? 'College verified.' : 'Unlock connections.'}</h3>
+            <h3>{state.me.collegeVerified ? 'College verified.' : 'Verify your college'}</h3>
             <p className="muted">
               {state.me.collegeVerified
                 ? 'You can now send connection requests to other students.'
-                : 'Browse every section of the app now. Verify your college to start connecting.'}
+                : 'Verify your college to send connection requests.'}
             </p>
-            {state.me.collegeVerified ? (
-              <small>Your verified college status lets you send connection requests.</small>
-            ) : verification?.status === 'PENDING' ? (
+            {state.me.collegeVerified ? null : verification?.status === 'PENDING' ? (
               <p className="notice">
                 Your {verification.method === 'EMAIL' ? 'college email' : 'ID'} submission is under
                 moderator review.
@@ -175,11 +169,8 @@ export function ProfilePage() {
             <span className="stat-icon mint">
               <Globe size={22} />
             </span>
-            <h3>Open a few more doors.</h3>
-            <p className="muted">
-              Add the skills you love using, the ideas that keep you curious, and the kind of team
-              you want to be part of.
-            </p>
+            <h3>Verification privacy</h3>
+
             <small>
               Verification requests are reviewed by moderators. Your profile remains visible while a
               request is pending.

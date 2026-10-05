@@ -83,7 +83,7 @@ test('creates a profile with suggestions and custom values, leaving optional URL
     domains: [],
     lookingFor: [],
   });
-  const submit = page.getByRole('button', { name: 'Find my circle', exact: true });
+  const submit = page.getByRole('button', { name: 'Continue', exact: true });
   await expect(submit).toBeDisabled();
   await page.getByLabel('Full name (required)', { exact: true }).fill(student.name);
   await page
@@ -187,7 +187,7 @@ test('previews a photo while uploading, then saves its public URL in the owner f
   await expect.poll(() => uploads.length).toBe(1);
   const preview = page.locator('.profile-photo-control img');
   await expect(preview).toHaveAttribute('src', /^blob:/);
-  await expect(page.getByRole('button', { name: 'Find my circle', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeDisabled();
   await page.locator('form.profile-form').evaluate((form: HTMLFormElement) => form.requestSubmit());
   expect(saved).toHaveLength(0);
   release();
@@ -197,7 +197,7 @@ test('previews a photo while uploading, then saves its public URL in the owner f
   );
   expect(uploads[0]).toMatch(/^\/storage\/v1\/object\/profile-photos\/profile-test\/[\w-]+\.png$/);
   const publicUrl = await preview.getAttribute('src');
-  await page.getByRole('button', { name: 'Find my circle', exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect.poll(() => saved.length).toBe(1);
   expect(saved[0].photo).toBe(publicUrl);
 });
@@ -218,7 +218,7 @@ test('failed upload preserves the saved photo and allows profile save', async ({
   await page.locator('#profile-photo-upload').setInputFiles(photoFile);
   await expect(page.locator('.profile-photo-field [role="alert"]')).toBeVisible();
   await expect(page.locator('.profile-photo-control img')).toHaveAttribute('src', originalPhoto);
-  await page.getByRole('button', { name: 'Find my circle', exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect.poll(() => saved.length).toBe(1);
   expect(saved[0].photo).toBe(originalPhoto);
 });
@@ -290,7 +290,7 @@ for (const field of [
     await input.blur();
     await expect(input).toHaveAttribute('aria-invalid', 'true');
     await expect(page.locator(`#profile-${field}-error`)).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Find my circle', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeDisabled();
     await page
       .locator('form.profile-form')
       .evaluate((form: HTMLFormElement) => form.requestSubmit());
@@ -317,7 +317,7 @@ test('preserves saved custom values when editing and toggling suggestions', asyn
   await page.getByRole('checkbox', { name: 'React', exact: true }).check();
   await expect(page.locator('#profile-skills')).toHaveValue('Robotics, React');
   await page.getByRole('checkbox', { name: 'React', exact: true }).uncheck();
-  await page.getByRole('button', { name: 'Save profile', exact: true }).click();
+  await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect.poll(() => saved.length).toBe(1);
   const { onboarded: _, ...profile } = existing;
   expect(saved[0]).toMatchObject(profile);
@@ -326,16 +326,16 @@ test('preserves saved custom values when editing and toggling suggestions', asyn
 test('accepts Other degree and city and safely validates optional URLs', async ({ page }) => {
   const saved = await openProfile(page);
   await page.locator('#profile-degree').selectOption({ label: 'Other' });
-  await expect(page.getByRole('button', { name: 'Find my circle', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeDisabled();
   await page.getByLabel('Specify degree / course (required)', { exact: true }).fill('B.Arch');
   await page.locator('#profile-city').selectOption({ label: 'Other' });
   await page.getByLabel('Specify city (required)', { exact: true }).fill('Udaipur');
   await page.locator('#profile-portfolio').fill('not a URL');
   await page.locator('#profile-portfolio').blur();
   await expect(page.locator('#profile-portfolio-error')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Find my circle', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeDisabled();
   await page.locator('#profile-portfolio').fill('');
-  await page.getByRole('button', { name: 'Find my circle', exact: true }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect.poll(() => saved.length).toBe(1);
   expect(saved[0]).toMatchObject({ degree: 'B.Arch', city: 'Udaipur', portfolio: '' });
 });
@@ -346,7 +346,7 @@ test('keeps the profile form within a mobile viewport', async ({ page }, testInf
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  await expect(page.getByRole('button', { name: 'Find my circle', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Continue', exact: true })).toBeEnabled();
   await page.screenshot({ path: testInfo.outputPath('profile-mobile.png'), fullPage: true });
 });
 

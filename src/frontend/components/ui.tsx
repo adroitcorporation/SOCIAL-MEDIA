@@ -85,14 +85,13 @@ export function Empty({
   children,
 }: {
   title: string;
-  body: string;
+  body?: string;
   children?: React.ReactNode;
 }) {
   return (
     <div className="empty">
-      <span className="empty-orbit">✳</span>
       <h3>{title}</h3>
-      <p>{body}</p>
+      {body && <p>{body}</p>}
       {children}
     </div>
   );
@@ -101,7 +100,7 @@ export function Loading() {
   return (
     <div className="loading" role="status">
       <LoaderCircle size={24} />
-      <span>Finding your circle…</span>
+      <span>Loading…</span>
     </div>
   );
 }

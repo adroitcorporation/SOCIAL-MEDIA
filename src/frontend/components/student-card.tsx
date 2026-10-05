@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { ArrowUpRight, Plus, X, Sparkles, GraduationCap, Handshake } from 'lucide-react';
+import { ArrowUpRight, Plus, X, Users, GraduationCap, Handshake } from 'lucide-react';
 import type { Student } from '@/shared/contracts/responses';
 
 import { useCircle } from '@/frontend/state/circle-context';
@@ -25,7 +25,7 @@ export function StudentCard({
   const outgoing = connection?.requesterId === state.me.id;
   const shared = student.interests.filter((i) => state.me.interests.includes(i));
   const quickSkills = student.skills.slice(0, 2);
-  const lookingLabel = student.lookingFor[0] || 'Open to connecting';
+  const lookingLabel = student.lookingFor[0];
   const dragStartX = useRef<number | null>(null);
   const dragPointerId = useRef<number | null>(null);
   const dragX = useRef(0);
@@ -55,7 +55,7 @@ export function StudentCard({
     actionInFlight.current = true;
     try {
       await mutate(() => api.connections.request({ userId: student.id }), applyConnection);
-      toast('Request sent. A new connection starts here.');
+      toast('Request sent.');
       finishAction();
     } catch {
     } finally {
@@ -131,7 +131,6 @@ export function StudentCard({
         </button>
         {discoverMode && (
           <div className="discover-cover-copy">
-            <span className="discover-cover-kicker">A PERSON TO BUILD WITH</span>
             <button className="student-name" onClick={() => viewProfile(student)}>
               {student.name}
               <Verified user={student} />
@@ -148,14 +147,14 @@ export function StudentCard({
             <GraduationCap size={15} />
             {student.college}
           </p>
-          {student.bio && <p className="student-bio">{student.bio}</p>}
+
           {shared.length > 0 && (
             <div className="discover-common">
-              <Sparkles size={15} />
+              <Users size={15} />
               <span>{shared[0]} in common</span>
             </div>
           )}
-          <div className="discover-skills-label">GOOD AT</div>
+
           <div className="tags">
             {quickSkills.map((skill) => (
               <Tag key={skill}>{skill}</Tag>
@@ -165,7 +164,7 @@ export function StudentCard({
           {lookingLabel && (
             <div className="looking">
               <span className="status-dot" />
-              {lookingLabel}
+              Looking for: <span>{lookingLabel}</span>
             </div>
           )}
         </div>
@@ -182,7 +181,7 @@ export function StudentCard({
             <GraduationCap size={14} />
             {student.college}
           </p>
-          {student.bio && <p className="student-bio">{student.bio}</p>}
+
           <div className="tags">
             {quickSkills.map((skill) => (
               <Tag key={skill}>{skill}</Tag>
@@ -192,12 +191,12 @@ export function StudentCard({
           {lookingLabel && (
             <div className="looking">
               <span className="status-dot" />
-              {lookingLabel}
+              Looking for: {lookingLabel}
             </div>
           )}
           {shared.length > 0 && (
             <div className="shared">
-              <Sparkles size={12} />
+              <Users size={12} />
               {shared.length} shared interest{shared.length === 1 ? '' : 's'}
             </div>
           )}
@@ -209,11 +208,11 @@ export function StudentCard({
             <button
               disabled={busy}
               className="button ghost discover-pass"
-              aria-label={`Pass ${student.name}`}
-              title="Pass"
+              aria-label={`Skip ${student.name}`}
+              title="Skip"
               onClick={() => void handleSkip()}
             >
-              <X size={21} />
+              <X size={21} /> Skip
             </button>
             <button
               disabled={busy}

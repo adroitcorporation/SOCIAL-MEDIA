@@ -1,7 +1,7 @@
 'use client';
 import { relative } from '@/frontend/utils/date';
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, Zap, Plus, Search, Users, Lightbulb, ArrowRight } from 'lucide-react';
+import { ArrowUpRight, Zap, Plus, Search, Users, ArrowRight } from 'lucide-react';
 import type { IdeaItem, ResonanceItem } from '@/shared/contracts/responses';
 import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Empty, Modal, Tag } from '@/frontend/components/ui';
@@ -97,7 +97,7 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
     };
   }, [api, idea.id, mine, idea._count.resonances, state.blockedIds]);
   return (
-    <Modal title="One idea. A world of possibility." onClose={onClose} wide>
+    <Modal title="Idea" onClose={onClose} wide>
       <div className="idea-detail">
         <span className="tag">{idea.category}</span>
         <h2>{idea.title}</h2>
@@ -109,7 +109,7 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
           </span>
         </button>
         <p className="full-description">{idea.description}</p>
-        <h4>Skills that could bring this to life</h4>
+        <h4>Skills needed</h4>
         <div className="tags">
           {idea.skills.map((s) => (
             <Tag key={s}>{s}</Tag>
@@ -130,9 +130,7 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
                   People who resonated <span className="count-pill">{people.length}</span>
                 </h3>
                 <p>
-                  {idea.conversation
-                    ? 'Invite new people into your existing collaboration group.'
-                    : 'Choose the people you’d like to start building with.'}
+                  {idea.conversation ? 'Select people to add.' : 'Select people for your group.'}
                 </p>
               </div>
             </div>
@@ -166,9 +164,7 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
                 </div>
               );
             })}
-            {!people.length && (
-              <p className="muted">Your idea is out there. The right collaborators will find it.</p>
-            )}
+            {!people.length && <p className="muted">No resonances yet.</p>}
             <div className="dialog-actions">
               {idea.conversation && (
                 <button
@@ -191,20 +187,14 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
                         memberIds: selected,
                       }),
                     );
-                    toast(
-                      idea.conversation
-                        ? 'New collaborators added to your group.'
-                        : 'Your collaboration group is ready.',
-                    );
+                    toast(idea.conversation ? 'Members added.' : 'Group created.');
                     onClose();
                     navigate(`/messages?conversation=${group.id}`);
                   } catch {}
                 }}
               >
                 <Users size={16} />
-                {idea.conversation
-                  ? `Add selected (${selected.length})`
-                  : 'Create collaboration group'}
+                {idea.conversation ? `Add selected (${selected.length})` : 'Create group'}
               </button>
             </div>
           </section>
@@ -221,8 +211,7 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
             }}
           >
             <Zap size={16} fill={idea.resonances.length ? 'currentColor' : 'none'} />
-            {idea.resonances.length ? 'Remove resonance' : 'This resonates with me'} ·{' '}
-            {idea._count.resonances}
+            {idea.resonances.length ? 'Remove resonance' : 'Resonate'} · {idea._count.resonances}
           </button>
         )}
       </div>
@@ -269,7 +258,7 @@ export function IdeasPage() {
         }),
       );
       setCreate(false);
-      toast('Your idea is out in the world. Let’s see who resonates.');
+      toast('Idea posted.');
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -278,24 +267,13 @@ export function IdeasPage() {
   }
   return (
     <>
-      <PageHeading
-        eyebrow="IT STARTS WITH A SPARK"
-        title="Ideas are better out in the open."
-        description="Half-formed thoughts welcome. Find someone who sees what you see."
-      >
+      <PageHeading title="Idea Board">
         <button className="button primary" onClick={() => setCreate(true)}>
           <Plus size={17} />
-          Share an idea
+          Post idea
         </button>
       </PageHeading>
-      <div className="idea-banner">
-        <span>✳</span>
-        <div>
-          <h3>You bring the ‘what if’. Your circle brings the ‘why not’.</h3>
-          <p>A side project, a creative experiment, a competition team. There’s room for it all.</p>
-        </div>
-        <Lightbulb size={32} />
-      </div>
+
       <div className="filter-panel filter-top">
         <div className="search-field">
           <Search size={18} />
@@ -303,7 +281,7 @@ export function IdeasPage() {
             aria-label="Search ideas"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Find a spark by topic, skill, or idea…"
+            placeholder="Search ideas"
           />
         </div>
         <button
@@ -328,21 +306,20 @@ export function IdeasPage() {
       <FeedPagination feed={state.feed} setPage={setPage} />
       {!items.length && (
         <Empty
-          title="A blank canvas. Your move."
-          body="Share an idea you can’t stop thinking about, or try another search."
+          title="No ideas found."
+          body="Post idea you can’t stop thinking about, or try another search."
         >
           <button className="button primary" onClick={() => setCreate(true)}>
-            Share an idea <ArrowRight size={16} />
+            Post idea <ArrowRight size={16} />
           </button>
         </Empty>
       )}
       {create && (
-        <Modal title="Put your idea out there." onClose={() => setCreate(false)}>
+        <Modal title="Post idea" onClose={() => setCreate(false)}>
           <form onSubmit={submit}>
-            <p className="muted">It doesn’t have to be perfect. It just has to start somewhere.</p>
             <label>
-              Give it a name
-              <input name="title" placeholder="What if we built…" required maxLength={120} />
+              Title
+              <input name="title" placeholder="Idea title" required maxLength={120} />
             </label>
             <label>
               The idea
@@ -382,7 +359,11 @@ export function IdeasPage() {
             </label>
             <label>
               Tags
-              <input name="tags" placeholder="sustainability, campus, community" maxLength={1000} />
+              <input
+                name="tags"
+                placeholder="campus, community (comma-separated)"
+                maxLength={1000}
+              />
             </label>
             {error && (
               <p className="error" role="alert">
@@ -390,7 +371,7 @@ export function IdeasPage() {
               </p>
             )}
             <button className="button primary full" disabled={saving}>
-              {saving ? 'Sharing…' : 'Share with your circle'}
+              {saving ? 'Posting…' : 'Post idea'}
               <ArrowUpRight size={16} />
             </button>
           </form>

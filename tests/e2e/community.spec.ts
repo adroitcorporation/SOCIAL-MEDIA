@@ -38,11 +38,11 @@ test('request can be cancelled after refresh, persisted, and sent again', async 
     .filter({ hasText: 'Ananya Sharma' })
     .getByRole('button', { name: 'Cancel Request' })
     .click();
-  await expect(page.getByText('No requests out in the world.')).toBeVisible();
+  await expect(page.getByText('No sent requests.')).toBeVisible();
 });
 test('create accepted-connection group, message, promote, remove, and delete', async ({ page }) => {
   await page.goto('/messages');
-  await page.getByRole('button', { name: 'Create Group', exact: true }).click();
+  await page.getByRole('button', { name: 'Create group', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Group name').fill('Browser test collaboration');
   await expect(dialog.getByText('Kabir Sethi')).toBeVisible();

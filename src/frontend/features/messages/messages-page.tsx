@@ -177,14 +177,10 @@ export function MessagesPage() {
   }
   return (
     <>
-      <PageHeading
-        eyebrow="WHERE THE GOOD STUFF BEGINS"
-        title="Keep the conversation going."
-        description="A hello today. Something great tomorrow."
-      >
+      <PageHeading title="Messages">
         <button className="button primary" onClick={() => setCreate(true)}>
           <Plus size={17} />
-          Create Group
+          Create group
         </button>
       </PageHeading>
       <div className={`chat-layout ${selected ? 'has-selection' : ''}`}>
@@ -233,10 +229,7 @@ export function MessagesPage() {
                 );
               })}
             {!state.conversations.length && (
-              <Empty
-                title="Say your first hello."
-                body="Message a connection or bring a few people together in a group."
-              />
+              <Empty title="No conversations yet." body="Message a connection or create a group." />
             )}
           </div>
         </aside>
@@ -316,12 +309,7 @@ export function MessagesPage() {
                   </button>
                 )}
                 {error && <p className="error">{error}</p>}
-                {!messages.length && !error && (
-                  <Empty
-                    title="This could be the start of something."
-                    body="Introduce yourself, share an idea, or just say hello."
-                  />
-                )}
+                {!messages.length && !error && <Empty title="No messages yet." />}
                 {messages.map((m, i) => (
                   <div key={m.id} className={`message ${m.senderId === state.me.id ? 'mine' : ''}`}>
                     {m.senderId !== state.me.id && <Avatar user={m.sender} size="small" />}
@@ -354,7 +342,7 @@ export function MessagesPage() {
               <form className="message-compose" onSubmit={send}>
                 <input
                   aria-label="Message"
-                  placeholder="A little hello goes a long way…"
+                  placeholder="Message…"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   maxLength={4000}
@@ -371,22 +359,13 @@ export function MessagesPage() {
             </>
           ) : (
             <Empty
-              title={
-                selected
-                  ? 'This conversation is unavailable.'
-                  : 'Good conversations make great things.'
-              }
+              title={selected ? 'This conversation is unavailable.' : 'Choose a conversation'}
               body={
                 selected
                   ? 'You may have been removed from the group, or it may have been deleted.'
-                  : 'Choose a conversation, or get your people together in a new group.'
+                  : ''
               }
-            >
-              <button className="button primary" onClick={() => setCreate(true)}>
-                <Users size={16} />
-                Create a group
-              </button>
-            </Empty>
+            />
           )}
         </section>
       </div>
@@ -449,7 +428,7 @@ function CreateGroup({
     .filter((c) => c.status === 'ACCEPTED')
     .map((c) => (c.requesterId === state.me.id ? c.receiver : c.requester));
   return (
-    <Modal title="Bring your people together." onClose={onClose}>
+    <Modal title="Create group" onClose={onClose}>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -470,12 +449,7 @@ function CreateGroup({
       >
         <label>
           Group name
-          <input
-            name="name"
-            placeholder="Give your next great thing a name"
-            required
-            maxLength={80}
-          />
+          <input name="name" placeholder="Group name" required maxLength={80} />
         </label>
         <label>
           Add your connections <span className="muted">({ids.length} selected)</span>
@@ -561,8 +535,7 @@ function ManageGroup({
   return (
     <Modal title={conversation.name || 'Your group'} onClose={onClose}>
       <p className="muted">
-        {conversation.members.length} people, plenty of possibilities. Your role:{' '}
-        {conversation.myRole.toLowerCase()}.
+        {conversation.members.length} members · Your role: {conversation.myRole.toLowerCase()}.
       </p>
       {owner && (
         <form
@@ -653,7 +626,7 @@ function ManageGroup({
       </div>
       {canManage && (
         <div className="group-add">
-          <h4>Add collaborators</h4>
+          <h4>Add members</h4>
           {conversation.ideaId && !owner ? (
             <p className="muted">Ask the idea owner to invite students from the resonance list.</p>
           ) : (
