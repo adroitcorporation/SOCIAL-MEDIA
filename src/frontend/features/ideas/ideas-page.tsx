@@ -305,10 +305,7 @@ export function IdeasPage() {
       </div>
       <FeedPagination feed={state.feed} setPage={setPage} />
       {!items.length && (
-        <Empty
-          title="No ideas found."
-          body="Post idea you can’t stop thinking about, or try another search."
-        >
+        <Empty title="No ideas found." body="Try another search or post an idea.">
           <button className="button primary" onClick={() => setCreate(true)}>
             Post idea <ArrowRight size={16} />
           </button>

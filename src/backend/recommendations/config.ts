@@ -1,6 +1,14 @@
 // Keep ranking policy in one place. Scores describe fit, not calibrated probabilities.
 export const ranking = {
-  weights: { intent: 30, reciprocal: 25, complement: 15, interests: 15, collaboration: 5, semantic: 8, freshness: 2 },
+  weights: {
+    intent: 30,
+    reciprocal: 25,
+    complement: 15,
+    interests: 15,
+    collaboration: 5,
+    semantic: 8,
+    freshness: 2,
+  },
   profilePageSize: 12,
   teamCandidates: 80,
   maximumReasons: 3,
@@ -12,5 +20,20 @@ export const ranking = {
   workerBatch: 5,
   maxAttempts: 4,
   leaseSeconds: 180,
+  profileFreshnessDays: 30,
+  inferredWeight: 3,
+  feeds: {
+    interest: 20,
+    skill: 25,
+    text: 5,
+    inferred: 3,
+    semantic: 10,
+    freshness: 20,
+    freshnessDays: 7,
+    engagement: 5,
+    eventSoon: 15,
+    eventDays: 14,
+    overlapCap: 2,
+  },
 };
 export const recommendationsEnabled = () => process.env.RECOMMENDATIONS_ENABLED !== 'false';

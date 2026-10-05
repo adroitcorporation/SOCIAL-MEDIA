@@ -48,6 +48,18 @@ async function openProfile(page: Page, overrides: Partial<Student> = {}) {
     const path = new URL(route.request().url()).pathname;
     if (path === '/api/config') return route.fulfill({ json: { demo: true, configured: false } });
     if (path === '/api/state') return route.fulfill({ json: state });
+    if (path === '/api/colleges')
+      return route.fulfill({
+        json: [
+          {
+            id: 'jaipur',
+            name: 'College of Jaipur',
+            shortName: 'Jaipur',
+            city: 'Jaipur',
+            state: 'Rajasthan',
+          },
+        ],
+      });
     if (path === '/api/live')
       return route.fulfill({
         status: 200,
@@ -86,9 +98,8 @@ test('creates a profile with suggestions and custom values, leaving optional URL
   const submit = page.getByRole('button', { name: 'Continue', exact: true });
   await expect(submit).toBeDisabled();
   await page.getByLabel('Full name (required)', { exact: true }).fill(student.name);
-  await page
-    .getByLabel('College (required)', { exact: true })
-    .selectOption({ label: 'College of Jaipur' });
+  await page.getByLabel('College (required)', { exact: true }).fill('Jaipur');
+  await page.getByRole('option', { name: 'College of Jaipur Jaipur, Rajasthan' }).click();
   await page.getByLabel('Degree / course (required)', { exact: true }).selectOption('B.Tech');
   const year = page.getByRole('combobox', { name: 'Graduation year (required)', exact: true });
   await expect(year.locator('option')).toHaveCount(22);
@@ -97,11 +108,24 @@ test('creates a profile with suggestions and custom values, leaving optional URL
   await year.selectOption('2028');
   await page.getByLabel('City (required)', { exact: true }).selectOption('Mumbai');
   await page.getByLabel('Bio (required)', { exact: true }).fill(student.bio);
-  await page.getByRole('checkbox', { name: 'React', exact: true }).check();
-  await page.getByRole('checkbox', { name: 'Technology', exact: true }).check();
+  await page.locator('#profile-skills').fill('React');
+  await page
+    .locator('.taxonomy-results')
+    .getByRole('button', { name: 'Web Development', exact: true })
+    .click();
+  await page.locator('#profile-interests').fill('Technology');
+  await page
+    .locator('.taxonomy-results')
+    .getByRole('button', { name: 'Technology', exact: true })
+    .click();
   await page.getByRole('checkbox', { name: 'Web Development', exact: true }).check();
-  await page.getByRole('checkbox', { name: 'Project partners', exact: true }).check();
-  await page.locator('#profile-skills').fill('React, Robotics');
+  await page.locator('#profile-lookingFor').fill('Project partners');
+  await page
+    .locator('.taxonomy-results')
+    .getByRole('button', { name: 'Project Teammates', exact: true })
+    .click();
+  await page.locator('#profile-skills').fill('Pottery');
+  await page.locator('#profile-skills').press('Enter');
   await expect(submit).toBeEnabled();
   await submit.click();
   await expect.poll(() => saved.length).toBe(1);
@@ -111,7 +135,7 @@ test('creates a profile with suggestions and custom values, leaving optional URL
     degree: 'B.Tech',
     graduationYear: 2028,
     city: 'Mumbai',
-    skills: ['React', 'Robotics'],
+    skills: ['Web Development', 'Pottery'],
     photo: '',
     linkedin: '',
     github: '',
@@ -281,8 +305,12 @@ for (const field of [
     const saved = await openProfile(page);
     const input = page.locator(`#profile-${field}`);
     await input.focus();
-    if (['college', 'degree', 'graduationYear', 'city'].includes(field))
-      await input.selectOption('');
+    if (['skills', 'interests', 'lookingFor'].includes(field))
+      await input
+        .locator('..')
+        .getByRole('button', { name: /^Remove / })
+        .click();
+    else if (['degree', 'graduationYear', 'city'].includes(field)) await input.selectOption('');
     else
       await input.fill(
         ['skills', 'interests', 'domains', 'lookingFor'].includes(field) ? ' , , ' : '   ',
@@ -314,9 +342,13 @@ test('preserves saved custom values when editing and toggling suggestions', asyn
     'B.Des',
   );
   await expect(page.getByLabel('Specify city (required)', { exact: true })).toHaveValue('Pilani');
-  await page.getByRole('checkbox', { name: 'React', exact: true }).check();
-  await expect(page.locator('#profile-skills')).toHaveValue('Robotics, React');
-  await page.getByRole('checkbox', { name: 'React', exact: true }).uncheck();
+  await page.locator('#profile-skills').fill('React');
+  await page
+    .locator('.taxonomy-results')
+    .getByRole('button', { name: 'Web Development', exact: true })
+    .click();
+  await expect(page.getByRole('button', { name: 'Remove Robotics', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Remove Web Development', exact: true }).click();
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect.poll(() => saved.length).toBe(1);
   const { onboarded: _, ...profile } = existing;

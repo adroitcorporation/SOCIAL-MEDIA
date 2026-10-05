@@ -52,11 +52,7 @@ export function ModerationDashboard() {
   }, [api, tab]);
   return (
     <>
-      <PageHeading
-        eyebrow={roleLabels[state.me.role]}
-        title="Moderation dashboard"
-        description="Review reports, protect the community, and keep track of moderation decisions."
-      />
+      <PageHeading eyebrow={roleLabels[state.me.role]} title="Moderation dashboard" />
       <div className="category-chips">
         {['Overview', 'Reports', 'Accounts', 'Verification'].map((item) => (
           <button key={item} className={tab === item ? 'active' : ''} onClick={() => setTab(item)}>

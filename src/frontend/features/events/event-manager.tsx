@@ -63,7 +63,7 @@ export function EventManager() {
           {error}
         </p>
       ) : !events.length ? (
-        <p className="muted">No events to manage yet. Create your first event.</p>
+        <p className="muted">No events yet.</p>
       ) : (
         events.map((event) => (
           <div className="managed-event" key={event.id}>

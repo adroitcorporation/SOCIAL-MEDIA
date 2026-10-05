@@ -3,6 +3,7 @@ const env = {
   ...process.env,
   DATABASE_URL:
     'postgresql://postgres:postgres@127.0.0.1:54329/postgres?connection_limit=1&pgbouncer=true&statement_cache_size=0',
+  DIRECT_URL: 'postgresql://postgres:postgres@127.0.0.1:54329/postgres',
   LOCAL_DEMO: 'true',
   APP_URL: 'http://localhost:3000',
 };

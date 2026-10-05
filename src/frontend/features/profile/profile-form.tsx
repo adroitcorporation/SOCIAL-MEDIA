@@ -173,7 +173,12 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
           <input {...fieldProps('name')} required maxLength={80} />
           {fieldError('name')}
         </label>
-        <CollegeSelect value={values.college} onChange={value=>change('college',value)} onBlur={()=>touch('college')} error={visibleError('college')} />
+        <CollegeSelect
+          value={values.college}
+          onChange={(value) => change('college', value)}
+          onBlur={() => touch('college')}
+          error={visibleError('college')}
+        />
         <ProfileSelect
           name="degree"
           label="Degree / course"
@@ -272,38 +277,50 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
         {fieldError('bio')}
       </label>
       <div className="form-grid">
-        {listFields.map((key) => key !== 'domains' ? (
-          <TaxonomySelect key={key} field={key} label={labels[key]} values={splitList(values[key])} onChange={values=>{change(key,values.join(', '));touch(key);}} error={visibleError(key)} />
-        ) : (
-          <fieldset key={key} className="profile-options">
-            <legend>{labels[key]} (required)</legend>
-            <label htmlFor={`profile-${key}`}>Custom values (comma-separated)</label>
-            <input {...fieldProps(key)} required placeholder="Choose below or type your own" />
-            {fieldError(key)}
-            <div className="profile-option-list">
-              {profileListOptions[key].map((option) => (
-                <label key={option}>
-                  <input
-                    type="checkbox"
-                    checked={splitList(values[key]).includes(option)}
-                    onChange={(event) => {
-                      const selected = event.target.checked;
-                      setValues((current) => ({
-                        ...current,
-                        [key]: (selected
-                          ? [...splitList(current[key]), option]
-                          : splitList(current[key]).filter((value) => value !== option)
-                        ).join(', '),
-                      }));
-                      touch(key);
-                    }}
-                  />
-                  {option}
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        ))}
+        {listFields.map((key) =>
+          key !== 'domains' ? (
+            <TaxonomySelect
+              key={key}
+              field={key}
+              label={labels[key]}
+              values={splitList(values[key])}
+              onChange={(values) => {
+                change(key, values.join(', '));
+                touch(key);
+              }}
+              error={visibleError(key)}
+            />
+          ) : (
+            <fieldset key={key} className="profile-options">
+              <legend>{labels[key]} (required)</legend>
+              <label htmlFor={`profile-${key}`}>Custom values (comma-separated)</label>
+              <input {...fieldProps(key)} required placeholder="Choose below or type your own" />
+              {fieldError(key)}
+              <div className="profile-option-list">
+                {profileListOptions[key].map((option) => (
+                  <label key={option}>
+                    <input
+                      type="checkbox"
+                      checked={splitList(values[key]).includes(option)}
+                      onChange={(event) => {
+                        const selected = event.target.checked;
+                        setValues((current) => ({
+                          ...current,
+                          [key]: (selected
+                            ? [...splitList(current[key]), option]
+                            : splitList(current[key]).filter((value) => value !== option)
+                          ).join(', '),
+                        }));
+                        touch(key);
+                      }}
+                    />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ),
+        )}
         {(['linkedin', 'github', 'instagram', 'portfolio'] as const).map((key) => (
           <label key={key}>
             {key[0].toUpperCase() + key.slice(1)} (optional)

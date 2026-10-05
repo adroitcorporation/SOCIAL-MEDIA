@@ -1,7 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, Users, Lightbulb, CalendarDays, MapPin } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Users,
+  Lightbulb,
+  CalendarDays,
+  MapPin,
+  PenTool,
+} from 'lucide-react';
 
 import { useCircle } from '@/frontend/state/circle-context';
 import { Empty } from '@/frontend/components/ui';
@@ -34,15 +42,10 @@ export function HomePage() {
           <div className="orbit orbit-two" />
           <div className="orbit orbit-three" />
           <div className="orbit-core">
-            <span>✳</span>
-            <small>
-              your next
-              <br />
-              big thing
-            </small>
+            <Users size={46} />
           </div>
           <div className="orbit-chip chip-design">
-            <span>✦</span> design
+            <PenTool size={18} /> design
           </div>
           <div className="orbit-chip chip-build">
             <span>⌘</span> build
@@ -52,8 +55,6 @@ export function HomePage() {
           </div>
           <div className="orbit-person person-one">A</div>
           <div className="orbit-person person-two">R</div>
-          <div className="orbit-star star-one">✧</div>
-          <div className="orbit-star star-two">✳</div>
         </div>
       </section>
       <div className="stats-row">

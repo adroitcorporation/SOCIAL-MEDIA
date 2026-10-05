@@ -90,7 +90,19 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
   const contextValue = useMemo(
     () =>
       state
-        ? { state, busy, mutate, api, refresh, toast, viewProfile: (student:Student)=>{setProfile(student);void api.recommendations.opened(student.id).catch(()=>{});}, navigate }
+        ? {
+            state,
+            busy,
+            mutate,
+            api,
+            refresh,
+            toast,
+            viewProfile: (student: Student) => {
+              setProfile(student);
+              void api.recommendations.opened(student.id).catch(() => {});
+            },
+            navigate,
+          }
         : null,
     [state, busy, mutate, api, refresh, toast, navigate],
   );

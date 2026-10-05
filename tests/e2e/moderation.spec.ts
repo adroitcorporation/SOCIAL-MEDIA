@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { PrismaClient, type UserRole } from '@prisma/client';
 import type {
   AppState,
   Student,
@@ -42,6 +43,30 @@ const state: AppState = {
   blockedIds: [],
   isModerator: true,
 };
+
+// Server-rendered permission checks cannot be replaced by browser API mocks.
+// Use only the fixed loopback demo database, restoring its role after each check.
+let originalRole: UserRole | undefined;
+const localDb = new PrismaClient({
+  datasources: {
+    db: { url: 'postgresql://postgres:postgres@127.0.0.1:54329/postgres?connection_limit=1&pgbouncer=true&statement_cache_size=0' },
+  },
+});
+test.beforeEach(async ({ request }, info) => {
+  expect((await (await request.get('/api/config')).json()).demo).toBe(true);
+  originalRole = (await localDb.user.findUniqueOrThrow({ where: { id: 'demo-aarav' } })).role;
+  await localDb.user.update({
+    where: { id: 'demo-aarav' },
+    data: { role: info.title.startsWith('moderators') ? 'MODERATOR' : 'STUDENT' },
+  });
+});
+test.afterEach(async () => {
+  if (originalRole)
+    await localDb.user.update({ where: { id: 'demo-aarav' }, data: { role: originalRole } });
+});
+test.afterAll(async () => {
+  await localDb.$disconnect();
+});
 
 test('moderators can inspect private images and submit approve/reject decisions with notes', async ({
   page,
@@ -132,6 +157,7 @@ test('an unauthorized moderation page displays the access error instead of an em
     return route.fulfill({ status: 403, json: { error: 'Moderator access required.' } });
   });
   await page.goto('/moderation');
-  await expect(page.locator('main').getByRole('alert')).toHaveText('Moderator access required.');
+  await expect(page.getByRole('heading', { name: 'Access denied', exact: true })).toBeVisible();
+  await expect(page.getByText('An active moderator account is required.')).toBeVisible();
   await expect(page.getByText('Nothing waiting for review.')).toHaveCount(0);
 });

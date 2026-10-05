@@ -10,9 +10,7 @@ test.beforeEach(async ({ page, request, baseURL }) => {
   );
 });
 
-test('login and signup accept non-LNMIIT email and call the provider', async ({
-  page,
-}) => {
+test('login and signup accept non-LNMIIT email and call the provider', async ({ page }) => {
   let providerCalls = 0;
   await page.route('**/auth/v1/**', (route) => {
     providerCalls++;
@@ -24,7 +22,7 @@ test('login and signup accept non-LNMIIT email and call the provider', async ({
     await page.getByLabel('Password', { exact: true }).fill('synthetic-password-123');
     await page
       .getByRole('button', {
-        name: path === '/login' ? 'Sign in' : 'Create your account',
+        name: path === '/login' ? 'Sign in' : 'Create account',
         exact: true,
       })
       .click();

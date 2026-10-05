@@ -61,49 +61,50 @@ enum ReportStatus {
 }
 
 model User {
-  role                  UserRole                     @default(STUDENT)
-  accountStatus         AccountStatus                @default(ACTIVE)
-  events                Event[]
-  reportsFiled          Report[]                     @relation("ReportAuthor")
-  reportsReceived       Report[]                     @relation("ReportTarget")
-  reportsReviewed       Report[]                     @relation("ReportReviewer")
-  moderationActions     ModerationAction[]
-  id                    String                       @id
-  name                  String
-  photo                 String                       @default("")
-  college               String                       @default("")
-  degree                String                       @default("")
-  graduationYear        Int                          @default(2028)
-  city                  String                       @default("")
-  bio                   String                       @default("")
-  skills                String[]                     @default([])
-  interests             String[]                     @default([])
-  domains               String[]                     @default([])
-  lookingFor            String[]                     @default([])
-  linkedin              String                       @default("")
-  github                String                       @default("")
-  instagram             String                       @default("")
-  portfolio             String                       @default("")
-  emailVerified         Boolean                      @default(false)
-  collegeVerified       Boolean                      @default(false)
-  onboarded             Boolean                      @default(false)
-  createdAt             DateTime                     @default(now())
-  updatedAt             DateTime                     @updatedAt
-  sent                  Connection[]                 @relation("Requester")
-  received              Connection[]                 @relation("Receiver")
-  memberships           ConversationMember[]
-  owned                 Conversation[]
-  messages              Message[]
-  ideas                 Idea[]
-  resonances            IdeaResonance[]
-  notifications         Notification[]
-  blocks                Block[]                      @relation("Blocker")
-  blockedBy             Block[]                      @relation("Blocked")
-  skipped               Skip[]                       @relation("Skipper")
-  skippedBy             Skip[]                       @relation("Skipped")
-  savedEvents           SavedEvent[]
-  verificationRequests  CollegeVerificationRequest[] @relation("VerificationApplicant")
-  reviewedVerifications CollegeVerificationRequest[] @relation("VerificationReviewer")
+  role                       UserRole                     @default(STUDENT)
+  accountStatus              AccountStatus                @default(ACTIVE)
+  events                     Event[]
+  reportsFiled               Report[]                     @relation("ReportAuthor")
+  reportsReceived            Report[]                     @relation("ReportTarget")
+  reportsReviewed            Report[]                     @relation("ReportReviewer")
+  moderationActions          ModerationAction[]
+  recommendationInteractions RecommendationInteraction[]
+  id                         String                       @id
+  name                       String
+  photo                      String                       @default("")
+  college                    String                       @default("")
+  degree                     String                       @default("")
+  graduationYear             Int                          @default(2028)
+  city                       String                       @default("")
+  bio                        String                       @default("")
+  skills                     String[]                     @default([])
+  interests                  String[]                     @default([])
+  domains                    String[]                     @default([])
+  lookingFor                 String[]                     @default([])
+  linkedin                   String                       @default("")
+  github                     String                       @default("")
+  instagram                  String                       @default("")
+  portfolio                  String                       @default("")
+  emailVerified              Boolean                      @default(false)
+  collegeVerified            Boolean                      @default(false)
+  onboarded                  Boolean                      @default(false)
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  sent                       Connection[]                 @relation("Requester")
+  received                   Connection[]                 @relation("Receiver")
+  memberships                ConversationMember[]
+  owned                      Conversation[]
+  messages                   Message[]
+  ideas                      Idea[]
+  resonances                 IdeaResonance[]
+  notifications              Notification[]
+  blocks                     Block[]                      @relation("Blocker")
+  blockedBy                  Block[]                      @relation("Blocked")
+  skipped                    Skip[]                       @relation("Skipper")
+  skippedBy                  Skip[]                       @relation("Skipped")
+  savedEvents                SavedEvent[]
+  verificationRequests       CollegeVerificationRequest[] @relation("VerificationApplicant")
+  reviewedVerifications      CollegeVerificationRequest[] @relation("VerificationReviewer")
 
   @@index([college, city])
   @@index([accountStatus, onboarded, createdAt(sort: Desc), id])
@@ -315,62 +316,78 @@ model RateLimit {
 }
 
 model College {
-  id String @id
-  name String
-  shortName String
-  city String
-  state String
-  country String @default("India")
-  aliases String[]
+  id              String   @id
+  name            String
+  shortName       String
+  city            String
+  state           String
+  country         String   @default("India")
+  aliases         String[]
   verifiedDomains String[] @default([])
-  active Boolean @default(true)
+  active          Boolean  @default(true)
+
   @@index([country, state, city])
+  @@index([aliases], type: Gin)
 }
+
 model RecommendationDocument {
-  kind String
-  targetId String
-  sourceHash String
-  skills String[]
-  interests String[]
-  lookingFor String[]
-  inferred Json @default("{}")
-  embedding Float[] @default([])
-  embeddingModel String @default("")
-  updatedAt DateTime @default(now())
+  kind           String
+  targetId       String
+  sourceHash     String
+  skills         String[]
+  interests      String[]
+  lookingFor     String[]
+  inferred       Json     @default("{}")
+  embedding      Float[]  @default([])
+  embeddingModel String   @default("")
+  updatedAt      DateTime @default(now())
+
   @@id([kind, targetId])
+  @@index([skills], type: Gin)
+  @@index([interests], type: Gin)
+  @@index([lookingFor], type: Gin)
 }
+
 model RecommendationJob {
-  kind String
-  targetId String
-  version Int @default(1)
-  attempts Int @default(0)
-  availableAt DateTime @default(now())
+  kind        String
+  targetId    String
+  version     Int       @default(1)
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
   lockedUntil DateTime?
-  lockToken String?
-  lastError String?
+  lockToken   String?
+  lastError   String?
+
   @@id([kind, targetId])
   @@index([availableAt, lockedUntil])
 }
+
 model RecommendationInteraction {
-  userId String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   targetType String
-  targetId String
-  action String
-  day DateTime @db.Date
-  createdAt DateTime @default(now())
+  targetId   String
+  action     String
+  day        DateTime @db.Date
+  createdAt  DateTime @default(now())
+
   @@id([userId, targetType, targetId, action, day])
   @@index([userId, targetType, createdAt])
   @@index([createdAt])
 }
+
 model TaxonomyAlias {
   field String
   alias String
   label String
+
   @@id([field, alias])
 }
+
 model RecommendationSkillLink {
-  kind String
+  kind   String
   source String
   target String
+
   @@id([kind, source, target])
 }

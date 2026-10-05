@@ -229,8 +229,7 @@ export function useCircleController(
     signedIn,
     ready,
     state: activeState,
-    screenPending:
-      Boolean(stateLocation && stateLocation !== location && !cachedState && !activeState),
+    screenPending: Boolean(stateLocation && stateLocation !== location && !cachedState),
     loadError,
     busy,
     api,

@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './verified-demo';
 import type { AppState } from '../../src/shared/contracts/responses';
 
 test.beforeEach(async ({ request }) => {
@@ -54,8 +55,18 @@ test('connection actions update the card without a state refetch', async ({ page
   await expect(card).toBeVisible();
   const initial = reads.length;
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
-  await expect(card.getByText('Request Sent')).toBeVisible();
-  await card.getByRole('button', { name: 'Cancel Request', exact: true }).click();
-  await expect(card.getByRole('button', { name: 'Connect', exact: true })).toBeVisible();
+  await expect(card).toHaveCount(0);
   expect(reads).toHaveLength(initial);
+  const updated: AppState = await (await request.get('/api/state?view=/connections')).json();
+  const sent = updated.connections.find(
+    (c) => c.receiverId === student!.id && c.status === 'PENDING',
+  );
+  expect(sent).toBeTruthy();
+  await page.goto('/connections');
+  await page.getByRole('button', { name: /Sent Requests/ }).click();
+  const pending = page.locator('.connection-card').filter({ hasText: student!.name });
+  const beforeCancel = reads.length;
+  await pending.getByRole('button', { name: 'Cancel Request', exact: true }).click();
+  await expect(pending).toHaveCount(0);
+  expect(reads).toHaveLength(beforeCancel);
 });

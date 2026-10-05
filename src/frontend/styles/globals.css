@@ -2330,6 +2330,115 @@ em {
   font-size: 12px;
   margin-bottom: 25px;
 }
+.taxonomy-select {
+  min-width: 0;
+  padding: 12px;
+  margin: 0 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.taxonomy-select legend {
+  padding: 0 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.taxonomy-select legend span {
+  margin-left: 6px;
+  font-weight: 400;
+  font-size: 12px;
+}
+.taxonomy-select input {
+  width: 100%;
+  min-width: 0;
+}
+.taxonomy-select > small {
+  display: block;
+  color: var(--muted);
+  margin: 6px 0 10px;
+  font-size: 12px;
+}
+.selected-chips:not(:empty) {
+  margin-bottom: 10px;
+}
+.taxonomy-select .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  min-height: 32px;
+}
+.taxonomy-select .tag svg {
+  flex-shrink: 0;
+}
+.taxonomy-select .tag:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.college-select {
+  position: relative;
+  min-width: 0;
+  margin-bottom: 17px;
+}
+.college-select > input {
+  width: 100%;
+}
+.college-select ul {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 8px 24px #0002;
+}
+.college-select li {
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.college-select li:hover,
+.college-select li[aria-selected='true'] {
+  background: var(--accent-soft);
+}
+.college-select li strong {
+  display: block;
+  font-size: 13px;
+}
+.college-select li small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+.match-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.match-score {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--primary);
+  white-space: nowrap;
+}
+.match-summary .tags {
+  margin: 0;
+  gap: 5px;
+}
+.match-summary .tag {
+  font-size: 11px;
+}
 .profile-photo-field {
   grid-column: 1 / -1;
   min-width: 0;

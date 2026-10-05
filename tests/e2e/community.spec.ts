@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './verified-demo';
 test.beforeEach(async ({ request }) => {
   const config = await (await request.get('/api/config')).json();
   expect(config.demo, 'Browser tests are restricted to the local sample database').toBe(true);
@@ -14,23 +15,30 @@ test('request can be cancelled after refresh, persisted, and sent again', async 
   );
   if (previous)
     await request.patch(`/api/connections/${previous.id}`, { data: { action: 'cancel' } });
-  await page.goto('/discover');
-  const card = page
-    .locator('.student-card')
-    .filter({
-      has: page.getByRole('button', { name: 'Ananya Sharma Email verified', exact: true }),
-    });
+  await request.delete('/api/skips', {data:{}});
+  await page.goto('/discover?search=Ananya');
+  const card = page.locator('.student-card').filter({
+    has: page.getByRole('button', { name: 'Ananya Sharma Email verified', exact: true }),
+  });
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
-  await expect(card.getByText('Request Sent')).toBeVisible();
+  await expect(card).toHaveCount(0);
+  await page.goto('/connections');
+  await page.getByRole('button', { name: /Sent Requests/ }).click();
   await page.reload();
-  await card.getByRole('button', { name: 'Cancel Request' }).click();
+  await page.getByRole('button', { name: /Sent Requests/ }).click();
+  await page
+    .locator('.connection-card')
+    .filter({ hasText: 'Ananya Sharma' })
+    .getByRole('button', { name: 'Cancel Request' })
+    .click();
+  await page.goto('/discover?search=Ananya');
   await expect(card.getByRole('button', { name: 'Connect', exact: true })).toBeVisible();
   const updated = await (await request.get('/api/state')).json();
   expect(
     updated.connections.some((c: { receiverId: string }) => c.receiverId === 'demo-ananya'),
   ).toBe(false);
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
-  await expect(card.getByText('Request Sent')).toBeVisible();
+  await expect(card).toHaveCount(0);
   await page.goto('/connections');
   await page.getByRole('button', { name: /Sent Requests/ }).click();
   await page
@@ -40,13 +48,19 @@ test('request can be cancelled after refresh, persisted, and sent again', async 
     .click();
   await expect(page.getByText('No sent requests.')).toBeVisible();
 });
-test('create accepted-connection group, message, promote, remove, and delete', async ({ page }) => {
+test('create accepted-connection group, message, promote, remove, and delete', async ({
+  page,
+  request,
+}) => {
   await page.goto('/messages');
   await page.getByRole('button', { name: 'Create group', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Group name').fill('Browser test collaboration');
   await expect(dialog.getByText('Kabir Sethi')).toBeVisible();
-  await expect(dialog.getByText('Tara Nair')).toHaveCount(0);
+  const state = await (await request.get('/api/state?view=/connections')).json();
+  const accepted = state.connections.filter((c: { status: string }) => c.status === 'ACCEPTED');
+  await expect(dialog.getByRole('checkbox')).toHaveCount(accepted.length);
+  await expect(dialog.getByText('Ananya Sharma')).toHaveCount(0);
   await dialog.getByRole('checkbox', { name: /Kabir Sethi/ }).check();
   await dialog.getByRole('checkbox', { name: /Isha Rao/ }).check();
   await dialog.getByRole('button', { name: 'Create group', exact: true }).click();
@@ -94,7 +108,7 @@ test('idea owner reuses the same group when adding another resonator', async ({
     .getByRole('button', { name: 'A little map of everything happening on campus', exact: true })
     .click();
   await page.getByRole('checkbox', { name: 'Select Rohan Iyer' }).check();
-  await page.getByRole('button', { name: 'Create collaboration group' }).click();
+  await page.getByRole('button', { name: 'Create group', exact: true }).click();
   await expect(page.locator('.chat-header')).toContainText('A little map');
   const firstUrl = page.url();
   await page
@@ -123,20 +137,30 @@ test('stream refreshes connection state in a second open browser', async ({
   context,
   request,
 }) => {
+  const initial = await (await request.get('/api/state?view=/connections')).json();
+  const old = initial.connections.find(
+    (c: { receiverId: string; status: string }) =>
+      c.receiverId === 'demo-zoya' && c.status === 'PENDING',
+  );
+  if (old) await request.patch(`/api/connections/${old.id}`, { data: { action: 'cancel' } });
+  await request.delete('/api/skips', {data:{}});
   await page.goto('/connections');
   await page.getByRole('button', { name: /Sent Requests/ }).click();
   const other = await context.newPage();
-  await other.goto('/discover');
+  await other.goto('/discover?search=Zoya');
   const card = other.locator('.student-card').filter({ hasText: 'Zoya Khan' });
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
   await expect(page.locator('.connection-card').filter({ hasText: 'Zoya Khan' })).toBeVisible({
     timeout: 15000,
   });
+  await expect(other.locator('.results-bar strong')).toHaveText('0',{timeout:15000});
   await page
     .locator('.connection-card')
     .filter({ hasText: 'Zoya Khan' })
     .getByRole('button', { name: 'Cancel Request' })
     .click();
+  await expect(other.locator('.results-bar strong')).toHaveText('1',{timeout:15000});
+  await other.getByRole('button',{name:'More people',exact:true}).click();
   await expect(card.getByRole('button', { name: 'Connect', exact: true })).toBeVisible({
     timeout: 15000,
   });
@@ -165,9 +189,7 @@ test('all routes render on mobile without overflow or browser errors', async ({ 
     await expect(page.locator('.bottom-nav')).toBeVisible();
   }
   await page.goto('/');
-  await expect(
-    page.getByRole('heading', { name: 'Big ideas start with a small hello.' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Meet your next collaborator.' })).toBeVisible();
   await page.screenshot({ path: '.local/home-mobile.png', fullPage: true });
   expect(errors).toEqual([]);
 });

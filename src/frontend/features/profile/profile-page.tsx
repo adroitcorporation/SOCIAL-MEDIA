@@ -179,7 +179,6 @@ export function ProfilePage() {
           {state.blockedIds.length > 0 && (
             <div className="panel blocked-panel">
               <h3>Blocked connections</h3>
-              <p className="muted">Unblock a student you blocked to allow connecting again.</p>
               {state.blockedIds.map((id) => (
                 <button
                   key={id}

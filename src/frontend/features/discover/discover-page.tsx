@@ -18,6 +18,7 @@ export function DiscoverPage() {
 function DiscoverFeed({ queryKey }: { queryKey: string }) {
   const { api, state, navigate, mutate, toast, refresh, busy } = useCircle();
   const [filters, setFilters] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [search, setSearch] = useState(() => new URLSearchParams(queryKey).get('search') || '');
   const [actedStudentIds, setActedStudentIds] = useState<Set<string>>(() => new Set());
   async function apply(event: React.FormEvent<HTMLFormElement>) {
@@ -66,8 +67,25 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
           </button>
         </div>
         <div className={`filter-fields ${filters ? 'expanded' : ''}`}>
-          <label>Colleges<select name="collegeScope" defaultValue={new URLSearchParams(queryKey).get('collegeScope')||''}><option value="">All colleges</option><option value="mine">My college</option><option value="other">Other colleges</option></select></label>
-          <label>State<input name="state" placeholder="State" defaultValue={new URLSearchParams(queryKey).get('state')||''}/></label>
+          <label>
+            Colleges
+            <select
+              name="collegeScope"
+              defaultValue={new URLSearchParams(queryKey).get('collegeScope') || ''}
+            >
+              <option value="">All colleges</option>
+              <option value="mine">My college</option>
+              <option value="other">Other colleges</option>
+            </select>
+          </label>
+          <label>
+            State
+            <input
+              name="state"
+              placeholder="State"
+              defaultValue={new URLSearchParams(queryKey).get('state') || ''}
+            />
+          </label>
           {[
             ['college', 'College'],
             ['city', 'City'],
@@ -81,6 +99,7 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
               {label}
               <input
                 name={key}
+                defaultValue={new URLSearchParams(queryKey).get(key) || ''}
                 placeholder={label}
                 type={key === 'graduationYear' ? 'number' : 'text'}
                 min={key === 'graduationYear' ? 2020 : undefined}
@@ -120,12 +139,28 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
         ) : (
           <Empty
             title={finishedQueue ? "You're all caught up." : 'No people found.'}
-            body={
-              finishedQueue
-                ? 'Check back for more people.'
-                : 'Try other filters or show skipped profiles.'
-            }
-          >{finishedQueue && <button className="button primary" disabled={busy} onClick={async()=>{await refresh();setActedStudentIds(new Set());}}>More people</button>}</Empty>
+            body={finishedQueue ? undefined : 'Try other filters or show skipped profiles.'}
+          >
+            {finishedQueue && (
+              <button
+                className="button primary"
+                disabled={busy || loadingMore}
+                onClick={async () => {
+                  setLoadingMore(true);
+                  try {
+                    await refresh();
+                    setActedStudentIds(new Set());
+                  } catch {
+                    toast('Could not load people. Try again.');
+                  } finally {
+                    setLoadingMore(false);
+                  }
+                }}
+              >
+                {loadingMore ? 'Loading…' : 'More people'}
+              </button>
+            )}
+          </Empty>
         )}
       </div>
     </div>

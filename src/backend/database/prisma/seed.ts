@@ -234,8 +234,8 @@ export async function seed() {
     create: {
       id: 'seed-welcome',
       userId: 'demo-aarav',
-      title: 'Your circle starts here',
-      body: 'Find your people, share what’s on your mind, and make something together.',
+      title: 'Welcome to Founder Circle',
+      body: 'Discover people',
       href: '/discover',
     },
   });
