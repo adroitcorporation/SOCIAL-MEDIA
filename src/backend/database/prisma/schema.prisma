@@ -322,7 +322,7 @@ model College {
   city            String
   state           String
   country         String   @default("India")
-  aliases         String[]
+  aliases         String[] @default([])
   verifiedDomains String[] @default([])
   active          Boolean  @default(true)
 
@@ -334,9 +334,9 @@ model RecommendationDocument {
   kind           String
   targetId       String
   sourceHash     String
-  skills         String[]
-  interests      String[]
-  lookingFor     String[]
+  skills         String[] @default([])
+  interests      String[] @default([])
+  lookingFor     String[] @default([])
   inferred       Json     @default("{}")
   embedding      Float[]  @default([])
   embeddingModel String   @default("")

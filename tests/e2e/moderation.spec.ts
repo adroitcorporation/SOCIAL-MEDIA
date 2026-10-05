@@ -49,7 +49,9 @@ const state: AppState = {
 let originalRole: UserRole | undefined;
 const localDb = new PrismaClient({
   datasources: {
-    db: { url: 'postgresql://postgres:postgres@127.0.0.1:54329/postgres?connection_limit=1&pgbouncer=true&statement_cache_size=0' },
+    db: {
+      url: 'postgresql://postgres:postgres@127.0.0.1:54329/postgres?connection_limit=1&pgbouncer=true&statement_cache_size=0',
+    },
   },
 });
 test.beforeEach(async ({ request }, info) => {

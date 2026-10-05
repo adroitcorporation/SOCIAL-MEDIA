@@ -65,3 +65,17 @@ Use the existing Prisma migration workflow, not a second Supabase migration hist
 - [Supabase HNSW indexes](https://supabase.com/docs/guides/ai/vector-indexes/hnsw-indexes).
 - [PostgreSQL SELECT](https://www.postgresql.org/docs/current/sql-select.html): bounded selection and row locking.
 - Supabase changelog reviewed; no existing auth/storage API upgrade is part of this change.
+
+## Final implementation and verification — 6 October 2026
+
+- Implemented separate taxonomy/aliases, safe legacy selection limits, database college search, complementary/reciprocal SQL ranking, bounded profile/feed pagination, idea/team APIs and skill-diverse team shortlists.
+- Added optional validated provider enrichment, model-compatible stored embeddings, durable leased jobs, bounded retries, stale-result protection, retention cleanup and trusted interaction tracking. The follow-up migration keeps job/document lock ordering consistent during concurrent edits/deletes.
+- Optional vector decision: exact PostgreSQL cosine over one stored array is the shipped path. No pgvector/HNSW index is enabled or advertised as accelerating the weighted query. See `RECOMMENDATIONS.md` for the deployment decision, scale-dependent extension path, cost controls and rollout/rollback commands.
+- Baseline: **158 unit/integration tests passed**. Original browser baseline: **41 passed, 10 failed, 2 skipped**.
+- Final: **185 unit/integration tests passed**, including 27 recommendation tests and a 1,000-profile fixture. **53/53 browser tests passed** with local moderator fixtures, including auth, role management, events, profiles, connections, chat, groups, live updates, navigation caching and both themes.
+- Browser regressions were traced to stale copy/Discover expectations, missing local verification/role fixtures and the prior screen-pending bug. Tests now preserve actual permission requirements and follow current request/cancellation flows. The live-update test allows the documented 15-second throttle plus its next 3-second tick.
+- Production build, TypeScript and architecture-boundary checks passed. No lint script exists; formatting and `git diff --check` were used in addition to those checks.
+- Local migrations applied successfully; the CLI worker processed a five-job batch with the provider disabled. No production database changes or real provider requests were made.
+- UI audit: 48 screenshots/states across 390/768/1440px with no horizontal overflow; details in `UI_CLEANUP_AUDIT.md`. Existing errors, privacy notices and destructive confirmations remain.
+
+Production deployment/migration and optional provider configuration are operational rollout steps, not performed here. Live provider compatibility, production query plans and infrastructure latency still require staging/production observation; mocked provider tests do not establish those properties.

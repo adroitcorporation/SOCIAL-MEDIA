@@ -15,7 +15,7 @@ test('request can be cancelled after refresh, persisted, and sent again', async 
   );
   if (previous)
     await request.patch(`/api/connections/${previous.id}`, { data: { action: 'cancel' } });
-  await request.delete('/api/skips', {data:{}});
+  await request.delete('/api/skips', { data: {} });
   await page.goto('/discover?search=Ananya');
   const card = page.locator('.student-card').filter({
     has: page.getByRole('button', { name: 'Ananya Sharma Email verified', exact: true }),
@@ -137,13 +137,16 @@ test('stream refreshes connection state in a second open browser', async ({
   context,
   request,
 }) => {
+  // Snapshots refresh every 15 seconds on a 3-second SSE tick. Allow the next
+  // tick as well as the request, rather than racing the throttle boundary.
+  test.setTimeout(75000);
   const initial = await (await request.get('/api/state?view=/connections')).json();
   const old = initial.connections.find(
     (c: { receiverId: string; status: string }) =>
       c.receiverId === 'demo-zoya' && c.status === 'PENDING',
   );
   if (old) await request.patch(`/api/connections/${old.id}`, { data: { action: 'cancel' } });
-  await request.delete('/api/skips', {data:{}});
+  await request.delete('/api/skips', { data: {} });
   await page.goto('/connections');
   await page.getByRole('button', { name: /Sent Requests/ }).click();
   const other = await context.newPage();
@@ -151,16 +154,16 @@ test('stream refreshes connection state in a second open browser', async ({
   const card = other.locator('.student-card').filter({ hasText: 'Zoya Khan' });
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
   await expect(page.locator('.connection-card').filter({ hasText: 'Zoya Khan' })).toBeVisible({
-    timeout: 15000,
+    timeout: 22000,
   });
-  await expect(other.locator('.results-bar strong')).toHaveText('0',{timeout:15000});
+  await expect(other.locator('.results-bar strong')).toHaveText('0', { timeout: 22000 });
   await page
     .locator('.connection-card')
     .filter({ hasText: 'Zoya Khan' })
     .getByRole('button', { name: 'Cancel Request' })
     .click();
-  await expect(other.locator('.results-bar strong')).toHaveText('1',{timeout:15000});
-  await other.getByRole('button',{name:'More people',exact:true}).click();
+  await expect(other.locator('.results-bar strong')).toHaveText('1', { timeout: 22000 });
+  await other.getByRole('button', { name: 'More people', exact: true }).click();
   await expect(card.getByRole('button', { name: 'Connect', exact: true })).toBeVisible({
     timeout: 15000,
   });

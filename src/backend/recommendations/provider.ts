@@ -113,13 +113,18 @@ export class CompatibleProvider implements AIProvider {
       const chunks: Uint8Array[] = [];
       try {
         while (true) {
-          const {done,value} = await reader.read();
+          const { done, value } = await reader.read();
           if (done) break;
           bytes += value.byteLength;
-          if (bytes > 100_000) { await reader.cancel(); throw new Error('provider_response_too_large'); }
+          if (bytes > 100_000) {
+            await reader.cancel();
+            throw new Error('provider_response_too_large');
+          }
           chunks.push(value);
         }
-      } finally { reader.releaseLock(); }
+      } finally {
+        reader.releaseLock();
+      }
       return JSON.parse(Buffer.concat(chunks).toString('utf8'));
     } finally {
       console.info(

@@ -81,7 +81,7 @@ export function CollegeSelect({
           }
           if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setActive((i) => options.length ? Math.max(i - 1, 0) : -1);
+            setActive((i) => (options.length ? Math.max(i - 1, 0) : -1));
           }
           if (e.key === 'Escape') setFocused(false);
           if (e.key === 'Enter' && focused && options[active]) {
