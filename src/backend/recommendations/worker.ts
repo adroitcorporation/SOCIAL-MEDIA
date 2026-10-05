@@ -72,7 +72,9 @@ export async function processRecommendationJobs(
       await db.recommendationJob.deleteMany({ where: { lockToken: token } });
       continue;
     }
-    const sourceHash = createHash('sha256').update(data.text).digest('hex');
+    const sourceHash = createHash('sha256')
+      .update(JSON.stringify([provider.extractionModel ?? 'local', data.text]))
+      .digest('hex');
     const previous = await db.recommendationDocument.findUnique({
       where: { kind_targetId: { kind: job.kind, targetId: job.targetId } },
     });

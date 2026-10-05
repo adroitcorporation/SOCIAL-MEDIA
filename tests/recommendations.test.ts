@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, afterAll, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, afterAll, afterEach, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
 import { readdir, readFile } from 'node:fs/promises';
@@ -38,6 +38,7 @@ const b = {
   lookingFor: ['Web Developer'],
 };
 const vector = Array.from({ length: 384 }, (_, i) => (i === 0 ? 1 : 0));
+afterEach(() => vi.unstubAllEnvs());
 const valid = {
   name: 'Student',
   college: 'LNMIIT',
@@ -238,6 +239,61 @@ it('stores validated embeddings, caches unchanged content and rejects incompatib
     data: { embeddingModel: 'different-model' },
   });
   expect((await recommend.rankedProfiles(u)).students[0].matchScore).toBeLessThan(before);
+});
+it('runs the configured HTTP provider and refreshes extraction when its model changes', async () => {
+  await db.recommendationJob.deleteMany({ where: { targetId: { not: 'a' } } });
+  vi.stubEnv('AI_PROVIDER', 'compatible');
+  vi.stubEnv('AI_BASE_URL', 'https://provider.example/v1');
+  vi.stubEnv('AI_API_KEY', 'test-only-key');
+  vi.stubEnv('EMBEDDING_MODEL', 'embedding-test');
+  vi.stubEnv('AI_TEXT_MODEL', 'text-one');
+  const http = vi
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(
+      async (url) =>
+        new Response(
+          JSON.stringify(
+            String(url).endsWith('/embeddings')
+              ? { data: [{ embedding: vector }] }
+              : { choices: [{ message: { content: JSON.stringify(localInference('SaaS')) } }] },
+          ),
+        ),
+    );
+  await worker.processRecommendationJobs(1);
+  const first = await db.recommendationDocument.findFirstOrThrow();
+  expect(first.embedding).toEqual(vector);
+  expect(first.inferred).toEqual(localInference('SaaS'));
+  expect(await db.recommendationJob.count()).toBe(0);
+  expect(http).toHaveBeenCalledTimes(2);
+  await db.recommendationJob.create({ data: { kind: 'PROFILE', targetId: 'a' } });
+  await worker.processRecommendationJobs(1);
+  expect(http).toHaveBeenCalledTimes(2);
+  vi.stubEnv('AI_TEXT_MODEL', 'text-two');
+  await db.recommendationJob.create({ data: { kind: 'PROFILE', targetId: 'a' } });
+  await worker.processRecommendationJobs(1);
+  expect(http).toHaveBeenCalledTimes(4);
+  const updated = await db.recommendationDocument.findFirstOrThrow();
+  expect(updated.sourceHash).not.toBe(first.sourceHash);
+  expect(updated.embeddingModel).toBe(first.embeddingModel);
+});
+it('keeps local metadata and retries a failed HTTP provider call', async () => {
+  await db.recommendationJob.deleteMany({ where: { targetId: { not: 'a' } } });
+  const log = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+    new Response('private provider error', { status: 429 }),
+  );
+  await worker.processRecommendationJobs(
+    1,
+    new CompatibleProvider('https://provider.example/v1', 'test-only-key', 'embed', 'text'),
+  );
+  const doc = await db.recommendationDocument.findFirstOrThrow();
+  expect(doc.embedding).toEqual([]);
+  expect(doc.skills).toContain('Web Development');
+  const job = await db.recommendationJob.findFirstOrThrow();
+  expect(job.attempts).toBe(1);
+  expect(job.lastError).toBe('provider_unavailable');
+  expect(job.availableAt.getTime()).toBeGreaterThan(Date.now());
+  expect(JSON.stringify(log.mock.calls)).not.toMatch(/private|test-only-key/);
 });
 it('falls back on provider failure and schedules bounded retries', async () => {
   const fail = {

@@ -19,6 +19,7 @@ export const inferenceSchema = z
 export type Inference = z.infer<typeof inferenceSchema>;
 export interface AIProvider {
   readonly model: string;
+  readonly extractionModel?: string;
   generateEmbedding(text: string): Promise<number[]>;
   extractStructuredProfile(text: string): Promise<Inference>;
   classifyContent(text: string): Promise<Inference>;
@@ -26,7 +27,7 @@ export interface AIProvider {
 export function scrubPublicText(text: string) {
   return text
     .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, '[email]')
-    .replace(/https?:\/\/\S+/gi, '[link]')
+    .replace(/https?:\/\/[^\s"\\]+/gi, '[link]')
     .replace(/\b(?:\+?\d[\d ()-]{8,}\d)\b/g, '[number]')
     .slice(0, 6000);
 }
@@ -83,6 +84,7 @@ export class DisabledProvider implements AIProvider {
 // Compatible HTTP adapter; provider credentials/endpoints never enter shared/frontend modules.
 export class CompatibleProvider implements AIProvider {
   readonly model: string;
+  readonly extractionModel: string;
   constructor(
     private endpoint: string,
     private key: string,
@@ -91,22 +93,36 @@ export class CompatibleProvider implements AIProvider {
   ) {
     const url = new URL(endpoint);
     if (
-      url.protocol !== 'https:' &&
-      !(process.env.NODE_ENV !== 'production' && ['localhost', '127.0.0.1'].includes(url.hostname))
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash ||
+      (url.protocol !== 'https:' &&
+        !(
+          url.protocol === 'http:' &&
+          process.env.NODE_ENV !== 'production' &&
+          ['localhost', '127.0.0.1'].includes(url.hostname)
+        ))
     )
       throw new Error('invalid_provider_endpoint');
-    this.model = `${url.origin}${url.pathname}:${embeddingModel}:${ranking.embeddingDimensions}`;
+    this.endpoint = url.href.replace(/\/+$/, '');
+    this.model = `${this.endpoint}:${embeddingModel}:${ranking.embeddingDimensions}`;
+    this.extractionModel = textModel || 'local';
   }
   private async request(path: string, body: unknown) {
     const start = Date.now();
     try {
       const response = await fetch(`${this.endpoint.replace(/\/$/, '')}/${path}`, {
         method: 'POST',
+        redirect: 'error',
         headers: { Authorization: `Bearer ${this.key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(ranking.providerTimeoutMs),
       });
-      if (!response.ok) throw new Error('provider_unavailable');
+      if (!response.ok) {
+        await response.body?.cancel();
+        throw new Error('provider_unavailable');
+      }
       const reader = response.body?.getReader();
       if (!reader) throw new Error('provider_empty_response');
       let bytes = 0;
@@ -165,19 +181,17 @@ export class CompatibleProvider implements AIProvider {
   }
 }
 export function getProvider(): AIProvider {
-  if (
-    process.env.AI_PROVIDER !== 'compatible' ||
-    !process.env.AI_API_KEY ||
-    !process.env.AI_BASE_URL ||
-    !process.env.EMBEDDING_MODEL
-  )
+  const key = process.env.AI_API_KEY?.trim();
+  const endpoint = process.env.AI_BASE_URL?.trim();
+  const embeddingModel = process.env.EMBEDDING_MODEL?.trim();
+  if (process.env.AI_PROVIDER !== 'compatible' || !key || !endpoint || !embeddingModel)
     return new DisabledProvider();
   try {
     return new CompatibleProvider(
-      process.env.AI_BASE_URL,
-      process.env.AI_API_KEY,
-      process.env.EMBEDDING_MODEL,
-      process.env.AI_TEXT_MODEL,
+      endpoint,
+      key,
+      embeddingModel,
+      process.env.AI_TEXT_MODEL?.trim() || undefined,
     );
   } catch {
     console.warn(JSON.stringify({ event: 'recommendation_provider_configuration_invalid' }));

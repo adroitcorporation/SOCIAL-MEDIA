@@ -20,6 +20,14 @@ Missing or invalid configuration falls back to local metadata and no vectors. Pr
 
 Ranking policy is centralized in `src/backend/recommendations/config.ts`. Reciprocal intent and complementary skills dominate; college is a filter, not a score boost. A displayed percentage is a fit score, not a calibrated probability. Inferred interests carry only a small supplemental weight. Reasons are deterministic and limited to three. Team selection draws from at most 80 candidates, with SQL shortlisting across each required skill before greedy coverage selection.
 
+## Optional compatible provider setup
+
+Set `AI_PROVIDER=compatible`, `AI_BASE_URL=https://provider.example/v1` (replace with your provider's API base), `EMBEDDING_MODEL` and `AI_API_KEY` in the backend environment. Store the real key in your deployment's secret settings or an ignored local environment file, never in source control or frontend configuration. Blank required settings keep the local provider active. Add `AI_TEXT_MODEL` only if structured extraction is wanted; without it, embeddings still run and extraction stays local.
+
+The adapter sends `POST {AI_BASE_URL}/embeddings` with `model`, scrubbed `input` and `dimensions`. The dimension count comes from `ranking.embeddingDimensions` in `config.ts` (currently 384); returned vectors must have exactly that many finite numbers and cannot be all zero. The optional `POST {AI_BASE_URL}/chat/completions` uses JSON-object mode and validates canonical labels. Inferred skills are discarded so explicit profile skills stay authoritative.
+
+Use HTTPS without URL credentials, query parameters or fragments. HTTP loopback is allowed only outside production. Redirects are rejected. Each request has an 8-second timeout and a 100,000-byte streamed response limit. Provider failures are handled by the worker's local fallback and bounded retry queue; request-time feed reads never call the provider.
+
 ## Migration and deployment
 
 1. Back up the target database and test these commands against staging first. Configure the existing `DATABASE_URL` and migration `DIRECT_URL` for that environment.
@@ -29,6 +37,16 @@ Ranking policy is centralized in `src/backend/recommendations/config.ts`. Recipr
 5. Verify `/api/health`, an authenticated `/api/recommendations/people`, and a profile save. Check worker progress using the queries below.
 
 Commands operate on the configured database. The worker CLI requires environment variables in its process, as do production jobs. For local UI work, `npm run db:local` and `npm run demo` explicitly use the loopback sample database, including the migration connection.
+
+The CLI does not automatically load Next.js `.env` files. To load an ignored local `.env.local` explicitly, run:
+
+```sh
+node --env-file=.env.local --conditions=react-server --import tsx scripts/recommendation-worker.ts --once
+```
+
+That file must contain the intended `DATABASE_URL` and optional provider settings. Omit `--once` for a batch of up to 100 jobs; the CLI exits after its batch and is not a daemon. `RECOMMENDATION_WORKER_ENABLED` controls the long-lived Next.js worker, not this CLI. The example environment explicitly sets it to `false`, so change it to `true` on the backend even when using `npm start`.
+
+Changing `AI_TEXT_MODEL` invalidates cached extraction for requeued jobs while preserving embedding-model compatibility. Requeue existing records after changing this setting; configuration changes alone do not enqueue records.
 
 After switching providers/models, or changing normalization/inference policy, run `npm run recommendations:work -- --requeue`, then drain normally. It queues source records without changing their content. After resolving an outage, `npm run recommendations:work -- --retry-failed` resets exhausted jobs and processes a bounded batch. Neither command is an automatic deployment step.
 
