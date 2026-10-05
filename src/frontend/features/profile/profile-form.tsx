@@ -6,13 +6,15 @@ import type { Student } from '@/shared/contracts/responses';
 import type { ProfileUpdateRequest } from '@/shared/contracts/requests';
 import { Avatar, Verified, Tag, ExternalLink } from '@/frontend/components/ui';
 import { authClient } from '@/frontend/auth/supabase-browser';
-import { profileSchema, safeUrl } from '@/shared/contracts/schemas';
+import { profileSchemaForExisting, safeUrl } from '@/shared/contracts/schemas';
 import {
   MAX_VERIFICATION_IMAGE_BYTES,
   VERIFICATION_IMAGE_TYPES,
 } from '@/shared/contracts/verification';
-import { cities, colleges, degrees, graduationYears, profileListOptions } from './profile-options';
+import { cities, degrees, graduationYears, profileListOptions } from './profile-options';
 import { ProfileSelect } from './profile-select';
+import { TaxonomySelect } from './taxonomy-select';
+import { CollegeSelect } from './college-select';
 type Save = (body: ProfileUpdateRequest) => Promise<void>;
 const profilePhotoBucket = 'profile-photos';
 const listFields = ['skills', 'interests', 'domains', 'lookingFor'] as const;
@@ -61,7 +63,7 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
     portfolio: user.portfolio,
   }));
   type Field = keyof typeof values;
-  const validation = profileSchema.safeParse({
+  const validation = profileSchemaForExisting(user).safeParse({
     ...values,
     graduationYear: Number(values.graduationYear),
     skills: splitList(values.skills),
@@ -171,16 +173,7 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
           <input {...fieldProps('name')} required maxLength={80} />
           {fieldError('name')}
         </label>
-        <ProfileSelect
-          name="college"
-          label="College"
-          value={values.college}
-          options={colleges}
-          maxLength={150}
-          onChange={(value) => change('college', value)}
-          onBlur={() => touch('college')}
-          error={visibleError('college')}
-        />
+        <CollegeSelect value={values.college} onChange={value=>change('college',value)} onBlur={()=>touch('college')} error={visibleError('college')} />
         <ProfileSelect
           name="degree"
           label="Degree / course"
@@ -279,7 +272,9 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
         {fieldError('bio')}
       </label>
       <div className="form-grid">
-        {listFields.map((key) => (
+        {listFields.map((key) => key !== 'domains' ? (
+          <TaxonomySelect key={key} field={key} label={labels[key]} values={splitList(values[key])} onChange={values=>{change(key,values.join(', '));touch(key);}} error={visibleError(key)} />
+        ) : (
           <fieldset key={key} className="profile-options">
             <legend>{labels[key]} (required)</legend>
             <label htmlFor={`profile-${key}`}>Custom values (comma-separated)</label>

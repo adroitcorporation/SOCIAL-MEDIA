@@ -4,6 +4,8 @@ import { db } from '@/backend/database/client';
 import { z } from 'zod';
 import { latestVerification } from './verification';
 import { chatIdentity, visibleTo } from './query-shapes';
+import { rankedProfiles, recommendedFeedIds } from '@/backend/recommendations/service';
+import { recommendationsEnabled } from '@/backend/recommendations/config';
 
 export async function snapshot(user: User, query: URLSearchParams) {
   // Missing view retains the existing API contract for external callers.
@@ -90,8 +92,13 @@ export async function snapshot(user: User, query: URLSearchParams) {
     .parse(query.get('page') || 0);
   // Prisma array filters cannot express case-insensitive substring search. Select
   // only this page's IDs in SQL, preserving the existing title/description/skills search.
+  const ranked = recommendationsEnabled() && needs('/discover') ? await rankedProfiles(user, query) : null;
+  const rankedIdeas = recommendationsEnabled() && needs('/ideas') ? await recommendedFeedIds(user, 'IDEA', view === '/ideas' ? query : new URLSearchParams(), view === '/ideas' ? 25 : 6) : null;
+  const rankedEvents = recommendationsEnabled() && needs('/events') ? await recommendedFeedIds(user, 'EVENT', view === '/events' ? query : new URLSearchParams(), view === '/events' ? 25 : 6) : null;
+  if (rankedIdeas) ideaWhere.id = { in: rankedIdeas.map(r=>r.id) };
+  if (rankedEvents) eventWhere.id = { in: rankedEvents.map(r=>r.id) };
   const ideaMatches =
-    view === '/ideas' && feedSearch
+    !rankedIdeas && view === '/ideas' && feedSearch
       ? await db.$queryRaw<{ id: string }[]>(Prisma.sql`
     SELECT i.id FROM "Idea" i
     WHERE NOT EXISTS (
@@ -117,7 +124,7 @@ export async function snapshot(user: User, query: URLSearchParams) {
     categories,
     connections,
   ] = await Promise.all([
-    needs('/discover')
+    ranked ? ranked.students : needs('/discover')
       ? db.user.findMany({
           where,
           orderBy: [{ createdAt: 'desc' }, { id: 'asc' }],
@@ -125,13 +132,13 @@ export async function snapshot(user: User, query: URLSearchParams) {
           skip: page * 12,
         })
       : [],
-    needs('/discover') ? db.user.count({ where }) : 0,
+    ranked ? ranked.total : needs('/discover') ? db.user.count({ where }) : 0,
     needs('/ideas')
       ? db.idea.findMany({
           where: ideaWhere,
           orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           take: view === '/ideas' ? 25 : 50,
-          skip: view === '/ideas' && !ideaMatches ? page * 24 : 0,
+          skip: view === '/ideas' && !ideaMatches && !rankedIdeas ? page * 24 : 0,
           include: {
             author: true,
             resonances: { where: { userId: user.id } },
@@ -145,7 +152,7 @@ export async function snapshot(user: User, query: URLSearchParams) {
           where: eventWhere,
           orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
           take: view === '/events' ? 25 : 100,
-          skip: view === '/events' ? page * 24 : 0,
+          skip: view === '/events' && !rankedEvents ? page * 24 : 0,
           include: { savedBy: { where: { userId: user.id } } },
         })
       : [],
@@ -206,6 +213,8 @@ export async function snapshot(user: User, query: URLSearchParams) {
         : [],
     connectionsPromise,
   ]);
+  if(rankedIdeas) ideas.sort((a,b)=>rankedIdeas.findIndex(r=>r.id===a.id)-rankedIdeas.findIndex(r=>r.id===b.id));
+  if(rankedEvents) events.sort((a,b)=>rankedEvents.findIndex(r=>r.id===a.id)-rankedEvents.findIndex(r=>r.id===b.id));
   const visibleMemberships = memberships.filter(
     (member) =>
       !member.clearedAt ||

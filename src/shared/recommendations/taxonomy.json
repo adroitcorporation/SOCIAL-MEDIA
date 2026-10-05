@@ -1,0 +1,627 @@
+{
+  "skills": [
+    {
+      "label": "Web Development",
+      "aliases": [
+        "web",
+        "web developer",
+        "react",
+        "next.js",
+        "nextjs",
+        "javascript",
+        "typescript",
+        "html",
+        "css"
+      ]
+    },
+    {
+      "label": "App Development",
+      "aliases": [
+        "app developer",
+        "mobile development",
+        "flutter",
+        "kotlin",
+        "swift",
+        "android",
+        "ios"
+      ]
+    },
+    {
+      "label": "Full Stack Development",
+      "aliases": [
+        "full stack",
+        "fullstack",
+        "node.js",
+        "nodejs",
+        "django"
+      ]
+    },
+    {
+      "label": "AI / Machine Learning",
+      "aliases": [
+        "ai",
+        "ml",
+        "ai ml",
+        "ai/ml",
+        "machine learning",
+        "artificial intelligence"
+      ]
+    },
+    {
+      "label": "Data Science",
+      "aliases": [
+        "data analysis",
+        "analytics"
+      ]
+    },
+    {
+      "label": "Cybersecurity",
+      "aliases": [
+        "security"
+      ]
+    },
+    {
+      "label": "Blockchain / Web3",
+      "aliases": [
+        "blockchain",
+        "web3"
+      ]
+    },
+    {
+      "label": "Game Development",
+      "aliases": [
+        "game developer"
+      ]
+    },
+    {
+      "label": "UI/UX Design",
+      "aliases": [
+        "ui ux",
+        "ui/ux",
+        "ux design",
+        "ui design",
+        "figma"
+      ]
+    },
+    {
+      "label": "Graphic Design",
+      "aliases": [
+        "graphic designer"
+      ]
+    },
+    {
+      "label": "Product Design",
+      "aliases": [
+        "product designer"
+      ]
+    },
+    {
+      "label": "Video Editing",
+      "aliases": [
+        "video editor"
+      ]
+    },
+    {
+      "label": "Photography",
+      "aliases": [
+        "photographer"
+      ]
+    },
+    {
+      "label": "Videography",
+      "aliases": [
+        "videographer"
+      ]
+    },
+    {
+      "label": "Content Creation",
+      "aliases": [
+        "content",
+        "content creator",
+        "youtuber",
+        "youtube"
+      ]
+    },
+    {
+      "label": "Writing / Copywriting",
+      "aliases": [
+        "writing",
+        "copywriting",
+        "storytelling"
+      ]
+    },
+    {
+      "label": "Social Media",
+      "aliases": [
+        "social media management"
+      ]
+    },
+    {
+      "label": "Digital Marketing",
+      "aliases": [
+        "digital marketer"
+      ]
+    },
+    {
+      "label": "Growth & Marketing",
+      "aliases": [
+        "marketing",
+        "growth",
+        "growth marketing"
+      ]
+    },
+    {
+      "label": "Sales",
+      "aliases": [
+        "selling"
+      ]
+    },
+    {
+      "label": "Business Development",
+      "aliases": [
+        "business developer"
+      ]
+    },
+    {
+      "label": "Product Management",
+      "aliases": [
+        "product manager"
+      ]
+    },
+    {
+      "label": "Finance",
+      "aliases": [
+        "financial analysis"
+      ]
+    },
+    {
+      "label": "Market Research",
+      "aliases": [
+        "market researcher"
+      ]
+    },
+    {
+      "label": "Entrepreneurship",
+      "aliases": [
+        "startup builder",
+        "entrepreneur"
+      ]
+    },
+    {
+      "label": "Pitching",
+      "aliases": [
+        "pitch"
+      ]
+    },
+    {
+      "label": "Public Speaking",
+      "aliases": [
+        "speaking"
+      ]
+    },
+    {
+      "label": "Event Management",
+      "aliases": [
+        "event organizer",
+        "event organiser"
+      ]
+    },
+    {
+      "label": "Community Building",
+      "aliases": [
+        "community"
+      ]
+    },
+    {
+      "label": "Sponsorship & Outreach",
+      "aliases": [
+        "sponsorship",
+        "outreach"
+      ]
+    },
+    {
+      "label": "Leadership",
+      "aliases": [
+        "team leadership"
+      ]
+    },
+    {
+      "label": "Robotics / IoT",
+      "aliases": [
+        "robotics",
+        "iot"
+      ]
+    },
+    {
+      "label": "Hardware / Electronics",
+      "aliases": [
+        "hardware",
+        "electronics",
+        "cad"
+      ]
+    },
+    {
+      "label": "Research",
+      "aliases": [
+        "researcher"
+      ]
+    },
+    {
+      "label": "Filmmaking",
+      "aliases": [
+        "filmmaker"
+      ]
+    },
+    {
+      "label": "Acting",
+      "aliases": [
+        "actor"
+      ]
+    }
+  ],
+  "interests": [
+    {
+      "label": "Startups & Entrepreneurship",
+      "aliases": [
+        "startups",
+        "startup",
+        "entrepreneurship"
+      ]
+    },
+    {
+      "label": "Artificial Intelligence",
+      "aliases": [
+        "ai",
+        "ml",
+        "machine learning",
+        "ai/ml"
+      ]
+    },
+    {
+      "label": "Technology",
+      "aliases": [
+        "tech"
+      ]
+    },
+    {
+      "label": "SaaS",
+      "aliases": [
+        "software as a service"
+      ]
+    },
+    {
+      "label": "FinTech",
+      "aliases": [
+        "financial technology"
+      ]
+    },
+    {
+      "label": "EdTech",
+      "aliases": [
+        "education",
+        "education technology"
+      ]
+    },
+    {
+      "label": "HealthTech",
+      "aliases": [
+        "health technology"
+      ]
+    },
+    {
+      "label": "DeepTech",
+      "aliases": [
+        "deep tech"
+      ]
+    },
+    {
+      "label": "Web3",
+      "aliases": [
+        "blockchain"
+      ]
+    },
+    {
+      "label": "Cybersecurity",
+      "aliases": [
+        "cyber security"
+      ]
+    },
+    {
+      "label": "Robotics",
+      "aliases": [
+        "iot"
+      ]
+    },
+    {
+      "label": "Gaming",
+      "aliases": [
+        "games"
+      ]
+    },
+    {
+      "label": "Esports",
+      "aliases": [
+        "e-sports"
+      ]
+    },
+    {
+      "label": "Design",
+      "aliases": [
+        "designing"
+      ]
+    },
+    {
+      "label": "Product",
+      "aliases": [
+        "product management"
+      ]
+    },
+    {
+      "label": "Marketing",
+      "aliases": [
+        "growth"
+      ]
+    },
+    {
+      "label": "Finance & Investing",
+      "aliases": [
+        "finance",
+        "investing"
+      ]
+    },
+    {
+      "label": "Consulting",
+      "aliases": [
+        "consultancy"
+      ]
+    },
+    {
+      "label": "Content Creation",
+      "aliases": [
+        "content"
+      ]
+    },
+    {
+      "label": "YouTube",
+      "aliases": [
+        "youtuber"
+      ]
+    },
+    {
+      "label": "Filmmaking",
+      "aliases": [
+        "film"
+      ]
+    },
+    {
+      "label": "Photography",
+      "aliases": [
+        "photos"
+      ]
+    },
+    {
+      "label": "Music",
+      "aliases": [
+        "musician"
+      ]
+    },
+    {
+      "label": "Acting",
+      "aliases": [
+        "actor"
+      ]
+    },
+    {
+      "label": "Podcasting",
+      "aliases": [
+        "podcasts"
+      ]
+    },
+    {
+      "label": "Writing",
+      "aliases": [
+        "copywriting"
+      ]
+    },
+    {
+      "label": "Hackathons",
+      "aliases": [
+        "hackathon"
+      ]
+    },
+    {
+      "label": "Competitive Programming",
+      "aliases": [
+        "competitive coding"
+      ]
+    },
+    {
+      "label": "Research",
+      "aliases": [
+        "researching"
+      ]
+    },
+    {
+      "label": "Open Source",
+      "aliases": [
+        "opensource"
+      ]
+    },
+    {
+      "label": "Social Impact",
+      "aliases": [
+        "social good"
+      ]
+    },
+    {
+      "label": "Sustainability",
+      "aliases": [
+        "environment"
+      ]
+    },
+    {
+      "label": "E-Cells",
+      "aliases": [
+        "ecell",
+        "e cell",
+        "e-cell"
+      ]
+    },
+    {
+      "label": "College Events",
+      "aliases": [
+        "campus events"
+      ]
+    },
+    {
+      "label": "Sports",
+      "aliases": [
+        "sport"
+      ]
+    }
+  ],
+  "lookingFor": [
+    {
+      "label": "Co-founder",
+      "aliases": [
+        "co-founders",
+        "cofounder"
+      ]
+    },
+    {
+      "label": "Startup Team",
+      "aliases": [
+        "startup teams"
+      ]
+    },
+    {
+      "label": "Hackathon Team",
+      "aliases": [
+        "hackathon teammates",
+        "hackathon teams"
+      ]
+    },
+    {
+      "label": "Project Teammates",
+      "aliases": [
+        "project partners",
+        "project team"
+      ]
+    },
+    {
+      "label": "Web Developer",
+      "aliases": [
+        "web developers"
+      ]
+    },
+    {
+      "label": "App Developer",
+      "aliases": [
+        "app developers"
+      ]
+    },
+    {
+      "label": "AI/ML Developer",
+      "aliases": [
+        "ai developer",
+        "ml developer"
+      ]
+    },
+    {
+      "label": "Designer",
+      "aliases": [
+        "designers"
+      ]
+    },
+    {
+      "label": "UI/UX Designer",
+      "aliases": [
+        "ui ux designer",
+        "ux designer"
+      ]
+    },
+    {
+      "label": "Video Editor",
+      "aliases": [
+        "video editors"
+      ]
+    },
+    {
+      "label": "Content Creator",
+      "aliases": [
+        "content creators"
+      ]
+    },
+    {
+      "label": "Marketing/Growth Partner",
+      "aliases": [
+        "marketing partner",
+        "growth partner"
+      ]
+    },
+    {
+      "label": "Business Partner",
+      "aliases": [
+        "business partners"
+      ]
+    },
+    {
+      "label": "Research Collaborator",
+      "aliases": [
+        "research partners"
+      ]
+    },
+    {
+      "label": "Gaming/Esports Team",
+      "aliases": [
+        "gaming team",
+        "esports team"
+      ]
+    },
+    {
+      "label": "Film/Content Team",
+      "aliases": [
+        "film team",
+        "creative collaborators"
+      ]
+    },
+    {
+      "label": "Mentor",
+      "aliases": [
+        "mentors"
+      ]
+    },
+    {
+      "label": "Internship Opportunities",
+      "aliases": [
+        "internships",
+        "internship"
+      ]
+    },
+    {
+      "label": "Freelance Collaborations",
+      "aliases": [
+        "freelance work",
+        "freelancing"
+      ]
+    },
+    {
+      "label": "Networking",
+      "aliases": [
+        "network"
+      ]
+    },
+    {
+      "label": "E-Cell Collaborations",
+      "aliases": [
+        "ecell collaborations"
+      ]
+    },
+    {
+      "label": "Just Exploring",
+      "aliases": [
+        "exploring"
+      ]
+    }
+  ]
+}

@@ -37,7 +37,7 @@ const child = spawn(
     '--port',
     process.env.PORT || '3000',
   ],
-  { stdio: 'inherit' },
+  { stdio: 'inherit', env: { ...process.env, RECOMMENDATION_WORKER_ENABLED: process.env.RECOMMENDATION_WORKER_ENABLED || 'true' } },
 );
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => child.kill(signal));
 child.on('exit', (code) => process.exit(code || 0));

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { ArrowUpRight, Plus, X, Users, GraduationCap, Handshake } from 'lucide-react';
+import { normalizeList } from '@/shared/recommendations/taxonomy';
 import type { Student } from '@/shared/contracts/responses';
 
 import { useCircle } from '@/frontend/state/circle-context';
@@ -24,8 +25,8 @@ export function StudentCard({
   const pending = !discoverMode && connection?.status === 'PENDING';
   const outgoing = connection?.requesterId === state.me.id;
   const shared = student.interests.filter((i) => state.me.interests.includes(i));
-  const quickSkills = student.skills.slice(0, 2);
-  const lookingLabel = student.lookingFor[0];
+  const quickSkills = normalizeList('skills',student.skills).slice(0,3);
+  const lookingLabel = normalizeList('lookingFor',student.lookingFor)[0];
   const dragStartX = useRef<number | null>(null);
   const dragPointerId = useRef<number | null>(null);
   const dragX = useRef(0);
@@ -143,12 +144,13 @@ export function StudentCard({
       </div>
       {discoverMode ? (
         <div className="discover-details">
+      {student.matchScore !== undefined && <div className="match-summary"><span className="match-score">{student.matchScore}% Match</span>{Boolean(student.reasons?.length)&&<div className="tags">{student.reasons!.slice(0,3).map(reason=><Tag key={reason}>{reason}</Tag>)}</div>}</div>}
           <p className="college">
             <GraduationCap size={15} />
             {student.college}
           </p>
 
-          {shared.length > 0 && (
+          {!student.reasons?.length && shared.length > 0 && (
             <div className="discover-common">
               <Users size={15} />
               <span>{shared[0]} in common</span>
@@ -159,7 +161,7 @@ export function StudentCard({
             {quickSkills.map((skill) => (
               <Tag key={skill}>{skill}</Tag>
             ))}
-            {student.skills.length > 2 && <Tag>+{student.skills.length - 2}</Tag>}
+            
           </div>
           {lookingLabel && (
             <div className="looking">

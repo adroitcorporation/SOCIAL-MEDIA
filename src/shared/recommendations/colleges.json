@@ -1,0 +1,316 @@
+[
+  {
+    "id": "lnmiit",
+    "name": "The LNM Institute of Information Technology Jaipur",
+    "shortName": "LNMIIT",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "LNMIIT",
+      "The LNM Institute of Information Technology"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "mnit-jaipur",
+    "name": "Malaviya National Institute of Technology Jaipur",
+    "shortName": "MNIT",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "MNIT",
+      "MNIT Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "muj",
+    "name": "Manipal University Jaipur",
+    "shortName": "MUJ",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "MUJ"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "jecrc-university",
+    "name": "JECRC University",
+    "shortName": "JECRC University",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "jecrc-foundation",
+    "name": "Jaipur Engineering College & Research Centre",
+    "shortName": "JECRC Foundation",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "JECRC Foundation",
+      "JECRC College"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "nims",
+    "name": "NIMS University Rajasthan",
+    "shortName": "NIMS",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "NIMS",
+      "NIMS University"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "jnu-jaipur",
+    "name": "Jaipur National University",
+    "shortName": "JNU Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "JNU Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "amity-rajasthan",
+    "name": "Amity University Rajasthan",
+    "shortName": "Amity Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Amity Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "poornima-university",
+    "name": "Poornima University",
+    "shortName": "PU Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "PU Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "poornima-engineering",
+    "name": "Poornima College of Engineering",
+    "shortName": "PCE Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "PCE Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "skit",
+    "name": "Swami Keshvanand Institute of Technology",
+    "shortName": "SKIT",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "SKIT",
+      "SKIT Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "git-jaipur",
+    "name": "Global Institute of Technology Jaipur",
+    "shortName": "GIT Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "GIT Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "rajasthan-university",
+    "name": "University of Rajasthan",
+    "shortName": "RU Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "RU Jaipur",
+      "Rajasthan University"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "xaviers-jaipur",
+    "name": "St. Xavier's College Jaipur",
+    "shortName": "Xaviers Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Xaviers Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "jklu",
+    "name": "JK Lakshmipat University",
+    "shortName": "JKLU",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "JKLU"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "vgu",
+    "name": "Vivekananda Global University",
+    "shortName": "VGU",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "VGU"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "apex",
+    "name": "Apex University",
+    "shortName": "Apex Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Apex Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "jagannath-jaipur",
+    "name": "Jagannath University Jaipur",
+    "shortName": "Jagannath Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Jagannath Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "arya",
+    "name": "Arya College",
+    "shortName": "Arya Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Arya Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "subodh",
+    "name": "SS Jain Subodh PG College",
+    "shortName": "Subodh College",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Subodh College"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "iis",
+    "name": "IIS University",
+    "shortName": "IIS Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "IIS Jaipur"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "kanoria",
+    "name": "Kanoria PG Mahila Mahavidyalaya",
+    "shortName": "Kanoria College",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Kanoria College"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "biyani",
+    "name": "Biyani Group of Colleges",
+    "shortName": "Biyani",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [
+      "Biyani"
+    ],
+    "verifiedDomains": [],
+    "active": true
+  },
+  {
+    "id": "college-of-jaipur",
+    "name": "College of Jaipur",
+    "shortName": "College of Jaipur",
+    "city": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "aliases": [],
+    "verifiedDomains": [],
+    "active": true
+  }
+]

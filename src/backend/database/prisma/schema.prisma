@@ -313,3 +313,64 @@ model RateLimit {
 
   @@index([expiresAt])
 }
+
+model College {
+  id String @id
+  name String
+  shortName String
+  city String
+  state String
+  country String @default("India")
+  aliases String[]
+  verifiedDomains String[] @default([])
+  active Boolean @default(true)
+  @@index([country, state, city])
+}
+model RecommendationDocument {
+  kind String
+  targetId String
+  sourceHash String
+  skills String[]
+  interests String[]
+  lookingFor String[]
+  inferred Json @default("{}")
+  embedding Float[] @default([])
+  embeddingModel String @default("")
+  updatedAt DateTime @default(now())
+  @@id([kind, targetId])
+}
+model RecommendationJob {
+  kind String
+  targetId String
+  version Int @default(1)
+  attempts Int @default(0)
+  availableAt DateTime @default(now())
+  lockedUntil DateTime?
+  lockToken String?
+  lastError String?
+  @@id([kind, targetId])
+  @@index([availableAt, lockedUntil])
+}
+model RecommendationInteraction {
+  userId String
+  targetType String
+  targetId String
+  action String
+  day DateTime @db.Date
+  createdAt DateTime @default(now())
+  @@id([userId, targetType, targetId, action, day])
+  @@index([userId, targetType, createdAt])
+  @@index([createdAt])
+}
+model TaxonomyAlias {
+  field String
+  alias String
+  label String
+  @@id([field, alias])
+}
+model RecommendationSkillLink {
+  kind String
+  source String
+  target String
+  @@id([kind, source, target])
+}

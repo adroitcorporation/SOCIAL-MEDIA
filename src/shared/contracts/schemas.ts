@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { connectionActions, groupActions, verificationMethods } from './enums';
 import { MAX_VERIFICATION_DATA_URL_LENGTH } from './verification';
+import { selectionLimits } from '@/shared/recommendations/taxonomy';
 const text = (max: number) => z.string().trim().min(1).max(max);
 const list = z.array(text(50)).max(20);
 const requiredProfileText = (label: string, max: number) =>
@@ -23,7 +24,7 @@ export const safeUrl = z.union(
   ],
   { error: 'Enter a valid HTTPS URL or leave this field blank.' },
 );
-export const profileSchema = z.object({
+const profileBaseSchema = z.object({
   name: requiredProfileText('Full name', 80),
   photo: safeUrl.default(''),
   college: requiredProfileText('College', 150),
@@ -44,6 +45,16 @@ export const profileSchema = z.object({
   instagram: safeUrl.default(''),
   portfolio: safeUrl.default(''),
 });
+export function profileSchemaForExisting(existing?: Partial<Record<keyof typeof selectionLimits, string[]>>) {
+  return profileBaseSchema.superRefine((value,ctx)=>{
+    for(const field of Object.keys(selectionLimits) as (keyof typeof selectionLimits)[]) {
+      const values=value[field], previous=existing?.[field]??[];
+      const legacy=values.length<=previous.length&&values.every(v=>previous.includes(v));
+      if(values.length>selectionLimits[field]&&!legacy)ctx.addIssue({code:'custom',path:[field],message:`Choose up to ${selectionLimits[field]} ${field === 'lookingFor'?'options':field}.`});
+    }
+  });
+}
+export const profileSchema = profileSchemaForExisting();
 export const ideaSchema = z.object({
   title: text(120),
   description: text(5000),

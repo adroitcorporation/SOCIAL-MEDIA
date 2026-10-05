@@ -18,7 +18,8 @@
     "postinstall": "prisma generate --schema src/backend/database/prisma/schema.prisma",
     "format": "prettier --write src scripts tests *.ts *.json *.yaml *.md",
     "render:validate": "node scripts/validate-render.mjs",
-    "check:boundaries": "node scripts/check-boundaries.mjs"
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "recommendations:work": "node --conditions=react-server --import tsx scripts/recommendation-worker.ts"
   },
   "keywords": [],
   "type": "module",

@@ -14,6 +14,9 @@ import { canViewModerationDashboard, canAssignRole } from '@/shared/contracts/pe
 
 import { validateMutationRequest, enforceMutationRateLimit } from './middleware';
 import { present } from './presenters';
+import { rankedProfiles, recommendTeam, getRecommendedUsersForIdea } from '@/backend/recommendations/service';
+import { searchColleges } from '@/backend/recommendations/colleges';
+import { recordInteraction, recordProfileOpen } from '@/backend/recommendations/interactions';
 import { connectionActionSchema } from '@/shared/contracts/schemas';
 export async function handleApiRequest(request: Request, path: string[]) {
   try {
@@ -37,7 +40,12 @@ export async function handleApiRequest(request: Request, path: string[]) {
       await enforceMutationRateLimit(user.id);
     }
     let result: unknown;
-    if (resource === 'session' && !id && method === 'GET')
+    if (resource === 'colleges' && !id && method === 'GET') result = await searchColleges(new URL(request.url).searchParams.get('search') || '');
+    else if (resource === 'recommendations' && id === 'people' && method === 'GET') result = await rankedProfiles(user,new URL(request.url).searchParams);
+    else if (resource === 'recommendations' && id === 'team' && method === 'POST') result = await recommendTeam(user.id,input);
+    else if (resource === 'recommendations' && id === 'ideas' && action && method === 'GET') result = await getRecommendedUsersForIdea(user.id,action);
+    else if (resource === 'recommendations' && id === 'interactions' && method === 'POST') result = await recordProfileOpen(user.id,input);
+    else if (resource === 'session' && !id && method === 'GET')
       result = { id: user.id, role: user.role, accountStatus: user.accountStatus };
     else if (resource === 'moderation' && id === 'access' && method === 'GET') {
       if (new URL(request.url).searchParams.get('roles') === 'true')
@@ -180,6 +188,17 @@ export async function handleApiRequest(request: Request, path: string[]) {
     else if (resource === 'notifications' && method === 'PATCH')
       result = await service.markNotificationsRead(user.id, id);
     else throw new AppError(404, 'Endpoint not found.');
+    try {
+      if(resource==='skips' && id && method==='POST') await recordInteraction(user.id,'PROFILE',id,'PROFILE_SKIPPED');
+      if(resource==='ideas' && id && action==='resonate' && input.enabled===true) await recordInteraction(user.id,'IDEA',id,'IDEA_RESONATED');
+      if(resource==='events' && id && method==='POST' && input.saved===true) await recordInteraction(user.id,'EVENT',id,'EVENT_SAVED');
+      if(resource==='conversations' && !id && input.type==='DIRECT' && typeof input.userId==='string') await recordInteraction(user.id,'PROFILE',input.userId,'MESSAGE_STARTED');
+      if(resource==='connections' && (method==='POST'||method==='PATCH')) {
+        const c=result as {requesterId:string;receiverId:string};
+        const name=method==='POST'?'CONNECTION_SENT':input.action==='accept'?'CONNECTION_ACCEPTED':input.action==='reject'?'CONNECTION_REJECTED':null;
+        if(name) await recordInteraction(user.id,'PROFILE',c.requesterId===user.id?c.receiverId:c.requesterId,name);
+      }
+    } catch { console.warn(JSON.stringify({event:'recommendation_feedback_failed'})); }
     return Response.json(result, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     return errorResponse(error);

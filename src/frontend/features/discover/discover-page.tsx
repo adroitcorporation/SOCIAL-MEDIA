@@ -16,7 +16,7 @@ export function DiscoverPage() {
 }
 
 function DiscoverFeed({ queryKey }: { queryKey: string }) {
-  const { api, state, navigate, mutate, toast } = useCircle();
+  const { api, state, navigate, mutate, toast, refresh, busy } = useCircle();
   const [filters, setFilters] = useState(false);
   const [search, setSearch] = useState(() => new URLSearchParams(queryKey).get('search') || '');
   const [actedStudentIds, setActedStudentIds] = useState<Set<string>>(() => new Set());
@@ -66,10 +66,12 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
           </button>
         </div>
         <div className={`filter-fields ${filters ? 'expanded' : ''}`}>
+          <label>Colleges<select name="collegeScope" defaultValue={new URLSearchParams(queryKey).get('collegeScope')||''}><option value="">All colleges</option><option value="mine">My college</option><option value="other">Other colleges</option></select></label>
+          <label>State<input name="state" placeholder="State" defaultValue={new URLSearchParams(queryKey).get('state')||''}/></label>
           {[
             ['college', 'College'],
             ['city', 'City'],
-            ['skills', 'Skill (e.g. React)'],
+            ['skills', 'Skill'],
             ['domains', 'Domain'],
             ['interests', 'Interest'],
             ['lookingFor', 'Looking for'],
@@ -97,6 +99,7 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
           onClick={async () => {
             try {
               await mutate(() => api.skips.clear());
+              setActedStudentIds(new Set());
               toast('Skipped profiles restored.');
             } catch {}
           }}
@@ -122,7 +125,7 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
                 ? 'Check back for more people.'
                 : 'Try other filters or show skipped profiles.'
             }
-          />
+          >{finishedQueue && <button className="button primary" disabled={busy} onClick={async()=>{await refresh();setActedStudentIds(new Set());}}>More people</button>}</Empty>
         )}
       </div>
     </div>

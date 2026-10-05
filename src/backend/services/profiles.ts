@@ -1,6 +1,7 @@
 import { db } from '@/backend/database/client';
 import { requireThat } from '@/backend/utils/errors';
-import { profileSchema } from '@/shared/contracts/schemas';
+import { profileSchemaForExisting } from '@/shared/contracts/schemas';
+import { requireActiveActor } from './permissions';
 
 export async function getStudent(actor: string, id: string) {
   requireThat(
@@ -20,8 +21,10 @@ export async function getStudent(actor: string, id: string) {
   return student;
 }
 
-export const saveProfile = (actor: string, input: unknown) =>
-  db.user.update({
+export const saveProfile = async (actor: string, input: unknown) => {
+  const current=await requireActiveActor(actor);
+  return db.user.update({
     where: { id: actor },
-    data: { ...profileSchema.parse(input), onboarded: true },
+    data: { ...profileSchemaForExisting(current).parse(input), onboarded: true },
   });
+};

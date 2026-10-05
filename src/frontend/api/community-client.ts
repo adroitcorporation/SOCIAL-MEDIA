@@ -40,9 +40,15 @@ import type {
   VerificationRequest,
   VerificationReviewRequest,
 } from '@/shared/contracts/requests';
+import type { CollegeOption, TeamRequest, TeamRecommendation } from '@/shared/contracts/recommendations';
 const id = encodeURIComponent;
 export function createCommunityClient(http: HttpClient) {
   return {
+    colleges: (search:string) => http.request<CollegeOption[]>(`colleges?search=${id(search)}`),
+    recommendations: {
+      team: (input:TeamRequest) => http.request<TeamRecommendation>('recommendations/team',input),
+      opened: (targetId:string) => http.request<SuccessResponse>('recommendations/interactions',{targetId,action:'PROFILE_OPENED'}),
+    },
     config: () => http.request<ApiConfig>('config'),
     state: (query = '') => http.request<AppState>(`state${query ? `?${query}` : ''}`),
     profiles: {

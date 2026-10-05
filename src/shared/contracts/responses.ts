@@ -37,6 +37,8 @@ export interface VerificationReviewItem extends CollegeVerification {
   user: Student;
 }
 export interface Student {
+  matchScore?: number;
+  reasons?: string[];
   role: UserRole;
   accountStatus: AccountStatus;
   id: string;

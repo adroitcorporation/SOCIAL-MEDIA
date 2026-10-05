@@ -1,7 +1,7 @@
-import { collegeName } from '@/shared/config/college-access';
+import { taxonomy } from '@/shared/recommendations/taxonomy';
 
 export const degrees = ['B.Tech', 'B.E.', 'BCA', 'MCA', 'BBA', 'MBA', 'M.Tech', 'M.E.', 'PhD'];
-export const colleges = [collegeName, 'College of Jaipur'];
+
 export const graduationYears = Array.from({ length: 21 }, (_, index) => 2020 + index);
 export const cities = [
   'Ahmedabad',
@@ -31,33 +31,8 @@ export const cities = [
   'Visakhapatnam',
 ];
 export const profileListOptions = {
-  skills: [
-    'React',
-    'JavaScript',
-    'TypeScript',
-    'Python',
-    'Java',
-    'C++',
-    'UI/UX Design',
-    'Figma',
-    'Marketing',
-    'Content',
-    'Data Science',
-    'Machine Learning',
-    'Public Speaking',
-  ],
-  interests: [
-    'Technology',
-    'Design',
-    'Startups',
-    'Social Impact',
-    'Finance',
-    'AI',
-    'Gaming',
-    'Education',
-    'Research',
-    'Entrepreneurship',
-  ],
+  skills: taxonomy.skills.map(v=>v.label),
+  interests: taxonomy.interests.map(v=>v.label),
   domains: [
     'Web Development',
     'App Development',
@@ -69,14 +44,5 @@ export const profileListOptions = {
     'Social Impact',
     'E-commerce',
   ],
-  lookingFor: [
-    'Project partners',
-    'Hackathon teammates',
-    'Co-founders',
-    'Research partners',
-    'Mentors',
-    'Internships',
-    'Freelance work',
-    'Creative collaborators',
-  ],
+  lookingFor: taxonomy.lookingFor.map(v=>v.label),
 };
