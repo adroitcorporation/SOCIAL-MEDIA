@@ -35,6 +35,7 @@ beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://127.0.0.1:9');
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'synthetic-test-key');
   vi.stubEnv('APP_URL', 'http://localhost');
+  vi.stubEnv('NEXT_PUBLIC_APP_URL', '');
   doubles.findUnique.mockResolvedValue(actor);
   doubles.upsert.mockResolvedValue(actor);
 });
@@ -71,7 +72,12 @@ describe('real authentication function with mocked Supabase provider', () => {
       expect(doubles.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           update: { emailVerified: true },
-          create: { id: actor.id, name: 'New student', emailVerified: true, collegeVerified: false },
+          create: {
+            id: actor.id,
+            name: 'New student',
+            emailVerified: true,
+            collegeVerified: false,
+          },
         }),
       );
     },
@@ -135,6 +141,47 @@ describe('real authentication function with mocked Supabase provider', () => {
   });
 });
 describe('browser provider adapter and origin validation', () => {
+  it.each([
+    ['', 'https://canonical.example.com'],
+    ['https://public.example.com', 'https://public.example.com'],
+  ])(
+    'publishes the canonical build origin with public override %s',
+    async (publicUrl, expected) => {
+      vi.stubEnv('APP_URL', 'https://canonical.example.com');
+      vi.stubEnv('NEXT_PUBLIC_APP_URL', publicUrl);
+      vi.resetModules();
+      const { default: config } = await import('../next.config');
+      vi.stubEnv('NEXT_PUBLIC_APP_URL', config.env!.NEXT_PUBLIC_APP_URL as string);
+      doubles.signUp.mockResolvedValue({ data: { session: null }, error: null });
+      doubles.resetPasswordForEmail.mockResolvedValue({ error: null });
+      await browserAuth.signUp(
+        'test@example.com',
+        'synthetic-password',
+        'https://preview.example.com',
+      );
+      await browserAuth.requestPasswordReset('test@example.com', 'https://preview.example.com');
+      expect(doubles.signUp).toHaveBeenCalledWith(
+        expect.objectContaining({ options: { emailRedirectTo: `${expected}/` } }),
+      );
+      expect(doubles.resetPasswordForEmail).toHaveBeenCalledWith('test@example.com', {
+        redirectTo: `${expected}/reset-password`,
+      });
+    },
+  );
+  it.each(['not-a-url', 'javascript:alert(1)', 'https://user:password@example.com'])(
+    'rejects invalid configured origins before calling Supabase: %s',
+    async (origin) => {
+      vi.stubEnv('NEXT_PUBLIC_APP_URL', origin);
+      await expect(browserAuth.signUp('test@example.com', 'synthetic-password')).rejects.toThrow(
+        'valid HTTP(S) URL',
+      );
+      await expect(browserAuth.requestPasswordReset('test@example.com')).rejects.toThrow(
+        'valid HTTP(S) URL',
+      );
+      expect(doubles.signUp).not.toHaveBeenCalled();
+      expect(doubles.resetPasswordForEmail).not.toHaveBeenCalled();
+    },
+  );
   it('uses same-origin confirmation and password-recovery destinations', async () => {
     doubles.signUp.mockResolvedValue({ data: { session: null }, error: null });
     doubles.resetPasswordForEmail.mockResolvedValue({ error: null });
@@ -148,7 +195,7 @@ describe('browser provider adapter and origin validation', () => {
     });
   });
   it('prefers the configured public app URL when building auth redirects', async () => {
-    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://app.example.com');
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://app.example.com/');
     doubles.signUp.mockResolvedValue({ data: { session: null }, error: null });
     doubles.resetPasswordForEmail.mockResolvedValue({ error: null });
     await browserAuth.signUp('test@lnmiit.ac.in', 'synthetic-password', 'http://localhost:3000');

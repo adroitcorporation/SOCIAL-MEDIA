@@ -2,13 +2,18 @@ import { authClient } from './supabase-browser';
 
 function resolveRedirectOrigin(fallbackOrigin?: string) {
   const configured = process.env.NEXT_PUBLIC_APP_URL;
-  const candidate = configured || fallbackOrigin || (typeof window !== 'undefined' ? window.location.origin : '');
+  const candidate =
+    configured || fallbackOrigin || (typeof window !== 'undefined' ? window.location.origin : '');
   if (!candidate) throw new Error('Authentication redirect origin is unavailable.');
 
   try {
-    return new URL(candidate).origin;
+    const url = new URL(candidate);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) {
+      throw new Error('Invalid origin');
+    }
+    return url.origin;
   } catch {
-    return candidate.replace(/\/+$/, '');
+    throw new Error('Authentication redirect origin must be a valid HTTP(S) URL.');
   }
 }
 

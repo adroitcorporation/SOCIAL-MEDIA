@@ -1,5 +1,9 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
+  // Publish only the canonical app URL; APP_URL itself remains server-side.
+  env: {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || '',
+  },
   poweredByHeader: false,
   devIndicators: false,
   async rewrites() {
