@@ -182,7 +182,8 @@ describe('browser provider adapter and origin validation', () => {
       expect(doubles.resetPasswordForEmail).not.toHaveBeenCalled();
     },
   );
-  it('uses same-origin confirmation and password-recovery destinations', async () => {
+  it('uses an explicitly configured localhost origin for development', async () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000');
     doubles.signUp.mockResolvedValue({ data: { session: null }, error: null });
     doubles.resetPasswordForEmail.mockResolvedValue({ error: null });
     await browserAuth.signUp('test@lnmiit.ac.in', 'synthetic-password', 'http://localhost:3000');
@@ -195,17 +196,32 @@ describe('browser provider adapter and origin validation', () => {
     });
   });
   it('prefers the configured public app URL when building auth redirects', async () => {
-    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://app.example.com/');
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://newagesocial.vercel.app/');
     doubles.signUp.mockResolvedValue({ data: { session: null }, error: null });
     doubles.resetPasswordForEmail.mockResolvedValue({ error: null });
     await browserAuth.signUp('test@lnmiit.ac.in', 'synthetic-password', 'http://localhost:3000');
     await browserAuth.requestPasswordReset('test@lnmiit.ac.in', 'http://localhost:3000');
     expect(doubles.signUp).toHaveBeenCalledWith(
-      expect.objectContaining({ options: { emailRedirectTo: 'https://app.example.com/' } }),
+      expect.objectContaining({ options: { emailRedirectTo: 'https://newagesocial.vercel.app/' } }),
     );
     expect(doubles.resetPasswordForEmail).toHaveBeenCalledWith('test@lnmiit.ac.in', {
-      redirectTo: 'https://app.example.com/reset-password',
+      redirectTo: 'https://newagesocial.vercel.app/reset-password',
     });
+  });
+  it('rejects missing configuration rather than using a different origin', async () => {
+    vi.stubGlobal('window', { location: { origin: 'https://wrong.example.com' } });
+    try {
+      await expect(
+        browserAuth.signUp('test@example.com', 'synthetic-password', 'https://wrong.example.com'),
+      ).rejects.toThrow('origin is unavailable');
+      await expect(
+        browserAuth.requestPasswordReset('test@example.com', 'https://wrong.example.com'),
+      ).rejects.toThrow('origin is unavailable');
+      expect(doubles.signUp).not.toHaveBeenCalled();
+      expect(doubles.resetPasswordForEmail).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
   it('signs out through the provider and surfaces failures', async () => {
     doubles.signOut

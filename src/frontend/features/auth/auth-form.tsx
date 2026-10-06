@@ -27,14 +27,14 @@ export function AuthForm({
     const password = String(form.get('password') || '');
     try {
       if (mode === 'forgot') {
-        await browserAuth.requestPasswordReset(email, location.origin);
+        await browserAuth.requestPasswordReset(email);
         setNotice('If an account exists, a reset link is on its way. Check your inbox.');
       } else if (mode === 'reset') {
         await browserAuth.updatePassword(password);
         setNotice('Password updated. You can continue to your circle.');
         onAuthenticated();
       } else if (mode === 'signup') {
-        const result = await browserAuth.signUp(email, password, location.origin);
+        const result = await browserAuth.signUp(email, password);
         if (result.signedIn) onAuthenticated();
         else
           setNotice(

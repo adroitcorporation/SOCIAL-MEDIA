@@ -1,9 +1,7 @@
 import { authClient } from './supabase-browser';
 
-function resolveRedirectOrigin(fallbackOrigin?: string) {
-  const configured = process.env.NEXT_PUBLIC_APP_URL;
-  const candidate =
-    configured || fallbackOrigin || (typeof window !== 'undefined' ? window.location.origin : '');
+function resolveRedirectOrigin() {
+  const candidate = process.env.NEXT_PUBLIC_APP_URL;
   if (!candidate) throw new Error('Authentication redirect origin is unavailable.');
 
   try {
@@ -33,8 +31,9 @@ export const browserAuth = {
     const { error } = await authClient().auth.signInWithPassword({ email, password });
     if (error) throw error;
   },
-  async signUp(email: string, password: string, origin?: string) {
-    const redirectOrigin = resolveRedirectOrigin(origin);
+  // Legacy callers may pass an origin; redirects always use public configuration.
+  async signUp(email: string, password: string, _origin?: string) {
+    const redirectOrigin = resolveRedirectOrigin();
     const { data, error } = await authClient().auth.signUp({
       email,
       password,
@@ -43,8 +42,8 @@ export const browserAuth = {
     if (error) throw error;
     return { signedIn: Boolean(data.session) };
   },
-  async requestPasswordReset(email: string, origin?: string) {
-    const redirectOrigin = resolveRedirectOrigin(origin);
+  async requestPasswordReset(email: string, _origin?: string) {
+    const redirectOrigin = resolveRedirectOrigin();
     const { error } = await authClient().auth.resetPasswordForEmail(email, {
       redirectTo: `${redirectOrigin}/reset-password`,
     });
