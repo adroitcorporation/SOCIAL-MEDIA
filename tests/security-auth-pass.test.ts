@@ -147,6 +147,19 @@ describe('browser provider adapter and origin validation', () => {
       redirectTo: 'http://localhost:3000/reset-password',
     });
   });
+  it('prefers the configured public app URL when building auth redirects', async () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://app.example.com');
+    doubles.signUp.mockResolvedValue({ data: { session: null }, error: null });
+    doubles.resetPasswordForEmail.mockResolvedValue({ error: null });
+    await browserAuth.signUp('test@lnmiit.ac.in', 'synthetic-password', 'http://localhost:3000');
+    await browserAuth.requestPasswordReset('test@lnmiit.ac.in', 'http://localhost:3000');
+    expect(doubles.signUp).toHaveBeenCalledWith(
+      expect.objectContaining({ options: { emailRedirectTo: 'https://app.example.com/' } }),
+    );
+    expect(doubles.resetPasswordForEmail).toHaveBeenCalledWith('test@lnmiit.ac.in', {
+      redirectTo: 'https://app.example.com/reset-password',
+    });
+  });
   it('signs out through the provider and surfaces failures', async () => {
     doubles.signOut
       .mockResolvedValueOnce({ error: null })

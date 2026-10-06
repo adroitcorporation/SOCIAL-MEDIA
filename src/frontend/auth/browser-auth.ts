@@ -1,4 +1,17 @@
 import { authClient } from './supabase-browser';
+
+function resolveRedirectOrigin(fallbackOrigin?: string) {
+  const configured = process.env.NEXT_PUBLIC_APP_URL;
+  const candidate = configured || fallbackOrigin || (typeof window !== 'undefined' ? window.location.origin : '');
+  if (!candidate) throw new Error('Authentication redirect origin is unavailable.');
+
+  try {
+    return new URL(candidate).origin;
+  } catch {
+    return candidate.replace(/\/+$/, '');
+  }
+}
+
 // Browser session persistence is an auth-provider adapter. Authorization stays on the server.
 export const browserAuth = {
   async session() {
@@ -15,18 +28,20 @@ export const browserAuth = {
     const { error } = await authClient().auth.signInWithPassword({ email, password });
     if (error) throw error;
   },
-  async signUp(email: string, password: string, origin: string) {
+  async signUp(email: string, password: string, origin?: string) {
+    const redirectOrigin = resolveRedirectOrigin(origin);
     const { data, error } = await authClient().auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${origin}/` },
+      options: { emailRedirectTo: `${redirectOrigin}/` },
     });
     if (error) throw error;
     return { signedIn: Boolean(data.session) };
   },
-  async requestPasswordReset(email: string, origin: string) {
+  async requestPasswordReset(email: string, origin?: string) {
+    const redirectOrigin = resolveRedirectOrigin(origin);
     const { error } = await authClient().auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/reset-password`,
+      redirectTo: `${redirectOrigin}/reset-password`,
     });
     if (error) throw error;
   },

@@ -27,7 +27,7 @@ Open **http://localhost:3000**. The demo applies the checked-in migrations, seed
 2. Set `DATABASE_URL` to the server runtime connection. For serverless deployments on Supabase, use the transaction pooler with a low `connection_limit`.
 3. Set `DIRECT_URL` to a PostgreSQL direct or session-mode connection with schema-owner permissions. Prisma uses it for migrations; do not use a transaction pooler for this URL. Supply the provider's required TLS parameters.
 4. Create a Supabase project for **Auth**. Its database does not need to be the application's database. Set the project URL and publishable key in both your local/build and runtime environments. No service-role key is used by this app.
-5. Enable email/password auth and enable **Confirm email**. Configure the Site URL to your `APP_URL`, and allow both `APP_URL/` and `APP_URL/reset-password` as redirect URLs. Set a minimum password length of 12 in Supabase and enable leaked-password protection if available. Configure production SMTP to deliver confirmation and password-reset emails.
+5. Enable email/password auth and enable **Confirm email**. Set `APP_URL` and `NEXT_PUBLIC_APP_URL` to the same canonical origin (no trailing slash), configure the Supabase Site URL to that origin, and allow both `APP_URL/` and `APP_URL/reset-password` as redirect URLs. Set a minimum password length of 12 in Supabase and enable leaked-password protection if available. Configure production SMTP to deliver confirmation and password-reset emails. Using a different frontend origin or an unconfigured public URL causes Supabase to reject the verification redirect as an invalid path.
 6. Leave `LOCAL_DEMO=false`. Run:
 
 ```sh
