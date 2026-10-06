@@ -181,6 +181,16 @@ export function createCommunityClient(http: HttpClient) {
       create: (input: EventInput) => http.request<{ id: string }>('events', input),
       edit: (eventId: string, input: EventInput) =>
         http.request<{ id: string }>(`events/${id(eventId)}`, input, 'PATCH'),
+      uploadAttachment: (eventId: string, file: File) =>
+        http.upload(`events/${id(eventId)}/attachments?name=${id(file.name)}`, file),
+      deleteAttachment: (eventId: string, attachmentId: string) =>
+        http.request<SuccessResponse>(
+          `events/${id(eventId)}/attachments/${id(attachmentId)}`,
+          {},
+          'DELETE',
+        ),
+      attachment: (eventId: string, attachmentId: string) =>
+        http.blob(`events/${id(eventId)}/attachments/${id(attachmentId)}`),
       delete: (eventId: string) =>
         http.request<SuccessResponse>(`events/${id(eventId)}`, {}, 'DELETE'),
       save: (eventId: string, input: SaveEventRequest) =>

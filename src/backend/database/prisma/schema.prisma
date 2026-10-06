@@ -67,6 +67,7 @@ model User {
   role                       UserRole                     @default(STUDENT)
   accountStatus              AccountStatus                @default(ACTIVE)
   events                     Event[]
+  eventAttachments           EventAttachment[]
   reportsFiled               Report[]                     @relation("ReportAuthor")
   reportsReceived            Report[]                     @relation("ReportTarget")
   reportsReviewed            Report[]                     @relation("ReportReviewer")
@@ -252,8 +253,25 @@ model Event {
   startsAt    DateTime
   url         String
   savedBy     SavedEvent[]
+  attachments EventAttachment[]
 
   @@index([startsAt, id])
+  @@index([ownerId])
+}
+
+model EventAttachment {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  mimeType  String
+  size      Int
+  bytes     Bytes    @db.ByteA
+  createdAt DateTime @default(now())
+
+  @@index([eventId, createdAt, id])
   @@index([ownerId])
 }
 

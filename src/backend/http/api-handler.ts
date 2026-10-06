@@ -5,9 +5,10 @@ import { authenticate } from '@/backend/auth/session';
 import { handleConfigRequest } from './config-handler';
 import { db } from '@/backend/database/client';
 import { AppError, requireThat } from '@/backend/utils/errors';
-import { boundedJson } from '@/backend/http/request';
+import { boundedBytes, boundedJson } from '@/backend/http/request';
 import * as service from '@/backend/services/community';
 import * as events from '@/backend/services/events';
+import * as eventAttachments from '@/backend/services/event-attachments';
 import * as moderation from '@/backend/services/moderation';
 import * as posts from '@/backend/services/posts';
 import { requireActiveActor, requirePermission } from '@/backend/services/permissions';
@@ -27,26 +28,58 @@ export async function handleApiRequest(request: Request, path: string[]) {
   try {
     const [resource, id, action, detail] = path;
     const method = request.method;
+    const isEventAttachmentUpload =
+      resource === 'events' &&
+      Boolean(id) &&
+      action === 'attachments' &&
+      !detail &&
+      method === 'POST';
     if (resource === 'health') {
       await db.$queryRaw`SELECT 1`;
       return Response.json({ status: 'ok' });
     }
     if (resource === 'config' && method === 'GET') return handleConfigRequest();
-    if (method !== 'GET') validateMutationRequest(request);
+    if (method !== 'GET') validateMutationRequest(request, isEventAttachmentUpload);
     const identity = await authenticate(request);
     const user = await requireActiveActor(identity.id);
     if (resource === 'moderation') await requirePermission(user.id, canViewModerationDashboard);
     let input: Record<string, unknown> = {};
     if (method !== 'GET') {
-      input = z
-        .record(z.string(), z.unknown())
-        .parse(
-          await boundedJson(
-            request,
-            resource === 'verification' ? 7_100_000 : resource === 'posts' ? 80_000 : 20_000,
-          ),
-        );
+      if (!isEventAttachmentUpload)
+        input = z
+          .record(z.string(), z.unknown())
+          .parse(
+            await boundedJson(
+              request,
+              resource === 'verification' ? 7_100_000 : resource === 'posts' ? 80_000 : 20_000,
+            ),
+          );
       await enforceMutationRateLimit(user.id);
+    }
+    if (isEventAttachmentUpload) {
+      const bytes = await boundedBytes(request, 8_000_000);
+      const name = new URL(request.url).searchParams.get('name') || '';
+      const attachment = await eventAttachments.addEventAttachment(user.id, id!, {
+        bytes,
+        name,
+        mimeType: request.headers.get('x-event-attachment-type') || '',
+      });
+      return Response.json(attachment, { headers: { 'Cache-Control': 'no-store' } });
+    }
+    if (resource === 'events' && id && action === 'attachments' && detail && method === 'GET') {
+      const attachment = await eventAttachments.getEventAttachment(id, detail);
+      const encodedName = encodeURIComponent(attachment.name).replace(
+        /['()*]/g,
+        (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+      );
+      return new Response(new Uint8Array(attachment.bytes), {
+        headers: {
+          'Content-Type': attachment.mimeType,
+          'Content-Disposition': `attachment; filename="event-attachment"; filename*=UTF-8''${encodedName}`,
+          'Cache-Control': 'private, no-store',
+          'X-Content-Type-Options': 'nosniff',
+        },
+      });
     }
     let result: unknown;
     if (resource === 'posts' && !id && method === 'POST')
@@ -128,6 +161,14 @@ export async function handleApiRequest(request: Request, path: string[]) {
       result = await moderation.submitReport(user.id, input);
     else if (resource === 'events' && id === 'managed' && method === 'GET')
       result = await events.managedEvents(user.id, new URL(request.url).searchParams);
+    else if (
+      resource === 'events' &&
+      id &&
+      action === 'attachments' &&
+      detail &&
+      method === 'DELETE'
+    )
+      result = await eventAttachments.deleteEventAttachment(user.id, id, detail);
     else if (resource === 'events' && !id && method === 'POST')
       result = await events.createEvent(user.id, input);
     else if (resource === 'events' && id && !action && method === 'PATCH')

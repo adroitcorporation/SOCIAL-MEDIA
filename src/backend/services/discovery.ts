@@ -6,6 +6,7 @@ import { latestVerification } from './verification';
 import { chatIdentity, visibleTo } from './query-shapes';
 import { rankedProfiles, recommendedFeedIds } from '@/backend/recommendations/service';
 import { recommendationsEnabled } from '@/backend/recommendations/config';
+import { listEventAttachments } from './event-attachments';
 
 export async function snapshot(user: User, query: URLSearchParams) {
   // Missing view retains the existing API contract for external callers.
@@ -171,7 +172,9 @@ export async function snapshot(user: User, query: URLSearchParams) {
           orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
           take: view === '/events' ? 25 : 100,
           skip: view === '/events' && !rankedEvents ? page * 24 : 0,
-          include: { savedBy: { where: { userId: user.id } } },
+          include: {
+            savedBy: { where: { userId: user.id } },
+          },
         })
       : [],
     db.notification.findMany({
@@ -231,6 +234,19 @@ export async function snapshot(user: User, query: URLSearchParams) {
         : [],
     connectionsPromise,
   ]);
+  const attachments = await listEventAttachments(events.map((event) => event.id));
+  const attachmentsByEvent = new Map<string, typeof attachments>();
+  for (const attachment of attachments) {
+    const current = attachmentsByEvent.get(attachment.eventId) ?? [];
+    current.push(attachment);
+    attachmentsByEvent.set(attachment.eventId, current);
+  }
+  const eventsWithAttachments = events.map((event) => ({
+    ...event,
+    attachments: (attachmentsByEvent.get(event.id) ?? []).map(
+      ({ eventId: _eventId, ...attachment }) => attachment,
+    ),
+  }));
   if (rankedIdeas)
     ideas.sort(
       (a, b) =>
@@ -278,12 +294,12 @@ export async function snapshot(user: User, query: URLSearchParams) {
     totalStudents,
     connections,
     ideas: view === '/ideas' ? ideas.slice(0, 24) : ideas,
-    events: view === '/events' ? events.slice(0, 24) : events,
+    events: view === '/events' ? eventsWithAttachments.slice(0, 24) : eventsWithAttachments,
     ...(feedView
       ? {
           feed: {
             page,
-            hasNext: (view === '/ideas' ? ideas : events).length > 24,
+            hasNext: (view === '/ideas' ? ideas : eventsWithAttachments).length > 24,
             categories: categories.map((row) => row.category),
           },
         }

@@ -10,6 +10,7 @@ import { authenticate } from '@/backend/auth/session';
 import { decodeVerificationImage } from '@/backend/services/verification-image';
 import { MAX_VERIFICATION_IMAGE_BYTES } from '@/shared/contracts/verification';
 let eventService: typeof import('@/backend/services/events');
+let eventAttachmentService: typeof import('@/backend/services/event-attachments');
 let moderationService: typeof import('@/backend/services/moderation');
 vi.mock('@/backend/auth/session', () => ({ authenticate: vi.fn(), isLocalDemo: () => false }));
 let pg: PGlite;
@@ -32,7 +33,27 @@ async function api(userId: string, path: string, body?: unknown, method = 'POST'
       headers: { 'Content-Type': 'application/json' },
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
-    path.split('/'),
+    path.split('?')[0].split('/'),
+  );
+}
+async function uploadEventFile(userId: string, path: string, mimeType: string, bytes: Uint8Array) {
+  vi.mocked(authenticate).mockResolvedValue(
+    await db.user.findUniqueOrThrow({ where: { id: userId } }),
+  );
+  const route = path.split('?')[0];
+  const body = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(body).set(bytes);
+  return handle(
+    new Request(`http://localhost:3000/api/${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'X-Event-Attachment-Type': mimeType,
+        origin: 'http://localhost:3000',
+      },
+      body,
+    }),
+    route.split('/'),
   );
 }
 beforeAll(async () => {
@@ -54,6 +75,7 @@ beforeAll(async () => {
   ({ db } = await import('@/backend/database/client'));
   service = await import('@/backend/services/community');
   eventService = await import('@/backend/services/events');
+  eventAttachmentService = await import('@/backend/services/event-attachments');
   moderationService = await import('@/backend/services/moderation');
   ({ handleApiRequest: handle } = await import('@/backend/http/api-handler'));
   for (const id of ['reviewer', 'second-reviewer', 'target'])
@@ -113,6 +135,114 @@ describe('database-backed role and moderation enforcement', () => {
     expect(ownList.map((item: { id: string }) => item.id)).toContain(owned.id);
     expect(await (await api('other-organiser', 'events/managed')).json()).toEqual([]);
     expect((await api('organiser', `events/${owned.id}`, {}, 'DELETE')).status).toBe(200);
+  });
+  it('stores validated event PDFs and images, exposes metadata, and enforces event ownership', async () => {
+    const created = await api('organiser', 'events', event);
+    const owned = await created.json();
+    const png = await sharp({
+      create: { width: 12, height: 8, channels: 3, background: '#ff6644' },
+    })
+      .png()
+      .toBuffer();
+    const imageUpload = await uploadEventFile(
+      'organiser',
+      `events/${owned.id}/attachments?name=campus-map.png`,
+      'image/png',
+      png,
+    );
+    expect(imageUpload.status).toBe(200);
+    const image = await imageUpload.json();
+    expect(image).toMatchObject({ name: 'campus-map.png', mimeType: 'image/png' });
+    expect(image.size).toBeGreaterThan(0);
+
+    const pdfBytes = new TextEncoder().encode('%PDF-1.7\nCampus event schedule');
+    const pdfUpload = await uploadEventFile(
+      'organiser',
+      `events/${owned.id}/attachments?name=schedule.pdf`,
+      'application/pdf',
+      pdfBytes,
+    );
+    expect(pdfUpload.status).toBe(200);
+    const pdf = await pdfUpload.json();
+    const managed = await (await api('organiser', 'events/managed')).json();
+    expect(managed.find((item: { id: string }) => item.id === owned.id).attachments).toEqual([
+      image,
+      pdf,
+    ]);
+    const state = await (await api('target', 'state?view=%2Fevents')).json();
+    expect(state.events.find((item: { id: string }) => item.id === owned.id).attachments).toEqual([
+      image,
+      pdf,
+    ]);
+
+    const imageDownload = await api('target', `events/${owned.id}/attachments/${image.id}`);
+    expect(imageDownload.status).toBe(200);
+    expect(imageDownload.headers.get('content-type')).toBe('image/png');
+    expect((await sharp(Buffer.from(await imageDownload.arrayBuffer())).metadata()).format).toBe(
+      'png',
+    );
+    const pdfDownload = await api('target', `events/${owned.id}/attachments/${pdf.id}`);
+    expect(pdfDownload.status).toBe(200);
+    expect(pdfDownload.headers.get('content-disposition')).toContain('attachment');
+    expect(pdfDownload.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(new TextDecoder().decode(await pdfDownload.arrayBuffer())).toBe(
+      '%PDF-1.7\nCampus event schedule',
+    );
+
+    for (let index = 0; index < 3; index++)
+      expect(
+        (
+          await uploadEventFile(
+            'organiser',
+            `events/${owned.id}/attachments?name=extra-${index}.pdf`,
+            'application/pdf',
+            pdfBytes,
+          )
+        ).status,
+      ).toBe(200);
+    expect(
+      (
+        await uploadEventFile(
+          'organiser',
+          `events/${owned.id}/attachments?name=too-many.pdf`,
+          'application/pdf',
+          pdfBytes,
+        )
+      ).status,
+    ).toBe(409);
+
+    expect(
+      (
+        await uploadEventFile(
+          'other-organiser',
+          `events/${owned.id}/attachments?name=forged.pdf`,
+          'application/pdf',
+          pdfBytes,
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await uploadEventFile(
+          'organiser',
+          `events/${owned.id}/attachments?name=invalid.png`,
+          'image/png',
+          pdfBytes,
+        )
+      ).status,
+    ).toBe(400);
+    expect(
+      (await api('other-organiser', `events/${owned.id}/attachments/${image.id}`, {}, 'DELETE'))
+        .status,
+    ).toBe(403);
+    expect(
+      (await api('organiser', `events/${owned.id}/attachments/${image.id}`, {}, 'DELETE')).status,
+    ).toBe(200);
+    await expect(
+      eventAttachmentService.getEventAttachment(owned.id, image.id),
+    ).rejects.toMatchObject({
+      status: 404,
+    });
   });
   it('moderators cannot create, edit or delete events; ultimate moderators can manage any event', async () => {
     const owned = await eventService.createEvent('organiser', event);

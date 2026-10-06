@@ -92,3 +92,28 @@ it('fetches private verification images with authentication and no caching', asy
     cache: 'no-store',
   });
 });
+
+it('uploads event files with authenticated binary transport and an encoded filename', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ id: 'attachment' }));
+  const api = createCommunityClient(
+    createHttpClient({
+      fetch: fetcher,
+      getAccessToken: async () => 'event-token',
+    }),
+  );
+  const file = new File(['image bytes'], 'campus map.png', { type: 'image/png' });
+  await api.events.uploadAttachment('event/one', file);
+  expect(fetcher).toHaveBeenCalledWith(
+    '/api/events/event%2Fone/attachments?name=campus%20map.png',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer event-token',
+        'Content-Type': 'application/octet-stream',
+        'X-Event-Attachment-Type': 'image/png',
+      },
+      body: file,
+      cache: 'no-store',
+    },
+  );
+});

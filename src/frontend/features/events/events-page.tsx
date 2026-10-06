@@ -11,6 +11,7 @@ import { Empty, Modal } from '@/frontend/components/ui';
 import { PageHeading } from '@/frontend/components/page-heading';
 import { canCreateEvent } from '@/shared/contracts/permissions';
 import { EventManager } from './event-manager';
+import { EventAttachments } from './event-attachments';
 import { useFeedFilters } from '@/frontend/hooks/use-feed-filters';
 import { FeedPagination } from '@/frontend/components/feed-pagination';
 export function EventsPage() {
@@ -136,6 +137,7 @@ export function EventsPage() {
             })}{' '}
             IST
           </p>
+          <EventAttachments eventId={detail.id} attachments={detail.attachments} />
           {detail.url.startsWith('https://') ? (
             <a
               className="button primary"

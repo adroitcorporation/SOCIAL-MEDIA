@@ -349,19 +349,23 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
     </form>
   );
 }
-export function ProfileDetails({ user }: { user: Student }) {
+export function ProfileDetails({ user, compact = false }: { user: Student; compact?: boolean }) {
   return (
     <div className="profile-details">
-      <Avatar user={user} size="large" />
-      <h2>
-        {user.name} <Verified user={user} />
-      </h2>
-      <p>
-        {user.degree} · Class of {user.graduationYear}
-      </p>
-      <p className="muted">
-        {user.college} · {user.city}
-      </p>
+      {!compact && (
+        <>
+          <Avatar user={user} size="large" />
+          <h2>
+            {user.name} <Verified user={user} />
+          </h2>
+          <p>
+            {user.degree} · Class of {user.graduationYear}
+          </p>
+          <p className="muted">
+            {user.college} · {user.city}
+          </p>
+        </>
+      )}
       {(user.role !== 'STUDENT' || user.accountStatus !== 'ACTIVE') && (
         <p>
           {user.role !== 'STUDENT' && <span className="tag">{roleLabels[user.role]}</span>}
@@ -372,7 +376,7 @@ export function ProfileDetails({ user }: { user: Student }) {
       {listFields.map((key) => (
         <section key={key}>
           <h4>{key === 'lookingFor' ? 'Looking for' : key[0].toUpperCase() + key.slice(1)}</h4>
-          <div className="tags">
+          <div className={`tags profile-group-${key}`}>
             {user[key].length ? (
               user[key].map((s) => <Tag key={s}>{s}</Tag>)
             ) : (

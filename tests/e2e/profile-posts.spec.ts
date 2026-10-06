@@ -106,4 +106,25 @@ test('Discover profiles open their own posts page without creating a global feed
   await expect(page.getByRole('region', { name: 'Profile posts' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Create post', exact: true })).toHaveCount(0);
   await expect(page.getByText('No posts yet.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'About', exact: true }).click();
+  await expect(page.locator('.profile-details')).toBeVisible();
+  await expect(page.locator('.profile-details .avatar')).toHaveCount(0);
+  await expect(page.locator('.user-profile-header .avatar')).toHaveCount(1);
+  expect(
+    await page
+      .locator('.user-profile-page')
+      .evaluate((element) => getComputedStyle(element).getPropertyValue('--profile-accent').trim()),
+  ).not.toBe('');
+  await expect(page.locator('.profile-group-skills .tag').first()).toBeVisible();
+  expect(
+    await page
+      .locator('.profile-group-skills .tag')
+      .first()
+      .evaluate((element) => getComputedStyle(element).color),
+  ).not.toBe(
+    await page
+      .locator('.profile-group-interests .tag')
+      .first()
+      .evaluate((element) => getComputedStyle(element).color),
+  );
 });

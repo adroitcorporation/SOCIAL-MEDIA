@@ -151,7 +151,14 @@ export interface EventItem {
   location: string;
   startsAt: IsoDateTime;
   url: string;
+  attachments: EventAttachment[];
   savedBy: SavedEvent[];
+}
+export interface EventAttachment {
+  id: string;
+  name: string;
+  mimeType: 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/webp';
+  size: number;
 }
 export interface NotificationItem {
   id: string;

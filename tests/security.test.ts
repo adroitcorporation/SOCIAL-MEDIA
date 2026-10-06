@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { boundedJson } from '../src/backend/http/request';
+import { boundedBytes, boundedJson } from '../src/backend/http/request';
 import { isLocalDemo, isVerifiedCollegeEmail } from '../src/backend/auth/session';
 import { profileSchema } from '../src/shared/contracts/schemas';
 import { isAllowedCollegeEmail } from '../src/shared/config/college-access';
@@ -31,6 +31,19 @@ describe('Request and environment safety', () => {
       body: JSON.stringify({ text: 'a'.repeat(21000) }),
     });
     await expect(boundedJson(request)).rejects.toMatchObject({ status: 413 });
+  });
+  it('bounds streamed binary uploads and preserves their bytes', async () => {
+    const body = new Uint8Array([0, 1, 2, 255]).buffer;
+    expect(
+      await boundedBytes(new Request('http://localhost/api/file', { method: 'POST', body }), 4),
+    ).toEqual(new Uint8Array([0, 1, 2, 255]));
+    const oversized = new Uint8Array(5).buffer;
+    await expect(
+      boundedBytes(
+        new Request('http://localhost/api/file', { method: 'POST', body: oversized }),
+        4,
+      ),
+    ).rejects.toMatchObject({ status: 413 });
   });
   it('rejects malformed JSON and parses valid JSON', async () => {
     await expect(

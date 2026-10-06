@@ -42,26 +42,45 @@ export function UserProfilePage({ userId }: { userId: string }) {
       </section>
     );
   if (!user) return <Loading />;
+  const accent = [...user.id].reduce((total, char) => total + char.charCodeAt(0), 0) % 6;
 
   return (
-    <div className="user-profile-page">
+    <div className={`user-profile-page profile-accent-${accent}`}>
       <header className="panel user-profile-header">
-        <Avatar user={user} size="large" />
-        <div className="user-profile-identity">
-          <p className="user-profile-handle">u/{profileHandle(user.name)}</p>
-          <h1>
-            {user.name} <Verified user={user} />
-          </h1>
-          <p className="muted">
-            {user.degree} · {user.college}
-          </p>
-          <p className="muted">{user.city}</p>
+        <div className="user-profile-cover" aria-hidden="true" />
+        <div className="user-profile-hero">
+          <Avatar user={user} size="large" />
+          <div className="user-profile-identity">
+            <p className="user-profile-handle">u/{profileHandle(user.name)}</p>
+            <h1>
+              {user.name} <Verified user={user} />
+            </h1>
+            <p className="user-profile-school">
+              {user.degree} <span>·</span> {user.college}
+              {user.city && (
+                <>
+                  <span>·</span> {user.city}
+                </>
+              )}
+            </p>
+            <div className="user-profile-highlights" aria-label="Profile highlights">
+              <span>
+                <strong>{user.skills.length}</strong> skills
+              </span>
+              <span>
+                <strong>{user.interests.length}</strong> interests
+              </span>
+              <span>
+                Class of <strong>{user.graduationYear}</strong>
+              </span>
+            </div>
+          </div>
         </div>
       </header>
 
       <div className="user-profile-columns">
         <section className="panel user-profile-posts">
-          <ProfileContent key={user.id} user={user} initialSection="Posts" />
+          <ProfileContent key={user.id} user={user} initialSection="Posts" compactDetails />
         </section>
         {user.id !== state.me.id && (
           <aside className="panel user-profile-actions" aria-label="Profile actions">

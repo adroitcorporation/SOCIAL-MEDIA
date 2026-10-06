@@ -8,10 +8,12 @@ export function ProfileContent({
   user,
   onOpenPost,
   initialSection = 'About',
+  compactDetails = false,
 }: {
   user: Student;
   onOpenPost?: () => void;
   initialSection?: 'About' | 'Posts';
+  compactDetails?: boolean;
 }) {
   const [section, setSection] = useState<'About' | 'Posts'>(initialSection);
   return (
@@ -29,7 +31,7 @@ export function ProfileContent({
         ))}
       </nav>
       {section === 'About' ? (
-        <ProfileDetails user={user} />
+        <ProfileDetails user={user} compact={compactDetails} />
       ) : (
         <ProfilePosts key={user.id} authorId={user.id} onOpen={onOpenPost} />
       )}

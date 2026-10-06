@@ -1,6 +1,6 @@
 import { db } from '@/backend/database/client';
 import { requireThat } from '@/backend/utils/errors';
-export function validateMutationRequest(request: Request) {
+export function validateMutationRequest(request: Request, allowBinary = false) {
   const origin = request.headers.get('origin');
   const expected =
     process.env.APP_URL ||
@@ -8,7 +8,8 @@ export function validateMutationRequest(request: Request) {
   requireThat(expected, 503, 'APP_URL must be configured.');
   requireThat(!origin || origin === expected, 403, 'Invalid request origin.');
   requireThat(
-    (request.headers.get('content-type') || '').includes('application/json'),
+    (request.headers.get('content-type') || '').includes('application/json') ||
+      (allowBinary && request.headers.get('content-type') === 'application/octet-stream'),
     415,
     'Send JSON.',
   );

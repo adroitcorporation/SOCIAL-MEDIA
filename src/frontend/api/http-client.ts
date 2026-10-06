@@ -37,6 +37,27 @@ export function createHttpClient(options: HttpClientOptions = {}) {
       }
       return response.blob();
     },
+    async upload<T>(path: string, file: File): Promise<T> {
+      const response = await fetcher(`${baseUrl}/${path}`, {
+        method: 'POST',
+        headers: {
+          ...(await headers()),
+          'Content-Type': 'application/octet-stream',
+          'X-Event-Attachment-Type': file.type,
+        },
+        body: file,
+        cache: 'no-store',
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) options.onUnauthorized?.();
+        throw new ApiError(
+          response.status,
+          (result as ApiErrorResponse).error || 'Unable to upload attachment.',
+        );
+      }
+      return result as T;
+    },
     async request<T>(path: string, body?: unknown, method = 'POST'): Promise<T> {
       const response = await fetcher(`${baseUrl}/${path}`, {
         method: body === undefined ? 'GET' : method,

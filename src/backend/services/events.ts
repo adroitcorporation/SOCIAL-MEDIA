@@ -5,6 +5,7 @@ import { canCreateEvent, canEditEvent, canDeleteEvent } from '@/shared/contracts
 import { eventSchema } from '@/shared/contracts/moderation';
 import { requireThat } from '@/backend/utils/errors';
 import { z } from 'zod';
+import { listEventAttachments } from './event-attachments';
 
 export async function managedEvents(actor: string, query = new URLSearchParams()) {
   const user = await requirePermission(actor, canCreateEvent);
@@ -15,7 +16,7 @@ export async function managedEvents(actor: string, query = new URLSearchParams()
     .max(100000)
     .parse(query.get('page') || 0);
   const search = (query.get('search') || '').slice(0, 100);
-  return db.event.findMany({
+  const events = await db.event.findMany({
     where: {
       ...(user.role === 'ULTIMATE_MODERATOR' ? {} : { ownerId: actor }),
       ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
@@ -25,6 +26,19 @@ export async function managedEvents(actor: string, query = new URLSearchParams()
     take: 100,
     include: { savedBy: { where: { userId: actor } } },
   });
+  const attachments = await listEventAttachments(events.map((event) => event.id));
+  const byEvent = new Map<string, typeof attachments>();
+  for (const attachment of attachments) {
+    const current = byEvent.get(attachment.eventId) ?? [];
+    current.push(attachment);
+    byEvent.set(attachment.eventId, current);
+  }
+  return events.map((event) => ({
+    ...event,
+    attachments: (byEvent.get(event.id) ?? []).map(
+      ({ eventId: _eventId, ...attachment }) => attachment,
+    ),
+  }));
 }
 export async function createEvent(actor: string, input: unknown) {
   const data = eventSchema.parse(input);
