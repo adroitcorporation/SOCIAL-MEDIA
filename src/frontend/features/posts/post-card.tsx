@@ -43,7 +43,7 @@ export function PostCard({
       <header className="post-header">
         <button
           className="post-author"
-          onClick={() => act(async () => viewProfile(await api.profiles.get(post.author.id)))}
+          onClick={() => viewProfile(post.author)}
           aria-label={`View ${post.author.name}'s profile`}
           disabled={busy}
         >

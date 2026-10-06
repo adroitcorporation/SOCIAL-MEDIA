@@ -5,6 +5,9 @@ import { Loading } from './ui';
 import { canAssignRole, canViewModerationDashboard } from '@/shared/contracts/permissions';
 import { HomePage } from '@/frontend/pages/home-page';
 import dynamic from 'next/dynamic';
+const UserProfilePage = dynamic(() =>
+  import('@/frontend/features/profile/user-profile-page').then((m) => m.UserProfilePage),
+);
 const PostPage = dynamic(() =>
   import('@/frontend/features/posts/post-page').then((m) => m.PostPage),
 );
@@ -24,6 +27,8 @@ export function CircleScreen({ path }: { path: string }) {
   if (path !== currentPath) return <Loading />;
   return path.startsWith('/posts/') ? (
     <PostPage key={path} id={decodeURIComponent(path.split('/')[2])} />
+  ) : path.startsWith('/u/') ? (
+    <UserProfilePage key={path} userId={path.slice(path.lastIndexOf('--') + 2)} />
   ) : path === '/discover' ? (
     <DiscoverPage />
   ) : path === '/connections' ? (

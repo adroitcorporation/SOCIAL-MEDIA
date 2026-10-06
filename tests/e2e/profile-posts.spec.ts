@@ -39,6 +39,16 @@ for (const width of [390, 768, 1440]) {
         await page.evaluate(() => (window as unknown as Record<string, unknown>).postXss),
       ).toBeUndefined();
       await page.screenshot({ path: `.local/posts-${width}-profile.png`, fullPage: true });
+      await card.locator('.post-author').click();
+      await expect(page).toHaveURL(/\/u\/[a-z0-9-]+--[a-zA-Z0-9_-]+$/);
+      await expect(page.locator('.post-card')).toContainText(
+        `Profile posts browser check ${width}`,
+      );
+      await page.goto('/profile');
+      await page
+        .getByRole('navigation', { name: 'Profile sections' })
+        .getByRole('button', { name: 'Posts', exact: true })
+        .click();
       await card.getByRole('link', { name: 'Read more', exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`/posts/${postId}$`));
       await expect(page.locator('.post-card .post-content')).toHaveText(text);
@@ -81,16 +91,19 @@ for (const width of [390, 768, 1440]) {
   });
 }
 
-test('Discover profiles expose Posts without creating a global feed', async ({ page, request }) => {
+test('Discover profiles open their own posts page without creating a global feed', async ({
+  page,
+  request,
+}) => {
   expect((await (await request.get('/api/config')).json()).demo).toBe(true);
   await page.goto('/discover');
   await page
     .getByRole('button', { name: /View .+profile/i })
     .first()
     .click();
-  const dialog = page.getByRole('dialog', { name: 'Profile', exact: true });
-  await dialog.getByRole('button', { name: 'Posts', exact: true }).click();
-  await expect(dialog.getByRole('region', { name: 'Profile posts' })).toBeVisible();
-  await expect(dialog.getByRole('button', { name: 'Create post', exact: true })).toHaveCount(0);
-  await expect(dialog.getByText('No posts yet.', { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/u\/[a-z0-9-]+--[a-zA-Z0-9_-]+$/);
+  await expect(page.getByRole('heading', { name: 'Profile posts' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Profile posts' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Create post', exact: true })).toHaveCount(0);
+  await expect(page.getByText('No posts yet.', { exact: true })).toBeVisible();
 });

@@ -22,7 +22,8 @@ export default async function Page({ params }: { params: Promise<{ page?: string
       'signup',
       'reset-password',
     ].includes(route) &&
-    !/^posts\/[a-zA-Z0-9_-]{1,100}$/.test(route)
+    !/^posts\/[a-zA-Z0-9_-]{1,100}$/.test(route) &&
+    !/^u\/[a-z0-9-]+--[a-zA-Z0-9_-]{1,100}$/.test(route)
   )
     notFound();
   if (route === 'moderation' || route === 'moderation/roles') {

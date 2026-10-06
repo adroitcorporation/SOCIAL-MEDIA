@@ -6,9 +6,9 @@ Implemented on 6 October 2026. Posts live on student profiles and at `/posts/:id
 
 Founder’s Circle uses Next.js App Router, React client screens, a shared typed HTTP client, an authenticated catch-all API handler, Prisma services and PostgreSQL. Supabase supplies authentication and profile-photo storage; the application database is selected by `DATABASE_URL`, whether hosted on Render or Supabase. No database host has been changed.
 
-The feature reuses active-account authentication, mutation origin checks, the persistent rate-limit table, serializable transactions, block relationships, accepted connections, existing moderation roles/reports, profile dialogs, avatars, design tokens and the optional recommendation worker. No dependencies were added.
+The feature reuses active-account authentication, mutation origin checks, the persistent rate-limit table, serializable transactions, block relationships, accepted connections, existing moderation roles/reports, profile routes, avatars, design tokens and the optional recommendation worker. No dependencies were added.
 
-Profiles now have **About / Posts** navigation, both on the owner’s Profile screen and in dialogs opened from Discover. There is no standalone Projects model in this repository, so an empty Projects tab or new project system was not invented. Existing GitHub/portfolio links remain separate from posts. Media attachments, optional titles, tags, replies and project references were intentionally omitted: they were optional, and the existing upload flow is specialized for profile photos and verification documents.
+Profiles have **About / Posts** navigation on the owner’s Profile screen and a standalone Reddit-style page at `/u/:name--:id`, opened by clicking a student’s profile anywhere in the app. The standalone page opens on Posts and offers About, report and block actions. The name slug is for readability; the ID keeps routes unique even when names match. There is no global post feed. There is no standalone Projects model in this repository, so an empty Projects tab or new project system was not invented. Existing GitHub/portfolio links remain separate from posts. Media attachments, optional titles, tags, replies and project references were intentionally omitted: they were optional, and the existing upload flow is specialized for profile photos and verification documents.
 
 The composer requires content only and offers an audience selector. It supports 10,000 characters, with no distinction between short posts and articles. Cards show author, college, date, four clamped lines, likes and comment counts; lists return only 500 characters per post. “Read more” opens the full post. Posts can be edited/deleted by their author, liked/unliked, commented on, reported and shared by copying the stable URL. Comments are flat and can be deleted by their own author.
 
@@ -128,7 +128,7 @@ Final results:
 | Migrated database vs Prisma schema diff         | Empty; no drift                                                                                |
 | `git diff --check`                              | Passed                                                                                         |
 
-Browser tests exercise real local demo API writes and clean up their own fixtures: composer, card truncation, literal HTML text, detail URL, likes/unlikes, comments/delete, edit, audience change, refresh persistence, deletion and Discover profile access. Screenshots cover 390px mobile, 768px tablet and 1440px desktop. Existing application browser tests are included in the regression run.
+Browser tests exercise real local demo API writes and clean up their own fixtures: composer, card truncation, literal HTML text, detail URL, likes/unlikes, comments/delete, edit, audience change, refresh persistence, deletion and navigation from Discover to a standalone student profile. Screenshots cover 390px mobile, 768px tablet and 1440px desktop. Existing application browser tests are included in the regression run.
 
 There is no configured `lint` script or ESLint dependency in this repository. `npm run lint` reports “Missing script: lint”; this is not reported as a passed lint run. The existing architecture boundary checker and Prettier checks cover the changed code without adding a lint dependency.
 
@@ -147,6 +147,8 @@ src/frontend/features/posts/post-editor.tsx
 src/frontend/features/posts/post-page.tsx
 src/frontend/features/posts/profile-posts.tsx
 src/frontend/features/profile/profile-content.tsx
+src/frontend/features/profile/user-profile-page.tsx
+src/frontend/utils/profile-path.ts
 tests/posts.test.ts
 tests/e2e/profile-posts.spec.ts
 ```
@@ -168,6 +170,7 @@ src/frontend/api/community-client.ts
 src/frontend/components/circle-app.tsx
 src/frontend/components/circle-screen.tsx
 src/frontend/features/moderation/dashboard.tsx
+src/frontend/state/circle-context.tsx
 src/frontend/features/profile/profile-page.tsx
 src/frontend/styles/globals.css
 src/shared/contracts/moderation.ts

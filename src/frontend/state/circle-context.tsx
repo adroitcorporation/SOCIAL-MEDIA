@@ -12,7 +12,7 @@ export interface CircleContextValue {
   api: CommunityClient;
   refresh: () => Promise<void>;
   toast: (message: string, error?: boolean) => void;
-  viewProfile: (student: Student) => void;
+  viewProfile: (student: Pick<Student, 'id' | 'name'>) => void;
   navigate: (path: string) => void;
 }
 export const CircleContext = createContext<CircleContextValue | null>(null);

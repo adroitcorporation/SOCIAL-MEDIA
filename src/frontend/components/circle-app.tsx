@@ -25,23 +25,14 @@ import { brand } from '@/shared/config/brand';
 import { useCircleController } from '@/frontend/hooks/use-circle-controller';
 import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
-import { Avatar, Loading, Modal } from './ui';
+import { profilePath } from '@/frontend/utils/profile-path';
+import { Avatar, Loading } from './ui';
 import { ThemeToggle } from './theme-toggle';
 
 const AuthForm = dynamic(
   () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
   { loading: () => <Loading /> },
 );
-const ProfileDetails = dynamic(
-  () =>
-    import('@/frontend/features/profile/profile-content').then((module) => module.ProfileContent),
-  { loading: () => <Loading /> },
-);
-const ReportUser = dynamic(
-  () => import('@/frontend/features/moderation/report-user').then((module) => module.ReportUser),
-  { loading: () => <Loading /> },
-);
-
 const nav = [
   { path: '/', label: 'Home', icon: Home },
   { path: '/discover', label: 'Discover', icon: Compass },
@@ -57,7 +48,6 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const query = useSearchParams().toString();
   const [notice, setNotice] = useState<{ text: string; error: boolean } | null>(null);
-  const [profile, setProfile] = useState<Student | null>(null);
   const [mobile, setMobile] = useState(false);
   const [search, setSearch] = useState('');
   const toast = useCallback((text: string, error = false) => setNotice({ text, error }), []);
@@ -98,8 +88,8 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
             api,
             refresh,
             toast,
-            viewProfile: (student: Student) => {
-              setProfile(student);
+            viewProfile: (student: Pick<Student, 'id' | 'name'>) => {
+              navigate(profilePath(student));
               void api.recommendations.opened(student.id).catch(() => {});
             },
             navigate,
@@ -142,7 +132,9 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
         ? 'Moderation'
         : path.startsWith('/posts/')
           ? 'Post'
-          : nav.find((n) => n.path === path)?.label || 'Home';
+          : path.startsWith('/u/')
+            ? 'User profile'
+            : nav.find((n) => n.path === path)?.label || 'Home';
   return (
     <CircleContext.Provider value={contextValue}>
       <div className="app-shell">
@@ -275,26 +267,6 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
           </button>
         </nav>
       </div>
-      {profile && (
-        <Modal title="Profile" onClose={() => setProfile(null)}>
-          <ProfileDetails key={profile.id} user={profile} onOpenPost={() => setProfile(null)} />
-          {profile.id !== state.me.id && <ReportUser userId={profile.id} />}
-          {profile.id !== state.me.id && (
-            <button
-              className="text-link danger"
-              onClick={async () => {
-                try {
-                  await mutate(() => api.blocks.add(profile.id));
-                  setProfile(null);
-                  toast('Student blocked. You can undo this from your profile.');
-                } catch {}
-              }}
-            >
-              Block student
-            </button>
-          )}
-        </Modal>
-      )}
       {notice && (
         <div
           className={`toast ${notice.error ? 'toast-error' : ''}`}

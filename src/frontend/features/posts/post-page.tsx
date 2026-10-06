@@ -108,12 +108,7 @@ export function PostPage({ id }: { id: string }) {
             {!comments.items.length && <p className="muted post-empty">No comments yet.</p>}
             {comments.items.map((comment) => (
               <article className="post-comment" key={comment.id}>
-                <button
-                  className="post-author"
-                  onClick={() =>
-                    action(async () => viewProfile(await api.profiles.get(comment.author.id)))
-                  }
-                >
+                <button className="post-author" onClick={() => viewProfile(comment.author)}>
                   <Avatar user={comment.author} size="small" />
                   <strong>{comment.author.name}</strong>
                 </button>
