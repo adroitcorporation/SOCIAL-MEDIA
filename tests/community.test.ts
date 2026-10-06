@@ -46,9 +46,24 @@ beforeAll(async () => {
       'utf8',
     ),
   );
-  await pg.exec(await readFile('src/backend/database/prisma/migrations/202610050001_recommendations/migration.sql','utf8'));
-  await pg.exec(await readFile('src/backend/database/prisma/migrations/202610050002_recommendation_queue_locking/migration.sql','utf8'));
-  await pg.exec(await readFile('src/backend/database/prisma/migrations/202610060001_profile_posts/migration.sql','utf8'));
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202610050001_recommendations/migration.sql',
+      'utf8',
+    ),
+  );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202610050002_recommendation_queue_locking/migration.sql',
+      'utf8',
+    ),
+  );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202610060001_profile_posts/migration.sql',
+      'utf8',
+    ),
+  );
   server = new PGLiteSocketServer({ db: pg, host: '127.0.0.1', port: 54330 });
   await server.start();
   process.env.DATABASE_URL =
@@ -139,9 +154,9 @@ describe('Connection lifecycle', () => {
     await service.clearConversation('a', conversation.id);
 
     expect(await service.readMessages('a', conversation.id)).toEqual([]);
-    expect((await service.readMessages('b', conversation.id)).map((message) => message.body)).toEqual(
-      ['Old message from a', 'Old message from b'],
-    );
+    expect(
+      (await service.readMessages('b', conversation.id)).map((message) => message.body),
+    ).toEqual(['Old message from a', 'Old message from b']);
     const hidden = await service.snapshot(
       await db.user.findUniqueOrThrow({ where: { id: 'a' } }),
       new URLSearchParams({ view: '/messages' }),
@@ -162,16 +177,16 @@ describe('Connection lifecycle', () => {
       body: 'New message after clearing',
       clientId: crypto.randomUUID(),
     });
-    expect((await service.readMessages('a', conversation.id)).map((message) => message.body)).toEqual(
-      ['New message after clearing'],
-    );
+    expect(
+      (await service.readMessages('a', conversation.id)).map((message) => message.body),
+    ).toEqual(['New message after clearing']);
     const restored = await service.snapshot(
       await db.user.findUniqueOrThrow({ where: { id: 'a' } }),
       new URLSearchParams({ view: '/messages' }),
     );
-    expect(restored.conversations.find((item) => item.id === conversation.id)?.messages[0].body).toBe(
-      'New message after clearing',
-    );
+    expect(
+      restored.conversations.find((item) => item.id === conversation.id)?.messages[0].body,
+    ).toBe('New message after clearing');
   });
 });
 describe('Accepted-connection groups and authorization', () => {

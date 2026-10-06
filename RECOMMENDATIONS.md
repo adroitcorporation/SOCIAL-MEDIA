@@ -4,6 +4,8 @@ Founder Circle uses deterministic matching by default. External enrichment is op
 
 ## Configuration
 
+Profile posts also use this worker. Only recent public posts contribute temporary intent; connections-only posts are excluded from enrichment and ranking. See [PROFILE_POSTS.md](PROFILE_POSTS.md) for the migration, endpoints, privacy rules and configurable decay policy. Posts never overwrite explicit profile selections.
+
 All variables below belong on the backend. Never use a `NEXT_PUBLIC_` prefix.
 
 | Variable                        | Default / purpose                                                                                                                                  |

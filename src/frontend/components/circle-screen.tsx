@@ -5,7 +5,9 @@ import { Loading } from './ui';
 import { canAssignRole, canViewModerationDashboard } from '@/shared/contracts/permissions';
 import { HomePage } from '@/frontend/pages/home-page';
 import dynamic from 'next/dynamic';
-const PostPage = dynamic(() => import('@/frontend/features/posts/post-page').then((m) => m.PostPage));
+const PostPage = dynamic(() =>
+  import('@/frontend/features/posts/post-page').then((m) => m.PostPage),
+);
 import { DiscoverPage } from '@/frontend/features/discover/discover-page';
 import { ConnectionsPage } from '@/frontend/features/connections/connections-page';
 import { ProfilePage } from '@/frontend/features/profile/profile-page';
@@ -20,7 +22,9 @@ export function CircleScreen({ path }: { path: string }) {
   const { state } = useCircle();
   // Wait for the destination's server page (including its authorization check).
   if (path !== currentPath) return <Loading />;
-  return path.startsWith('/posts/') ? <PostPage key={path} id={decodeURIComponent(path.split('/')[2])} /> : path === '/discover' ? (
+  return path.startsWith('/posts/') ? (
+    <PostPage key={path} id={decodeURIComponent(path.split('/')[2])} />
+  ) : path === '/discover' ? (
     <DiscoverPage />
   ) : path === '/connections' ? (
     <ConnectionsPage />

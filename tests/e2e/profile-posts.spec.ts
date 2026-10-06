@@ -8,36 +8,57 @@ for (const width of [390, 768, 1440]) {
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     let postId: string | undefined;
-    const text = `Profile posts browser check ${width}. <img src=x onerror="window.postXss=true">\n` + 'Learning from our campus prototype. '.repeat(35);
+    const text =
+      `Profile posts browser check ${width}. <img src=x onerror="window.postXss=true">\n` +
+      'Learning from our campus prototype. '.repeat(35);
     try {
       await page.goto('/profile');
-      await page.getByRole('navigation', { name: 'Profile sections' }).getByRole('button', { name: 'Posts', exact: true }).click();
+      await page
+        .getByRole('navigation', { name: 'Profile sections' })
+        .getByRole('button', { name: 'Posts', exact: true })
+        .click();
       await page.getByRole('button', { name: 'Create post', exact: true }).click();
       await page.getByLabel('Post content', { exact: true }).fill(text);
       await page.screenshot({ path: `.local/posts-${width}-editor.png`, fullPage: true });
-      const saved = page.waitForResponse((r) => r.url().endsWith('/api/posts') && r.request().method() === 'POST');
+      const saved = page.waitForResponse(
+        (r) => r.url().endsWith('/api/posts') && r.request().method() === 'POST',
+      );
       await page.getByRole('button', { name: 'Post', exact: true }).click();
       const response = await saved;
       expect(response.ok()).toBe(true);
       postId = (await response.json()).id;
-      const card = page.locator('.post-card').filter({ hasText: `Profile posts browser check ${width}.` });
+      const card = page
+        .locator('.post-card')
+        .filter({ has: page.locator(`a[href="/posts/${postId}"]`) });
       await expect(card).toBeVisible();
       await expect(card.locator('.post-content')).toHaveCSS('-webkit-line-clamp', '4');
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      expect(await page.evaluate(() => (window as unknown as Record<string, unknown>).postXss)).toBeUndefined();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+      expect(
+        await page.evaluate(() => (window as unknown as Record<string, unknown>).postXss),
+      ).toBeUndefined();
       await page.screenshot({ path: `.local/posts-${width}-profile.png`, fullPage: true });
       await card.getByRole('link', { name: 'Read more', exact: true }).click();
       await expect(page).toHaveURL(new RegExp(`/posts/${postId}$`));
       await expect(page.locator('.post-card .post-content')).toHaveText(text);
       await page.getByRole('button', { name: 'Like', exact: true }).click();
-      await expect(page.getByRole('button', { name: 'Unlike', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.getByRole('button', { name: 'Unlike', exact: true })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
       await page.getByRole('button', { name: 'Unlike', exact: true }).click();
-      await expect(page.getByRole('button', { name: 'Like', exact: true })).toHaveAttribute('aria-pressed', 'false');
+      await expect(page.getByRole('button', { name: 'Like', exact: true })).toHaveAttribute(
+        'aria-pressed',
+        'false',
+      );
       await page.getByLabel('Comment', { exact: true }).fill('A browser-tested comment.');
       await page.getByRole('button', { name: 'Comment', exact: true }).click();
       await expect(page.locator('.post-comment')).toContainText('A browser-tested comment.');
       await page.screenshot({ path: `.local/posts-${width}-detail.png`, fullPage: true });
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
       await page.getByRole('button', { name: 'Delete comment', exact: true }).click();
       await page.getByRole('button', { name: 'Confirm delete', exact: true }).click();
       await expect(page.locator('.post-comment')).toHaveCount(0);
@@ -63,7 +84,10 @@ for (const width of [390, 768, 1440]) {
 test('Discover profiles expose Posts without creating a global feed', async ({ page, request }) => {
   expect((await (await request.get('/api/config')).json()).demo).toBe(true);
   await page.goto('/discover');
-  await page.getByRole('button', { name: /View profile/i }).first().click();
+  await page
+    .getByRole('button', { name: /View .+profile/i })
+    .first()
+    .click();
   const dialog = page.getByRole('dialog', { name: 'Profile', exact: true });
   await dialog.getByRole('button', { name: 'Posts', exact: true }).click();
   await expect(dialog.getByRole('region', { name: 'Profile posts' })).toBeVisible();

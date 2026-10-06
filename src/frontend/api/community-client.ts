@@ -41,26 +41,53 @@ import type {
   VerificationRequest,
   VerificationReviewRequest,
 } from '@/shared/contracts/requests';
-import type { CollegeOption, TeamRequest, TeamRecommendation } from '@/shared/contracts/recommendations';
+import type {
+  CollegeOption,
+  TeamRequest,
+  TeamRecommendation,
+} from '@/shared/contracts/recommendations';
 const id = encodeURIComponent;
 export function createCommunityClient(http: HttpClient) {
   return {
     posts: {
-      list: (authorId: string, cursor?: string) => http.request<PostPage<ProfilePost>>(`students/${id(authorId)}/posts${cursor ? `?cursor=${id(cursor)}` : ''}`),
+      list: (authorId: string, cursor?: string) =>
+        http.request<PostPage<ProfilePost>>(
+          `students/${id(authorId)}/posts${cursor ? `?cursor=${id(cursor)}` : ''}`,
+        ),
       get: (postId: string) => http.request<ProfilePost>(`posts/${id(postId)}`),
-      create: (input: PostInput & { clientId: string }) => http.request<ProfilePost>('posts', input),
-      edit: (postId: string, input: PostInput) => http.request<ProfilePost>(`posts/${id(postId)}`, input, 'PATCH'),
-      delete: (postId: string) => http.request<SuccessResponse>(`posts/${id(postId)}`, {}, 'DELETE'),
-      like: (postId: string, enabled: boolean) => http.request<{ liked: boolean; likeCount: number }>(`posts/${id(postId)}/like`, { enabled }),
-      comments: (postId: string, cursor?: string) => http.request<PostPage<PostComment>>(`posts/${id(postId)}/comments${cursor ? `?cursor=${id(cursor)}` : ''}`),
-      comment: (postId: string, content: string, clientId: string) => http.request<{ id: string }>(`posts/${id(postId)}/comments`, { content, clientId }),
-      deleteComment: (postId: string, commentId: string) => http.request<SuccessResponse>(`posts/${id(postId)}/comments/${id(commentId)}`, {}, 'DELETE'),
-      report: (postId: string, reason: string) => http.request<{ id: string }>(`posts/${id(postId)}/report`, { reason }),
+      create: (input: PostInput & { clientId: string }) =>
+        http.request<ProfilePost>('posts', input),
+      edit: (postId: string, input: PostInput) =>
+        http.request<ProfilePost>(`posts/${id(postId)}`, input, 'PATCH'),
+      delete: (postId: string) =>
+        http.request<SuccessResponse>(`posts/${id(postId)}`, {}, 'DELETE'),
+      like: (postId: string, enabled: boolean) =>
+        http.request<{ liked: boolean; likeCount: number }>(`posts/${id(postId)}/like`, {
+          enabled,
+        }),
+      comments: (postId: string, cursor?: string) =>
+        http.request<PostPage<PostComment>>(
+          `posts/${id(postId)}/comments${cursor ? `?cursor=${id(cursor)}` : ''}`,
+        ),
+      comment: (postId: string, content: string, clientId: string) =>
+        http.request<{ id: string }>(`posts/${id(postId)}/comments`, { content, clientId }),
+      deleteComment: (postId: string, commentId: string) =>
+        http.request<SuccessResponse>(
+          `posts/${id(postId)}/comments/${id(commentId)}`,
+          {},
+          'DELETE',
+        ),
+      report: (postId: string, reason: string) =>
+        http.request<{ id: string }>(`posts/${id(postId)}/report`, { reason }),
     },
-    colleges: (search:string) => http.request<CollegeOption[]>(`colleges?search=${id(search)}`),
+    colleges: (search: string) => http.request<CollegeOption[]>(`colleges?search=${id(search)}`),
     recommendations: {
-      team: (input:TeamRequest) => http.request<TeamRecommendation>('recommendations/team',input),
-      opened: (targetId:string) => http.request<SuccessResponse>('recommendations/interactions',{targetId,action:'PROFILE_OPENED'}),
+      team: (input: TeamRequest) => http.request<TeamRecommendation>('recommendations/team', input),
+      opened: (targetId: string) =>
+        http.request<SuccessResponse>('recommendations/interactions', {
+          targetId,
+          action: 'PROFILE_OPENED',
+        }),
     },
     config: () => http.request<ApiConfig>('config'),
     state: (query = '') => http.request<AppState>(`state${query ? `?${query}` : ''}`),

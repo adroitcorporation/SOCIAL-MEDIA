@@ -2,7 +2,8 @@ import 'server-only';
 import { Prisma } from '@prisma/client';
 import { ranking } from './config';
 
-const arr = (values: string[]) => values.length ? Prisma.sql`ARRAY[${Prisma.join(values)}]::text[]` : Prisma.sql`'{}'::text[]`;
+const arr = (values: string[]) =>
+  values.length ? Prisma.sql`ARRAY[${Prisma.join(values)}]::text[]` : Prisma.sql`'{}'::text[]`;
 // Correlated against candidate u. Only bounded recent public posts contribute; never sum
 // a prolific author's posts. The strongest signal decays from its original creation date.
 export function postSignalSql(actor: string, skills: string[], interests: string[]) {

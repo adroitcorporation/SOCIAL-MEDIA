@@ -142,7 +142,17 @@ export async function rankedProfiles(
                   ...r.skills.filter((s) => context.requiredSkills!.includes(s)),
                   ...matchReasons(a, r),
                 ].slice(0, ranking.maximumReasons)
-              : [...matchReasons(a, r).slice(0, r.postSignal >= ranking.posts.reasonThreshold ? ranking.maximumReasons - 1 : ranking.maximumReasons), ...(r.postSignal >= ranking.posts.reasonThreshold ? ['Current interests align'] : [])],
+              : [
+                  ...matchReasons(a, r).slice(
+                    0,
+                    r.postSignal >= ranking.posts.reasonThreshold
+                      ? ranking.maximumReasons - 1
+                      : ranking.maximumReasons,
+                  ),
+                  ...(r.postSignal >= ranking.posts.reasonThreshold
+                    ? ['Current interests align']
+                    : []),
+                ],
           },
         ]
       : [];

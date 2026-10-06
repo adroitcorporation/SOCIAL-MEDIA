@@ -28,6 +28,9 @@ export function scrubPublicText(text: string) {
   return text
     .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, '[email]')
     .replace(/https?:\/\/[^\s"\\]+/gi, '[link]')
+    .replace(/\bBearer\s+[a-z0-9._~+\/-]+=*/gi, '[token]')
+    .replace(/\bsk-[a-z0-9_-]{16,}\b/gi, '[token]')
+    .replace(/\beyJ[a-z0-9_-]+\.[a-z0-9_-]+\.[a-z0-9_-]+\b/gi, '[token]')
     .replace(/\b(?:\+?\d[\d ()-]{8,}\d)\b/g, '[number]')
     .slice(0, 6000);
 }
@@ -56,9 +59,9 @@ export function localInference(text: string): Inference {
     lookingFor.push('UI/UX Designer');
   if (/(?:looking for|need|seeking).{0,60}web develop/i.test(prose))
     lookingFor.push('Web Developer');
-  if (/(?:looking for|need|seeking).{0,60}video edit/i.test(prose))
-    lookingFor.push('Video Editor');
+  if (/(?:looking for|need|seeking).{0,60}video edit/i.test(prose)) lookingFor.push('Video Editor');
   if (/saas/i.test(text)) interests.push('Product', 'Startups & Entrepreneurship');
+  if (/\byoutube\b/i.test(prose)) interests.push('Content Creation');
   return {
     skills: [],
     interests: normalizeList('interests', interests).slice(0, 7),

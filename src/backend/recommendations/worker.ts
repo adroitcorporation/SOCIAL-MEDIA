@@ -15,8 +15,17 @@ import { ranking } from './config';
 type Job = { kind: string; targetId: string; version: number; attempts: number; lockToken: string };
 async function source(job: Job) {
   if (job.kind === 'POST') {
-    const post = await db.post.findFirst({ where: { id: job.targetId, visibility: 'PUBLIC', author: { accountStatus: 'ACTIVE', onboarded: true } }, select: { content: true } });
-    return post ? { text: scrubPublicText(JSON.stringify(post)), skills: [], interests: [], lookingFor: [] } : null;
+    const post = await db.post.findFirst({
+      where: {
+        id: job.targetId,
+        visibility: 'PUBLIC',
+        author: { accountStatus: 'ACTIVE', onboarded: true },
+      },
+      select: { content: true },
+    });
+    return post
+      ? { text: scrubPublicText(JSON.stringify(post)), skills: [], interests: [], lookingFor: [] }
+      : null;
   }
   if (job.kind === 'PROFILE') {
     const p = await db.user.findUnique({

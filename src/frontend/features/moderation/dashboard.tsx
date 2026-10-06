@@ -372,7 +372,12 @@ function ReportReview({ report, onSaved }: { report: ReportItem; onSaved: () => 
         Reported by {report.reporter.name} · {new Date(report.createdAt).toLocaleString()}
       </p>
       <p>{report.reason}</p>
-      {report.postContent && <details><summary>Reported post</summary><p className="post-content">{report.postContent}</p></details>}
+      {report.postContent && (
+        <details>
+          <summary>Reported post</summary>
+          <p className="post-content">{report.postContent}</p>
+        </details>
+      )}
       {report.reviewNote && <p>Last review: {report.reviewNote}</p>}
       <label>
         Report decision
