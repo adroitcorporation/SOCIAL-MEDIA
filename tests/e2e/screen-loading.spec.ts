@@ -109,6 +109,51 @@ test('returning to a visited screen renders its cached state while it refreshes'
   }
 });
 
+test('hover-prefetched state renders immediately while the destination refreshes', async ({
+  page,
+}) => {
+  await page.goto('/events');
+  await expect(page.locator('.event-card').first()).toBeVisible();
+  let connectionsReads = 0;
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let refreshStarted!: () => void;
+  const refreshRequested = new Promise<void>((resolve) => {
+    refreshStarted = resolve;
+  });
+  let prefetchFinished!: () => void;
+  const prefetchCompleted = new Promise<void>((resolve) => {
+    prefetchFinished = resolve;
+  });
+  await page.route('**/api/state?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('view') === '/connections') {
+      connectionsReads++;
+      if (connectionsReads === 2) {
+        refreshStarted();
+        await pending;
+      }
+      await route.continue();
+      if (connectionsReads === 1) prefetchFinished();
+      return;
+    }
+    await route.continue();
+  });
+  const link = page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true });
+  try {
+    await link.hover();
+    await prefetchCompleted;
+    await link.click();
+    await refreshRequested;
+    await expect(page.getByRole('heading', { name: 'Connections' })).toBeVisible();
+    await expect(page.locator('.connection-card').first()).toBeVisible();
+    expect(connectionsReads).toBe(2);
+  } finally {
+    release();
+  }
+});
+
 test('screen navigation loads state once without repeating the same-token session bridge', async ({
   page,
   request,

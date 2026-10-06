@@ -51,9 +51,11 @@ export function useCircleController(
   const [busy, setBusy] = useState(false);
   const refreshRef = useRef<() => Promise<void>>(async () => {});
   const refreshVersion = useRef(0);
+  const authVersion = useRef(0);
   const pageToken = useRef<string | undefined>(undefined);
   const inFlight = useRef<{ key: string; promise: Promise<void> } | null>(null);
   const viewCache = useRef(new Map<string, AppState>());
+  const viewRequests = useRef(new Map<string, Promise<AppState>>());
   useEffect(() => {
     let active = true;
     let unsubscribe: (() => void) | undefined;
@@ -71,10 +73,12 @@ export function useCircleController(
             if (!active) return;
             setSignedIn(session.signedIn);
             if (!session.signedIn) {
+              authVersion.current++;
               refreshVersion.current++;
               inFlight.current = null;
               pageToken.current = undefined;
               viewCache.current.clear();
+              viewRequests.current.clear();
               setState(null);
             }
             if (session.recoveringPassword) router.push('/reset-password');
@@ -101,15 +105,58 @@ export function useCircleController(
               ? (await browserAuth.session()).accessToken
               : undefined,
           onUnauthorized: () => {
+            authVersion.current++;
             refreshVersion.current++;
             inFlight.current = null;
             viewCache.current.clear();
+            viewRequests.current.clear();
             setSignedIn(false);
             setState(null);
           },
         }),
       ),
     [config],
+  );
+  const loadView = useCallback(
+    (location: string, key: string) => {
+      const pending = viewRequests.current.get(location);
+      if (pending) return pending;
+      const promise = api.state(key).finally(() => {
+        if (viewRequests.current.get(location) === promise) viewRequests.current.delete(location);
+      });
+      viewRequests.current.set(location, promise);
+      return promise;
+    },
+    [api],
+  );
+  const prefetch = useCallback(
+    (destination: string): Promise<void> => {
+      if (!signedIn || destination === path) return Promise.resolve();
+      const params = new URLSearchParams();
+      params.set('view', destination);
+      const location = `${destination}?`;
+      if (viewCache.current.has(location)) return Promise.resolve();
+      const version = authVersion.current;
+      return (async () => {
+        const token =
+          config?.configured && !config.demo
+            ? (await browserAuth.session()).accessToken
+            : undefined;
+        if (token && token !== pageToken.current) {
+          await syncPageSession(token);
+          if (version !== authVersion.current) return;
+          pageToken.current = token;
+        }
+        const result = await loadView(location, params.toString());
+        if (version !== authVersion.current) return;
+        rememberView(
+          viewCache.current,
+          location,
+          reuseUnchangedSections(viewCache.current.get(location), result),
+        );
+      })();
+    },
+    [config, loadView, path, signedIn],
   );
   const refresh = useCallback((): Promise<void> => {
     if (!signedIn) return Promise.resolve();
@@ -136,7 +183,7 @@ export function useCircleController(
       if (version !== refreshVersion.current) return;
       let result: AppState;
       try {
-        result = await api.state(key);
+        result = await loadView(location, key);
       } catch (error) {
         if (version !== refreshVersion.current) return;
         viewCache.current.clear();
@@ -155,7 +202,7 @@ export function useCircleController(
     });
     inFlight.current = { key, promise };
     return promise;
-  }, [api, signedIn, path, query, config]);
+  }, [loadView, signedIn, path, query, config]);
   refreshRef.current = refresh;
   useEffect(() => {
     if (signedIn) refresh().catch((e) => setLoadError(e.message));
@@ -206,6 +253,7 @@ export function useCircleController(
     }
     try {
       await clearPageSession();
+      authVersion.current++;
       pageToken.current = undefined;
       await browserAuth.signOut();
     } catch (error) {
@@ -214,6 +262,7 @@ export function useCircleController(
     }
     setState(null);
     viewCache.current.clear();
+    viewRequests.current.clear();
     setSignedIn(false);
     router.push('/login');
   }
@@ -235,6 +284,7 @@ export function useCircleController(
     api,
     refresh,
     mutate,
+    prefetch,
     logout,
     onAuthenticated,
   };

@@ -68,9 +68,18 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
     api,
     refresh,
     mutate,
+    prefetch,
     logout,
     onAuthenticated,
   } = useCircleController(path, query, toast);
+  const prefetchScreen = useCallback(
+    (destination: string) => {
+      void prefetch(destination).catch((error: unknown) => {
+        console.warn(`Unable to prefetch ${destination}`, error);
+      });
+    },
+    [prefetch],
+  );
   const navigate = useCallback(
     (to: string) => {
       setMobile(false);
@@ -157,6 +166,8 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
             {nav.map((item) => (
               <Link
                 onClick={() => setMobile(false)}
+                onPointerEnter={() => prefetchScreen(item.path)}
+                onFocus={() => prefetchScreen(item.path)}
                 key={item.path}
                 href={item.path}
                 className={`nav-link ${path === item.path ? 'active' : ''}`}
@@ -175,6 +186,8 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
                 href="/moderation"
                 prefetch={false}
                 onClick={() => setMobile(false)}
+                onPointerEnter={() => prefetchScreen('/moderation')}
+                onFocus={() => prefetchScreen('/moderation')}
                 className={`nav-link ${path === '/moderation' ? 'active' : ''}`}
               >
                 <ShieldCheck size={19} />
@@ -231,6 +244,8 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
               <ThemeToggle />
               <Link
                 href="/notifications"
+                onPointerEnter={() => prefetchScreen('/notifications')}
+                onFocus={() => prefetchScreen('/notifications')}
                 className="icon-button notification-button"
                 aria-label={`${unread} unread notifications`}
               >
@@ -256,7 +271,13 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
           {nav
             .filter((n) => ['/', '/discover', '/ideas', '/messages'].includes(n.path))
             .map((n) => (
-              <Link key={n.path} href={n.path} className={path === n.path ? 'active' : ''}>
+              <Link
+                key={n.path}
+                href={n.path}
+                onPointerEnter={() => prefetchScreen(n.path)}
+                onFocus={() => prefetchScreen(n.path)}
+                className={path === n.path ? 'active' : ''}
+              >
                 <n.icon size={20} />
                 <span>{n.label}</span>
               </Link>
