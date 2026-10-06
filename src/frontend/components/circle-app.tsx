@@ -27,7 +27,6 @@ import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
 import { profilePath } from '@/frontend/utils/profile-path';
 import { Avatar, Loading } from './ui';
-import { ThemeToggle } from './theme-toggle';
 
 const AuthForm = dynamic(
   () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
@@ -35,13 +34,13 @@ const AuthForm = dynamic(
 );
 const nav = [
   { path: '/', label: 'Home', icon: Home },
+  { path: '/events', label: 'Events', icon: CalendarDays },
+  { path: '/profile', label: 'Profile', icon: UserRound },
+  { path: '/ideas', label: 'Idea Board', icon: Lightbulb },
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/connections', label: 'Connections', icon: Users },
-  { path: '/ideas', label: 'Idea Board', icon: Lightbulb },
-  { path: '/events', label: 'Events', icon: CalendarDays },
   { path: '/messages', label: 'Messages', icon: MessageCircle },
   { path: '/notifications', label: 'Notifications', icon: Bell },
-  { path: '/profile', label: 'Profile', icon: UserRound },
 ];
 export function CircleApp({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -241,7 +240,16 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
               <kbd>↵</kbd>
             </form>
             <div className="topbar-actions">
-              <ThemeToggle />
+              <Link
+                href="/messages"
+                onPointerEnter={() => prefetchScreen('/messages')}
+                onFocus={() => prefetchScreen('/messages')}
+                className="icon-button message-button"
+                aria-label="Messages"
+              >
+                <MessageCircle size={20} />
+                {messagesUnread > 0 && <span />}
+              </Link>
               <Link
                 href="/notifications"
                 onPointerEnter={() => prefetchScreen('/notifications')}
@@ -275,7 +283,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
         </div>
         <nav className="bottom-nav">
           {nav
-            .filter((n) => ['/', '/discover', '/ideas', '/messages'].includes(n.path))
+            .filter((n) => ['/', '/events', '/discover', '/ideas', '/profile'].includes(n.path))
             .map((n) => (
               <Link
                 key={n.path}

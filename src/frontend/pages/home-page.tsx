@@ -57,84 +57,7 @@ export function HomePage() {
           <div className="orbit-person person-two">R</div>
         </div>
       </section>
-      <div className="stats-row">
-        {[
-          {
-            icon: Users,
-            value: accepted.length,
-            label: 'Your connections',
-            note: incoming.length ? `${incoming.length} requests` : '',
-            href: '/connections',
-            color: 'mint',
-          },
-          {
-            icon: Lightbulb,
-            value: state.ideas.length,
-            label: 'Ideas to explore',
-            note: '',
-            href: '/ideas',
-            color: 'peach',
-          },
-          {
-            icon: CalendarDays,
-            value: state.events.length,
-            label: 'Upcoming events',
-            note: '',
-            href: '/events',
-            color: 'lavender',
-          },
-        ].map((stat) => (
-          <Link href={stat.href} className="stat-card" key={stat.label}>
-            <span className={`stat-icon ${stat.color}`}>
-              <stat.icon size={21} />
-            </span>
-            <div>
-              <div className="stat-value">
-                {stat.value}
-                <span>{stat.label}</span>
-              </div>
-              {stat.note && <p>{stat.note}</p>}
-            </div>
-            <ArrowUpRight size={18} />
-          </Link>
-        ))}
-      </div>
       <div className="home-columns">
-        <div className="home-main">
-          <div className="section-heading">
-            <div>
-              <h2>People to meet</h2>
-            </div>
-            <Link href="/discover" className="text-link">
-              View all <ArrowRight size={15} />
-            </Link>
-          </div>
-          <div className="student-grid home-students">
-            {state.students.slice(0, 3).map((student) => (
-              <StudentCard key={student.id} student={student} />
-            ))}
-          </div>
-          {!state.students.length && <Empty title="No people yet." />}
-          <div className="section-heading ideas-section-heading">
-            <div>
-              <h2>Ideas</h2>
-            </div>
-            <Link href="/ideas" className="text-link">
-              Idea Board <ArrowRight size={15} />
-            </Link>
-          </div>
-          {state.ideas.slice(0, 2).map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} compact />
-          ))}
-          {!state.ideas.length && (
-            <div className="panel">
-              <p>No ideas yet.</p>
-              <Link className="text-link" href="/ideas">
-                Post idea <ArrowRight size={15} />
-              </Link>
-            </div>
-          )}
-        </div>
         <aside className="home-right">
           <div className="section-heading">
             <h2>Events</h2>
@@ -177,6 +100,43 @@ export function HomePage() {
             </div>
           )}
         </aside>
+        <div className="home-main">
+          <div className="section-heading">
+            <div>
+              <h2>People to meet</h2>
+            </div>
+            <Link href="/discover" className="text-link">
+              View all <ArrowRight size={15} />
+            </Link>
+          </div>
+          <div className="horizontal-profile-tray">
+            {state.students.slice(0, 6).map((student) => (
+              <StudentCard key={student.id} student={student} />
+            ))}
+          </div>
+          {!state.students.length && <Empty title="No people yet." />}
+          <div className="section-heading ideas-section-heading">
+            <div>
+              <h2>Ideas</h2>
+            </div>
+            <Link href="/ideas" className="text-link">
+              Idea Board <ArrowRight size={15} />
+            </Link>
+          </div>
+          <div className="idea-stack">
+            {state.ideas.slice(0, 3).map((idea) => (
+              <IdeaCard key={idea.id} idea={idea} compact />
+            ))}
+          </div>
+          {!state.ideas.length && (
+            <div className="panel">
+              <p>No ideas yet.</p>
+              <Link className="text-link" href="/ideas">
+                Post idea <ArrowRight size={15} />
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

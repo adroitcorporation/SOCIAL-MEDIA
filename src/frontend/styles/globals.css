@@ -1,5 +1,24 @@
 @import 'tailwindcss';
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  font-size: 16px;
+}
+
+body {
+  font-size: 15px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+textarea,
+select,
+a {
+  touch-action: manipulation;
+}
+
 .profile-sections {
   display: flex;
   gap: 24px;
@@ -1244,6 +1263,38 @@ em {
 }
 .page-heading > .button {
   margin-top: 10px;
+}
+.profile-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.social-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.social-auth-button {
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.horizontal-profile-tray {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x proximity;
+}
+.horizontal-profile-tray > .student-card {
+  min-width: min(220px, 80vw);
+  scroll-snap-align: start;
+}
+.idea-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 .footer {
   max-width: 1500px;
@@ -3384,14 +3435,43 @@ em {
 .conversation-list {
   overflow-y: auto;
 }
+.inbox-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+.inbox-tabs button {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: var(--surface-soft, #f1f5fb);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 10px;
+  color: var(--text-muted, #587297);
+}
+.inbox-tabs button.active {
+  background: var(--accent-soft, #e7efff);
+  border-color: var(--accent, #5e7ce2);
+  color: var(--ink, #102847);
+}
+.conversation-row-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-subtle, #e7edf5);
+}
+.conversation-row-wrap.selected {
+  background: var(--surface-soft, #edf2fa);
+}
 .conversation-row {
+  flex: 1;
   width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
   text-align: left;
   padding: 17px;
-  border-bottom: 1px solid var(--border-subtle, #e7edf5);
+  background: transparent;
 }
 .conversation-row:hover {
   background: var(--surface-soft, #f4f6fa);
@@ -3400,6 +3480,19 @@ em {
   background: var(--surface-soft, #edf2fa);
   border-left: 3px solid var(--warm-border, #f18a42);
   padding-left: 14px;
+}
+.pin-button {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted, #6b7d99);
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+}
+.pin-button:hover {
+  color: var(--accent-ink, #102847);
 }
 .conversation-summary {
   flex: 1;
@@ -3638,6 +3731,21 @@ em {
     background-color 150ms,
     border-color 150ms,
     color 150ms;
+}
+.message-button,
+.notification-button {
+  position: relative;
+}
+.message-button span,
+.notification-button span {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ef5700;
+  box-shadow: 0 0 0 2px var(--card);
 }
 .theme-toggle:hover {
   background: var(--accent-soft);
@@ -4479,6 +4587,12 @@ em {
   }
   .home-students {
     gap: 11px;
+  }
+  .horizontal-profile-tray {
+    padding-bottom: 10px;
+  }
+  .horizontal-profile-tray > .student-card {
+    min-width: 190px;
   }
   .home-students .student-card {
     padding: 15px 12px;

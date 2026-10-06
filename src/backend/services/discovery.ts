@@ -64,7 +64,6 @@ export async function snapshot(user: User, query: URLSearchParams) {
     onboarded: true,
     id: { not: user.id },
     ...visibleTo(user.id),
-    skippedBy: { none: { userId: user.id } },
     sent: { none: { receiverId: user.id, status: 'ACCEPTED' } },
     received: { none: { requesterId: user.id, status: 'ACCEPTED' } },
   };

@@ -20,6 +20,20 @@ export async function requestConnection(actor: string, target: string) {
     );
     const key = pairKey(actor, target);
     const existing = await tx.connection.findUnique({ where: { pairKey: key } });
+    if (existing && existing.status === 'PENDING' && existing.receiverId === actor) {
+      const accepted = await tx.connection.update({
+        where: { id: existing.id },
+        data: { status: 'ACCEPTED', requesterId: existing.requesterId, receiverId: existing.receiverId },
+      });
+      await notify(
+        tx,
+        existing.requesterId,
+        'You’re connected!',
+        'You both sent a connection request, so the connection was accepted automatically.',
+        '/connections',
+      );
+      return accepted;
+    }
     requireThat(
       !existing || !['PENDING', 'ACCEPTED'].includes(existing.status),
       409,

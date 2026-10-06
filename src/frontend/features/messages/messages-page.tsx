@@ -11,6 +11,8 @@ import {
   MessageCircle,
   CheckCheck,
   Trash2,
+  Star,
+  StarOff,
 } from 'lucide-react';
 import type { ChatMessage, ConversationItem, Student } from '@/shared/contracts/responses';
 import type { GroupAction } from '@/shared/contracts/enums';
@@ -27,6 +29,8 @@ export function MessagesPage() {
   const [search, setSearch] = useState('');
   const [sending, setSending] = useState(false);
   const [manage, setManage] = useState(false);
+  const [inboxView, setInboxView] = useState<'all' | 'dm' | 'group'>('all');
+  const [pinned, setPinned] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [hasOlder, setHasOlder] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
@@ -46,10 +50,20 @@ export function MessagesPage() {
       ?.members.map((member) => member.userId)
       .join(',') || '';
   useEffect(() => {
+    const stored = window.localStorage.getItem('pinned-conversations');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) setPinned(parsed.filter((value): value is string => typeof value === 'string'));
+      } catch {}
+    }
     const p = new URLSearchParams(location.search);
     if (p.get('create') === 'group') setCreate(true);
     if (p.get('conversation')) setSelected(p.get('conversation'));
   }, []);
+  useEffect(() => {
+    window.localStorage.setItem('pinned-conversations', JSON.stringify(pinned));
+  }, [pinned]);
   const loadMessages = useCallback((): Promise<void> => {
     if (!selected) return Promise.resolve();
     if (pending.current) return pending.current;
@@ -108,6 +122,18 @@ export function MessagesPage() {
     }
   }, [messages.length, selected]);
   const conversation = state.conversations.find((c) => c.id === selected);
+  const filteredConversations = [...state.conversations]
+    .filter((c) => {
+      if (inboxView === 'dm') return c.type !== 'GROUP';
+      if (inboxView === 'group') return c.type === 'GROUP';
+      return true;
+    })
+    .sort((a, b) => {
+      const aPinned = pinned.includes(a.id) ? 1 : 0;
+      const bPinned = pinned.includes(b.id) ? 1 : 0;
+      if (aPinned !== bPinned) return bPinned - aPinned;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
   useEffect(() => {
     if (selected && !conversation) {
       setMessages([]);
@@ -194,41 +220,70 @@ export function MessagesPage() {
               placeholder="Search conversations"
             />
           </div>
+          <div className="inbox-tabs">
+            {(['all', 'dm', 'group'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                className={inboxView === tab ? 'active' : ''}
+                onClick={() => setInboxView(tab)}
+              >
+                {tab === 'all' ? 'All' : tab === 'dm' ? 'DMs' : 'Groups'}
+              </button>
+            ))}
+          </div>
           <div className="conversation-list">
-            {state.conversations
+            {filteredConversations
               .filter((c) => name(c).toLowerCase().includes(search.toLowerCase()))
               .map((c) => {
                 const other = c.members.find((m) => m.userId !== state.me.id)?.user;
                 return (
-                  <button
-                    className={`conversation-row ${c.id === selected ? 'selected' : ''}`}
-                    key={c.id}
-                    onClick={() => select(c.id)}
-                  >
-                    {c.type === 'GROUP' ? (
-                      <Avatar user={{ name: c.name || 'Group', photo: c.image || '' }} />
-                    ) : other ? (
-                      <Avatar user={other} />
-                    ) : (
-                      <MessageCircle size={22} />
-                    )}
-                    <span className="conversation-summary">
-                      <strong>{name(c)}</strong>
-                      <small>
-                        {c.messages[0]?.body ||
-                          (c.type === 'GROUP'
-                            ? `${c.members.length} members · Say hello`
-                            : 'Start the conversation')}
-                      </small>
-                    </span>
-                    <span className="conversation-time">
-                      <small>{relative(c.updatedAt)}</small>
-                      {c.unread > 0 && <b>{c.unread}</b>}
-                    </span>
-                  </button>
+                  <div className={`conversation-row-wrap ${c.id === selected ? 'selected' : ''}`} key={c.id}>
+                    <button
+                      className={`conversation-row ${c.id === selected ? 'selected' : ''}`}
+                      onClick={() => select(c.id)}
+                    >
+                      {c.type === 'GROUP' ? (
+                        <Avatar user={{ name: c.name || 'Group', photo: c.image || '' }} />
+                      ) : other ? (
+                        <Avatar user={other} />
+                      ) : (
+                        <MessageCircle size={22} />
+                      )}
+                      <span className="conversation-summary">
+                        <strong>{name(c)}</strong>
+                        <small>
+                          {c.messages[0]?.body ||
+                            (c.type === 'GROUP'
+                              ? `${c.members.length} members · Say hello`
+                              : 'Start the conversation')}
+                        </small>
+                      </span>
+                      <span className="conversation-time">
+                        <small>{relative(c.updatedAt)}</small>
+                        {c.unread > 0 && <b>{c.unread}</b>}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="pin-button"
+                      aria-label={pinned.includes(c.id) ? 'Unpin conversation' : 'Pin conversation'}
+                      title={pinned.includes(c.id) ? 'Unpin conversation' : 'Pin conversation'}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setPinned((current) =>
+                          current.includes(c.id)
+                            ? current.filter((id) => id !== c.id)
+                            : [...current, c.id],
+                        );
+                      }}
+                    >
+                      {pinned.includes(c.id) ? <Star size={15} /> : <StarOff size={15} />}
+                    </button>
+                  </div>
                 );
               })}
-            {!state.conversations.length && (
+            {!filteredConversations.length && (
               <Empty title="No conversations yet." body="Message a connection or create a group." />
             )}
           </div>

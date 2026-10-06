@@ -31,6 +31,14 @@ export const browserAuth = {
     const { error } = await authClient().auth.signInWithPassword({ email, password });
     if (error) throw error;
   },
+  async signInWithOAuth(provider: 'google' | 'github' | 'facebook' | 'linkedin') {
+    const redirectOrigin = resolveRedirectOrigin();
+    const { error } = await authClient().auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${redirectOrigin}/` },
+    });
+    if (error) throw error;
+  },
   // Legacy callers may pass an origin; redirects always use public configuration.
   async signUp(email: string, password: string, _origin?: string) {
     const redirectOrigin = resolveRedirectOrigin();

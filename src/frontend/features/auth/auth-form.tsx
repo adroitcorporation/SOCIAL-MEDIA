@@ -1,9 +1,16 @@
 'use client';
 import { useState } from 'react';
-import { ArrowRight, Circle, Mail, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Circle, GitBranch, Globe, Mail, ShieldCheck } from 'lucide-react';
 import { browserAuth } from '@/frontend/auth/browser-auth';
 import { brand } from '@/shared/config/brand';
 import { ThemeToggle } from '@/frontend/components/theme-toggle';
+
+const socialProviders = [
+  { provider: 'google', label: 'Google' },
+  { provider: 'linkedin', label: 'LinkedIn' },
+  { provider: 'github', label: 'GitHub' },
+  { provider: 'facebook', label: 'Facebook' },
+] as const;
 export function AuthForm({
   configured,
   initialMode = 'login',
@@ -46,6 +53,19 @@ export function AuthForm({
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to sign in.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSocialLogin(provider: (typeof socialProviders)[number]['provider']) {
+    try {
+      setBusy(true);
+      setError('');
+      setNotice('');
+      await browserAuth.signInWithOAuth(provider);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : `Unable to sign in with ${provider}.`);
     } finally {
       setBusy(false);
     }
@@ -94,6 +114,25 @@ export function AuthForm({
           <div className="notice">
             Authentication needs configuration. Add your Supabase URL and publishable key to start,
             or follow the local demo instructions in README.md.
+          </div>
+        )}
+        {mode === 'login' && (
+          <div className="social-auth-grid">
+            {socialProviders.map(({ provider, label }) => (
+              <button
+                key={provider}
+                type="button"
+                className="button secondary social-auth-button"
+                disabled={busy || !configured}
+                onClick={() => void handleSocialLogin(provider)}
+              >
+                {provider === 'google' && <Globe size={16} />}
+                {provider === 'linkedin' && <Mail size={16} />}
+                {provider === 'github' && <GitBranch size={16} />}
+                {provider === 'facebook' && <ShieldCheck size={16} />}
+                {label}
+              </button>
+            ))}
           </div>
         )}
         <form onSubmit={submit}>
