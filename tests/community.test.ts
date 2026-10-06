@@ -128,7 +128,10 @@ describe('Connection lifecycle', () => {
       service.requestConnection('c', 'd'),
       service.requestConnection('d', 'c'),
     ]);
-    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    expect(results.every((result) => result.status === 'fulfilled')).toBe(true);
+    const reciprocal = await db.connection.findUniqueOrThrow({ where: { pairKey: 'c:d' } });
+    expect(reciprocal.status).toBe('ACCEPTED');
+    expect([reciprocal.requesterId, reciprocal.receiverId].sort()).toEqual(['c', 'd']);
     expect(await db.connection.count({ where: { pairKey: 'c:d' } })).toBe(1);
     await expect(service.requestConnection('a', 'a')).rejects.toMatchObject({ status: 400 });
   });
