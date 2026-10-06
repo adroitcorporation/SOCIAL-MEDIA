@@ -76,6 +76,24 @@ test('switching to connections keeps the shell while destination state loads', a
   expect(await shell!.evaluate((node) => node.isConnected)).toBe(true);
 });
 
+test('tab transition is brief and settles instead of staying active', async ({ page }) => {
+  await page.goto('/events');
+  await expect(page.locator('.event-card').first()).toBeVisible();
+  await page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Connections' })).toBeVisible();
+  const screen = page.locator('.screen-transition');
+  await expect(screen).toBeVisible();
+  expect(await screen.evaluate((node) => getComputedStyle(node).animationDuration)).toBe('0.16s');
+  await page.waitForTimeout(250);
+  expect(
+    await screen.evaluate(
+      (node) =>
+        node.getAnimations().filter((animation) => animation.playState === 'running').length,
+    ),
+  ).toBe(0);
+  expect(await screen.evaluate((node) => getComputedStyle(node).opacity)).toBe('1');
+});
+
 test('returning to a visited screen renders its cached state while it refreshes', async ({
   page,
 }) => {
@@ -109,20 +127,12 @@ test('returning to a visited screen renders its cached state while it refreshes'
   }
 });
 
-test('hover-prefetched state renders immediately while the destination refreshes', async ({
+test('fresh hover-prefetched state serves the destination without a duplicate read', async ({
   page,
 }) => {
   await page.goto('/events');
   await expect(page.locator('.event-card').first()).toBeVisible();
   let connectionsReads = 0;
-  let release!: () => void;
-  const pending = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  let refreshStarted!: () => void;
-  const refreshRequested = new Promise<void>((resolve) => {
-    refreshStarted = resolve;
-  });
   let prefetchFinished!: () => void;
   const prefetchCompleted = new Promise<void>((resolve) => {
     prefetchFinished = resolve;
@@ -130,10 +140,6 @@ test('hover-prefetched state renders immediately while the destination refreshes
   await page.route('**/api/state?**', async (route) => {
     if (new URL(route.request().url()).searchParams.get('view') === '/connections') {
       connectionsReads++;
-      if (connectionsReads === 2) {
-        refreshStarted();
-        await pending;
-      }
       await route.continue();
       if (connectionsReads === 1) prefetchFinished();
       return;
@@ -144,14 +150,34 @@ test('hover-prefetched state renders immediately while the destination refreshes
   try {
     await link.hover();
     await prefetchCompleted;
+    await page.waitForTimeout(50);
     await link.click();
-    await refreshRequested;
     await expect(page.getByRole('heading', { name: 'Connections' })).toBeVisible();
     await expect(page.locator('.connection-card').first()).toBeVisible();
-    expect(connectionsReads).toBe(2);
+    await page.waitForTimeout(100);
+    expect(connectionsReads).toBe(1);
   } finally {
-    release();
+    prefetchFinished();
   }
+});
+
+test('expired hover-prefetched state is refreshed on navigation', async ({ page }) => {
+  await page.goto('/events');
+  await expect(page.locator('.event-card').first()).toBeVisible();
+  let connectionsReads = 0;
+  const link = page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true });
+  await page.route('**/api/state?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('view') === '/connections')
+      connectionsReads++;
+    await route.continue();
+  });
+  await link.hover();
+  await expect.poll(() => connectionsReads, { timeout: 5000 }).toBe(1);
+  await page.waitForTimeout(3100);
+  await link.click();
+  await expect(page.getByRole('heading', { name: 'Connections' })).toBeVisible();
+  await expect(page.locator('.connection-card').first()).toBeVisible();
+  expect(connectionsReads).toBe(2);
 });
 
 test('screen navigation loads state once without repeating the same-token session bridge', async ({
@@ -216,10 +242,12 @@ test('screen navigation loads state once without repeating the same-token sessio
     ['Events', '.event-card'],
     ['Discover', '.discover-single .student-card'],
   ]) {
-    const before = stateReads.length;
     await page.locator('.sidebar').getByRole('link', { name, exact: true }).click();
     await expect(page.locator(selector).first()).toBeVisible();
-    expect(stateReads).toHaveLength(before + 1);
+    const destination = name === 'Discover' ? '/discover' : '/events';
+    expect(
+      stateReads.filter((url) => new URL(url).searchParams.get('view') === destination),
+    ).toHaveLength(1);
     expect(bridgePosts).toBe(1);
     expect(configReads).toBe(initialConfigReads);
   }

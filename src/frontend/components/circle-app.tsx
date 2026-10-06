@@ -264,7 +264,13 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
             </div>
           )}
           <main className={`page-content ${path === '/messages' ? 'message-page' : ''}`}>
-            {screenPending ? <Loading /> : children}
+            {screenPending ? (
+              <Loading />
+            ) : (
+              <div className="screen-transition" key={`${path}?${query}`}>
+                {children}
+              </div>
+            )}
           </main>
         </div>
         <nav className="bottom-nav">

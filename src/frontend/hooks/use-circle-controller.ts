@@ -9,6 +9,7 @@ import { subscribeToLiveUpdates } from '@/frontend/api/live-updates';
 import { syncPageSession, clearPageSession } from '@/frontend/api/page-session';
 
 const maxCachedViews = 8;
+const prefetchedStateMaxAge = 3000;
 
 function rememberView(cache: Map<string, AppState>, location: string, state: AppState) {
   cache.delete(location);
@@ -56,6 +57,7 @@ export function useCircleController(
   const inFlight = useRef<{ key: string; promise: Promise<void> } | null>(null);
   const viewCache = useRef(new Map<string, AppState>());
   const viewRequests = useRef(new Map<string, Promise<AppState>>());
+  const prefetchedAt = useRef(new Map<string, number>());
   useEffect(() => {
     let active = true;
     let unsubscribe: (() => void) | undefined;
@@ -79,6 +81,7 @@ export function useCircleController(
               pageToken.current = undefined;
               viewCache.current.clear();
               viewRequests.current.clear();
+              prefetchedAt.current.clear();
               setState(null);
             }
             if (session.recoveringPassword) router.push('/reset-password');
@@ -110,6 +113,7 @@ export function useCircleController(
             inFlight.current = null;
             viewCache.current.clear();
             viewRequests.current.clear();
+            prefetchedAt.current.clear();
             setSignedIn(false);
             setState(null);
           },
@@ -135,7 +139,9 @@ export function useCircleController(
       const params = new URLSearchParams();
       params.set('view', destination);
       const location = `${destination}?`;
-      if (viewCache.current.has(location)) return Promise.resolve();
+      const prefetchedTime = prefetchedAt.current.get(location);
+      if (prefetchedTime !== undefined && Date.now() - prefetchedTime < prefetchedStateMaxAge)
+        return Promise.resolve();
       const version = authVersion.current;
       return (async () => {
         const token =
@@ -154,6 +160,7 @@ export function useCircleController(
           location,
           reuseUnchangedSections(viewCache.current.get(location), result),
         );
+        prefetchedAt.current.set(location, Date.now());
       })();
     },
     [config, loadView, path, signedIn],
@@ -181,6 +188,20 @@ export function useCircleController(
         pageToken.current = token;
       }
       if (version !== refreshVersion.current) return;
+      const prefetchedState = viewCache.current.get(location);
+      const prefetchedTime = prefetchedAt.current.get(location);
+      if (
+        prefetchedState &&
+        prefetchedTime !== undefined &&
+        Date.now() - prefetchedTime < prefetchedStateMaxAge
+      ) {
+        prefetchedAt.current.delete(location);
+        setStateLocation(location);
+        setState(prefetchedState);
+        setLoadError('');
+        return;
+      }
+      prefetchedAt.current.delete(location);
       let result: AppState;
       try {
         result = await loadView(location, key);
@@ -223,6 +244,7 @@ export function useCircleController(
       setBusy(true);
       try {
         const result = await operation();
+        prefetchedAt.current.clear();
         refreshVersion.current++;
         inFlight.current = null;
         if (update) {
@@ -263,6 +285,7 @@ export function useCircleController(
     setState(null);
     viewCache.current.clear();
     viewRequests.current.clear();
+    prefetchedAt.current.clear();
     setSignedIn(false);
     router.push('/login');
   }
