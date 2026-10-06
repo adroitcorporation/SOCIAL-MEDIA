@@ -13,7 +13,9 @@ describe('Request and environment safety', () => {
     expect(isLocalDemo()).toBe(true);
   });
   it('requires a confirmed allowlisted college email before college verification', () => {
-    expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', '2026-09-26T10:00:00.000Z')).toBe(true);
+    expect(
+      isVerifiedCollegeEmail('student@lnmiit.ac.in', '2026-09-26T10:00:00.000Z', ['lnmiit.ac.in']),
+    ).toBe(true);
     expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', null)).toBe(false);
     expect(isVerifiedCollegeEmail('student@othercollege.ac.in', '2026-09-26T10:00:00.000Z')).toBe(
       false,

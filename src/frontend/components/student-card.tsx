@@ -9,6 +9,10 @@ import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Tag, Verified } from '@/frontend/components/ui';
 import { applyConnection } from '@/frontend/state/connection-update';
 
+export function cardSwipeEnabled(discoverMode: boolean) {
+  return discoverMode;
+}
+
 export function StudentCard({
   student,
   onAfterAction,
@@ -85,6 +89,7 @@ export function StudentCard({
     <article
       className={`student-card ${discoverMode ? 'discover-profile-card' : ''}`}
       onPointerDown={(event) => {
+        if (!cardSwipeEnabled(discoverMode)) return;
         // Capturing a button's pointer retargets its click to the card.
         if ((event.target as HTMLElement).closest('button, a, input, select, textarea')) return;
         if (busy || actionInFlight.current || !event.isPrimary || event.button !== 0) return;
@@ -97,6 +102,7 @@ export function StudentCard({
         event.currentTarget.setPointerCapture(event.pointerId);
       }}
       onPointerMove={(event) => {
+        if (!cardSwipeEnabled(discoverMode)) return;
         if (dragStartX.current === null || event.pointerId !== dragPointerId.current) return;
         const delta = event.clientX - dragStartX.current;
         const previous = lastPointerSample.current;
@@ -110,6 +116,7 @@ export function StudentCard({
         event.currentTarget.style.setProperty('--drag-rotation', `${delta / 24}deg`);
       }}
       onPointerUp={(event) => {
+        if (!cardSwipeEnabled(discoverMode)) return;
         if (dragStartX.current === null || event.pointerId !== dragPointerId.current) return;
         const delta = event.clientX - dragStartX.current;
         const velocity = dragVelocity.current;
@@ -118,6 +125,7 @@ export function StudentCard({
         else if (delta < -120 || (delta < -45 && velocity < -0.55)) void handleSkip();
       }}
       onPointerCancel={(event) => {
+        if (!cardSwipeEnabled(discoverMode)) return;
         if (event.pointerId === dragPointerId.current) resetDrag(event.currentTarget);
       }}
     >

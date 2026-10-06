@@ -37,6 +37,22 @@ enum VerificationStatus {
   REJECTED
 }
 
+enum CollegeVerificationSource {
+  APPROVED_EMAIL_DOMAIN
+  COLLEGE_ID
+  EMAIL
+}
+
+model ApprovedCollegeDomain {
+  domain    String   @id
+  createdBy String?
+  createdAt DateTime @default(now())
+  collegeId String?
+  college   College? @relation(fields: [collegeId], references: [id], onDelete: SetNull)
+
+  @@index([collegeId])
+}
+
 enum UserRole {
   STUDENT
   ORGANISER
@@ -91,6 +107,7 @@ model User {
   portfolio                  String                       @default("")
   emailVerified              Boolean                      @default(false)
   collegeVerified            Boolean                      @default(false)
+  collegeVerificationSource  CollegeVerificationSource?
   onboarded                  Boolean                      @default(false)
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
@@ -242,9 +259,9 @@ model IdeaResonance {
 
 model Event {
   ownerId     String?
-  owner       User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
-  createdAt   DateTime     @default(now())
-  id          String       @id @default(cuid())
+  owner       User?             @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  createdAt   DateTime          @default(now())
+  id          String            @id @default(cuid())
   title       String
   description String
   category    String
@@ -388,15 +405,16 @@ model RateLimit {
 }
 
 model College {
-  id              String   @id
+  approvedDomains ApprovedCollegeDomain[]
+  id              String                  @id
   name            String
   shortName       String
   city            String
   state           String
-  country         String   @default("India")
-  aliases         String[] @default([])
-  verifiedDomains String[] @default([])
-  active          Boolean  @default(true)
+  country         String                  @default("India")
+  aliases         String[]                @default([])
+  verifiedDomains String[]                @default([])
+  active          Boolean                 @default(true)
 
   @@index([country, state, city])
   @@index([aliases], type: Gin)

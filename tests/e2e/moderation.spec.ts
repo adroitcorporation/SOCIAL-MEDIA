@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { PrismaClient, type UserRole } from '@prisma/client';
+import sharp from 'sharp';
 import type {
   AppState,
   Student,
@@ -59,7 +60,13 @@ test.beforeEach(async ({ request }, info) => {
   originalRole = (await localDb.user.findUniqueOrThrow({ where: { id: 'demo-aarav' } })).role;
   await localDb.user.update({
     where: { id: 'demo-aarav' },
-    data: { role: info.title.startsWith('moderators') ? 'MODERATOR' : 'STUDENT' },
+    data: {
+      role: info.title.startsWith('ultimate')
+        ? 'ULTIMATE_MODERATOR'
+        : info.title.startsWith('moderators')
+          ? 'MODERATOR'
+          : 'STUDENT',
+    },
   });
 });
 test.afterEach(async () => {
@@ -162,4 +169,93 @@ test('an unauthorized moderation page displays the access error instead of an em
   await expect(page.getByRole('heading', { name: 'Access denied', exact: true })).toBeVisible();
   await expect(page.getByText('An active moderator account is required.')).toBeVisible();
   await expect(page.getByText('Nothing waiting for review.')).toHaveCount(0);
+});
+
+test('ultimate moderator adds and revokes a domain through the real dashboard and backend', async ({
+  page,
+}) => {
+  const domain = `ui-${Date.now()}.college.ac.in`;
+  try {
+    await page.goto('/moderation');
+    await page
+      .getByRole('textbox', { name: 'Approved email domain' })
+      .fill(`@${domain.toUpperCase()}`);
+    const college = await localDb.college.findFirstOrThrow({ where: { active: true } });
+    await page.getByRole('textbox', { name: 'Search college (optional)' }).fill(college.name);
+    await expect(
+      page
+        .locator('select[aria-label="Associate college (optional)"] option')
+        .filter({ hasText: college.name }),
+    ).toBeAttached();
+    await page
+      .getByRole('combobox', { name: 'Associate college (optional)' })
+      .selectOption(college.id);
+    await page.getByRole('button', { name: 'Add domain', exact: true }).click();
+    const remove = page.getByRole('button', { name: `Remove ${domain}`, exact: true });
+    await expect(remove).toBeVisible();
+    expect(await localDb.approvedCollegeDomain.findUnique({ where: { domain } })).toMatchObject({
+      collegeId: college.id,
+    });
+    await remove.click();
+    await expect(remove).toHaveCount(0);
+    expect(await localDb.approvedCollegeDomain.findUnique({ where: { domain } })).toBeNull();
+  } finally {
+    await localDb.approvedCollegeDomain.deleteMany({ where: { domain } });
+  }
+});
+
+test('a confirmed student uploads a private college ID through the real browser and backend', async ({
+  page,
+}) => {
+  const original = await localDb.user.findUniqueOrThrow({ where: { id: 'demo-aarav' } });
+  let requestId: string | undefined;
+  expect(
+    await localDb.collegeVerificationRequest.count({
+      where: { userId: original.id, status: 'PENDING' },
+    }),
+  ).toBe(0);
+  try {
+    await localDb.user.update({
+      where: { id: original.id },
+      data: { emailVerified: true, collegeVerified: false, collegeVerificationSource: null },
+    });
+    await page.goto('/profile');
+    await page.getByRole('button', { name: 'College ID', exact: true }).click();
+    const buffer = await sharp({
+      create: { width: 8, height: 8, channels: 3, background: '#234567' },
+    })
+      .png()
+      .toBuffer();
+    await page
+      .locator('.verification-panel input[type="file"]')
+      .setInputFiles({ name: 'test-college-id.png', mimeType: 'image/png', buffer });
+    const response = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/verification') && response.request().method() === 'POST',
+    );
+    await page.getByRole('button', { name: 'Submit for review' }).click();
+    const submitted = await response;
+    expect(submitted.status()).toBe(200);
+    const body = await submitted.json();
+    requestId = body.id;
+    expect(body).toMatchObject({ status: 'PENDING', userId: original.id });
+    expect(body).not.toHaveProperty('documentBytes');
+    const row = await localDb.collegeVerificationRequest.findUniqueOrThrow({
+      where: { id: requestId },
+    });
+    expect(row.documentMime).toBe('image/png');
+    expect(row.documentBytes?.length).toBeGreaterThan(0);
+    expect(row.documentUrl).toBeNull();
+    await expect(page.getByText('Your ID submission is under moderator review.')).toBeVisible();
+  } finally {
+    if (requestId) await localDb.collegeVerificationRequest.delete({ where: { id: requestId } });
+    await localDb.user.update({
+      where: { id: original.id },
+      data: {
+        emailVerified: original.emailVerified,
+        collegeVerified: original.collegeVerified,
+        collegeVerificationSource: original.collegeVerificationSource,
+      },
+    });
+  }
 });

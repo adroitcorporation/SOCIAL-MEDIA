@@ -35,11 +35,7 @@ export async function submitVerification(userId: string, input: unknown) {
   return transaction(async (tx) => {
     const user = await requireActiveActor(userId, tx);
     requireThat(user, 404, 'Student not found.');
-    requireThat(
-      !user.collegeVerified && !user.emailVerified,
-      409,
-      'Your college verification is already approved.',
-    );
+    requireThat(!user.collegeVerified, 409, 'Your college verification is already approved.');
     const pending = await tx.collegeVerificationRequest.findFirst({
       where: { userId, status: 'PENDING' },
     });
@@ -93,7 +89,7 @@ export async function reviewVerification(actor: string, id: string, input: unkno
     requireThat(request.status === 'PENDING', 409, 'This verification request is already decided.');
     const applicant = await tx.user.findUniqueOrThrow({
       where: { id: request.userId },
-      select: { collegeVerified: true, emailVerified: true },
+      select: { collegeVerified: true, collegeVerificationSource: true },
     });
     const changed = await tx.collegeVerificationRequest.updateMany({
       where: { id, status: 'PENDING' },
@@ -108,8 +104,8 @@ export async function reviewVerification(actor: string, id: string, input: unkno
     await tx.user.update({
       where: { id: request.userId },
       data: {
-        collegeVerified:
-          applicant.collegeVerified || applicant.emailVerified || data.status === 'APPROVED',
+        collegeVerified: applicant.collegeVerified || data.status === 'APPROVED',
+        ...(data.status === 'APPROVED' ? { collegeVerificationSource: request.method } : {}),
       },
     });
     await tx.moderationAction.create({

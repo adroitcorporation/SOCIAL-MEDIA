@@ -3,7 +3,12 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Pagination } from '@/frontend/components/pagination';
 import { useCircle } from '@/frontend/state/circle-context';
-import type { Dashboard, ModerationUser, ReportItem } from '@/shared/contracts/moderation';
+import type {
+  Dashboard,
+  ModerationUser,
+  ReportItem,
+  ApprovedCollegeDomain,
+} from '@/shared/contracts/moderation';
 import {
   accountStatuses,
   canAssignRole,
@@ -12,6 +17,7 @@ import {
   reportStatuses,
 } from '@/shared/contracts/permissions';
 import type { AccountStatus, UserRole, ReportStatus } from '@/shared/contracts/permissions';
+import type { CollegeOption } from '@/shared/contracts/recommendations';
 import { PageHeading } from '@/frontend/components/page-heading';
 import { ModerationPage } from './moderation-page';
 
@@ -65,6 +71,7 @@ export function ModerationDashboard() {
           </Link>
         )}
       </div>
+      {state.me.role === 'ULTIMATE_MODERATOR' && <ApprovedDomainManager />}
       {tab === 'Verification' ? (
         <ModerationPage />
       ) : tab === 'Reports' ? (
@@ -244,6 +251,143 @@ function UserEditor({
     </form>
   );
 }
+function ApprovedDomainManager() {
+  const { api, mutate, toast, busy, state } = useCircle();
+  const [domains, setDomains] = useState<ApprovedCollegeDomain[]>([]);
+  const [draft, setDraft] = useState('');
+  const [collegeSearch, setCollegeSearch] = useState('');
+  const [collegeId, setCollegeId] = useState('');
+  const [colleges, setColleges] = useState<CollegeOption[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    api.moderation
+      .domains()
+      .then((value) => {
+        if (active) {
+          setDomains(value);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) toast('Unable to load approved domains. Reload to try again.', true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [api, toast]);
+
+  useEffect(() => {
+    if (!collegeSearch.trim()) {
+      setColleges([]);
+      return;
+    }
+    let active = true;
+    const timer = setTimeout(() => {
+      api
+        .colleges(collegeSearch)
+        .then((values) => {
+          if (active) setColleges(values);
+        })
+        .catch(() => {
+          if (active) toast('Unable to search colleges.', true);
+        });
+    }, 250);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [api, collegeSearch, toast]);
+
+  async function save(domain: string, remove = false) {
+    if (saving || busy || loading) return;
+    setSaving(true);
+    try {
+      const values = await mutate(() =>
+        remove
+          ? api.moderation.removeDomain(domain)
+          : api.moderation.addDomain(domain, collegeId || undefined),
+      );
+      setDomains(values);
+      setDraft('');
+      setCollegeSearch('');
+      setCollegeId('');
+      toast('Approved domains updated.');
+    } catch {
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (state.me.role !== 'ULTIMATE_MODERATOR') return null;
+
+  return (
+    <section className="panel moderation-section">
+      <h2>Approved college domains</h2>
+      <p className="muted">
+        Students with a verified account email at an approved domain skip ID upload. Revocation
+        takes effect on their next authenticated request.
+      </p>
+      <div className="filter-panel filter-top" style={{ marginBottom: 0 }}>
+        <input
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          placeholder="mnit.ac.in or @mnit.ac.in"
+          aria-label="Approved email domain"
+        />
+        <input
+          aria-label="Search college (optional)"
+          placeholder="Search college (optional)"
+          value={collegeSearch}
+          onChange={(event) => {
+            setCollegeSearch(event.target.value);
+            setCollegeId('');
+          }}
+        />
+        <select
+          aria-label="Associate college (optional)"
+          value={collegeId}
+          onChange={(event) => setCollegeId(event.target.value)}
+        >
+          <option value="">No college association</option>
+          {colleges.map((college) => (
+            <option key={college.id} value={college.id}>
+              {college.name}
+            </option>
+          ))}
+        </select>
+        <button
+          className="button primary"
+          disabled={loading || saving || busy || !draft.trim()}
+          onClick={() => save(draft)}
+        >
+          Add domain
+        </button>
+      </div>
+      <div className="tag-list" style={{ marginTop: 12 }}>
+        {!loading && !domains.length && <span className="tag muted">No approved domains yet</span>}
+        {domains.map(({ domain, college }) => (
+          <span key={domain} className="tag">
+            @{domain}
+            {college ? ` — ${college.name}` : ''}
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={`Remove ${domain}`}
+              disabled={loading || saving || busy}
+              onClick={() => save(domain, true)}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function UserManagement({ rolesOnly = false }: { rolesOnly?: boolean }) {
   const { api } = useCircle();
   const [users, setUsers] = useState<ModerationUser[]>([]);

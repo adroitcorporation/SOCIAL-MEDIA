@@ -2,8 +2,13 @@ import { requireActiveActor } from '@/backend/services/permissions';
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 import { db } from '@/backend/database/client';
+import { transaction } from '@/backend/database/transaction';
 import { requireThat } from '@/backend/utils/errors';
-import { isAllowedCollegeEmail } from '@/shared/config/college-access';
+import {
+  normalizeApprovedDomain,
+  normalizeCollegeEmailDomain,
+} from '@/shared/config/college-access';
+
 export const isLocalDemo = () =>
   process.env.NODE_ENV !== 'production' && process.env.LOCAL_DEMO === 'true';
 const isEmailConfirmed = (confirmedAt: string | null | undefined) => Boolean(confirmedAt);
@@ -11,10 +16,25 @@ export const isConfirmedLoginEmail = (
   email: string | undefined,
   confirmedAt: string | null | undefined,
 ) => Boolean(email && isEmailConfirmed(confirmedAt));
+
+export async function getApprovedCollegeDomains() {
+  return (await db.approvedCollegeDomain.findMany({ orderBy: { domain: 'asc' } })).map(
+    (row) => row.domain,
+  );
+}
+
 export const isVerifiedCollegeEmail = (
   email: string | undefined,
   confirmedAt: string | null | undefined,
-) => Boolean(email && isAllowedCollegeEmail(email) && isEmailConfirmed(confirmedAt));
+  approvedDomains: Iterable<string> = [],
+) => {
+  const normalizedEmail = email?.trim().toLowerCase();
+  if (!normalizedEmail || !isEmailConfirmed(confirmedAt)) return false;
+  const domain = normalizeCollegeEmailDomain(normalizedEmail);
+  const domainSet = new Set([...approvedDomains].map(normalizeApprovedDomain));
+  return Boolean(domain && domainSet.has(domain));
+};
+
 export async function authenticate(request: Request) {
   if (isLocalDemo()) {
     const user = await db.user.findUnique({ where: { id: 'demo-aarav' } });
@@ -34,29 +54,45 @@ export async function authenticate(request: Request) {
   requireThat(data.user.email, 403, 'Your account must have an email address.');
   const emailVerified = isConfirmedLoginEmail(data.user.email, data.user.email_confirmed_at);
   requireThat(emailVerified, 403, 'Confirm your email using the link we sent before continuing.');
-  const collegeVerified = isVerifiedCollegeEmail(data.user.email, data.user.email_confirmed_at);
-  const existing = await db.user.findUnique({ where: { id: data.user.id } });
-  // Do not write updatedAt (and invalidate every profile consumer) on ordinary reads.
-  const user =
-    existing &&
-    existing.emailVerified === emailVerified &&
-    (!collegeVerified || existing.collegeVerified)
-      ? existing
-      : await db.user.upsert({
-          where: { id: data.user.id },
-          update: { emailVerified, ...(collegeVerified ? { collegeVerified: true } : {}) },
-          create: {
-            id: data.user.id,
-            name: 'New student',
-            emailVerified,
-            collegeVerified,
-          },
-        });
-  if (user !== existing) return requireActiveActor(user.id);
-  requireThat(
-    user.accountStatus === 'ACTIVE',
-    403,
-    `Your account is ${user.accountStatus.toLowerCase()}. Contact the moderation team.`,
-  );
-  return user;
+  const domain = normalizeCollegeEmailDomain(data.user.email);
+  requireThat(domain, 403, 'Your account must have a valid email address.');
+  return transaction(async (tx) => {
+    const approved = domain
+      ? await tx.approvedCollegeDomain.findUnique({ where: { domain } })
+      : null;
+    const existing = await tx.user.findUnique({ where: { id: data.user.id } });
+    const manualSource = existing?.collegeVerificationSource;
+    const source =
+      manualSource === 'COLLEGE_ID' || manualSource === 'EMAIL'
+        ? manualSource
+        : approved
+          ? ('APPROVED_EMAIL_DOMAIN' as const)
+          : null;
+    const collegeVerified = Boolean(source);
+    // Do not write updatedAt (and invalidate every profile consumer) on ordinary reads.
+    const user =
+      existing &&
+      existing.emailVerified === emailVerified &&
+      existing.collegeVerified === collegeVerified &&
+      existing.collegeVerificationSource === source
+        ? existing
+        : await tx.user.upsert({
+            where: { id: data.user.id },
+            update: { emailVerified, collegeVerified, collegeVerificationSource: source },
+            create: {
+              id: data.user.id,
+              name: 'New student',
+              emailVerified,
+              collegeVerified,
+              collegeVerificationSource: source,
+            },
+          });
+    if (user !== existing) return requireActiveActor(user.id, tx);
+    requireThat(
+      user.accountStatus === 'ACTIVE',
+      403,
+      `Your account is ${user.accountStatus.toLowerCase()}. Contact the moderation team.`,
+    );
+    return user;
+  });
 }

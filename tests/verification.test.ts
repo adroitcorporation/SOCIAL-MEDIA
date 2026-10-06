@@ -13,6 +13,11 @@ let eventService: typeof import('@/backend/services/events');
 let eventAttachmentService: typeof import('@/backend/services/event-attachments');
 let moderationService: typeof import('@/backend/services/moderation');
 vi.mock('@/backend/auth/session', () => ({ authenticate: vi.fn(), isLocalDemo: () => false }));
+const provider = vi.hoisted(() => ({ getUser: vi.fn() }));
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: () => ({ auth: { getUser: provider.getUser } }),
+}));
+let realSession: typeof import('@/backend/auth/session');
 let pg: PGlite;
 let server: PGLiteSocketServer;
 let db: typeof Database;
@@ -73,6 +78,7 @@ beforeAll(async () => {
 
   vi.stubEnv('APP_URL', 'http://localhost:3000');
   ({ db } = await import('@/backend/database/client'));
+  realSession = await vi.importActual('@/backend/auth/session');
   service = await import('@/backend/services/community');
   eventService = await import('@/backend/services/events');
   eventAttachmentService = await import('@/backend/services/event-attachments');
@@ -443,12 +449,214 @@ describe('database-backed role and moderation enforcement', () => {
     vi.stubEnv('MODERATOR_USER_IDS', 'organiser');
     expect((await api('organiser', 'moderation/dashboard')).status).toBe(403);
   });
+  it('allows ID verification for confirmed email users when the domain is not approved yet', async () => {
+    const user = await student();
+    await db.user.update({
+      where: { id: user.id },
+      data: { emailVerified: true, collegeVerified: false },
+    });
+    const png = await sharp({
+      create: { width: 2, height: 2, channels: 3, background: '#123456' },
+    })
+      .png()
+      .toBuffer();
+    const submission = await api(user.id, 'verification', {
+      method: 'COLLEGE_ID',
+      documentUrl: `data:image/png;base64,${png.toString('base64')}`,
+    });
+    expect(submission.status).toBe(200);
+    const request = await submission.json();
+    expect(request).toMatchObject({ status: 'PENDING', userId: user.id });
+  });
+  it('trusts manually approved domains without forcing ID upload for those students', async () => {
+    const { isVerifiedCollegeEmail } = realSession;
+    expect(
+      isVerifiedCollegeEmail('student@mnit.com', '2026-09-26T10:00:00.000Z', ['mnit.com']),
+    ).toBe(true);
+    expect(
+      isVerifiedCollegeEmail('student@othercollege.edu', '2026-09-26T10:00:00.000Z', ['mnit.com']),
+    ).toBe(false);
+  });
 });
 afterAll(async () => {
   await db?.$disconnect();
   await server?.stop();
   await pg?.close();
   vi.unstubAllEnvs();
+});
+
+describe('approved college domain management and authenticated evaluation', () => {
+  async function login(id: string, email: string, confirmedAt: string | null = '2026-10-07') {
+    vi.stubEnv('LOCAL_DEMO', 'false');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://localhost:9');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'test-key');
+    provider.getUser.mockResolvedValue({
+      data: { user: { id, email, email_confirmed_at: confirmedAt } },
+      error: null,
+    });
+    return realSession.authenticate(
+      new Request('http://localhost/api/state', {
+        headers: { authorization: 'Bearer test-token' },
+      }),
+    );
+  }
+  it('only the Ultimate Moderator can manage domains; normalization, duplicates and malformed domains are enforced', async () => {
+    for (const actor of ['target', 'reviewer', 'organiser']) {
+      expect((await api(actor, 'moderation/domains', { domain: 'mnit.ac.in' })).status).toBe(403);
+      await expect(
+        moderationService.changeApprovedDomain(actor, { domain: 'mnit.ac.in' }),
+      ).rejects.toMatchObject({ status: 403 });
+      expect(
+        (await api(actor, 'moderation/domains', { domain: 'lnmiit.ac.in' }, 'DELETE')).status,
+      ).toBe(403);
+    }
+    expect((await api('ultimate', 'moderation/domains', { domain: ' @MNIT.AC.IN ' })).status).toBe(
+      200,
+    );
+    const row = await db.approvedCollegeDomain.findUniqueOrThrow({
+      where: { domain: 'mnit.ac.in' },
+    });
+    expect(row.createdBy).toBe('ultimate');
+    expect(await (await api('ultimate', 'moderation/domains')).json()).toContainEqual(
+      expect.objectContaining({ domain: 'mnit.ac.in' }),
+    );
+    for (const domain of ['MNIT.AC.IN', '@mnit.ac.in', ' mnit.ac.in '])
+      expect((await api('ultimate', 'moderation/domains', { domain })).status).toBe(409);
+    for (const domain of [
+      'mn it.ac.in',
+      'https://mnit.ac.in',
+      'a@mnit.ac.in',
+      'mnit.ac.in.attacker.com/',
+      '@@mnit.ac.in',
+      '.mnit.ac.in',
+      'mnit..ac.in',
+    ])
+      expect((await api('ultimate', 'moderation/domains', { domain })).status).toBe(400);
+    await expect(
+      pg.exec(`INSERT INTO "ApprovedCollegeDomain" (domain) VALUES ('MNIT.AC.IN')`),
+    ).rejects.toThrow();
+  });
+  it('uses exact domains and confirmed provider emails, and upgrades existing users on their next login', async () => {
+    const user = await student();
+    expect(await login(user.id, 'student@MNIT.AC.IN')).toMatchObject({
+      collegeVerified: true,
+      emailVerified: true,
+      collegeVerificationSource: 'APPROVED_EMAIL_DOMAIN',
+    });
+    await expect(service.submitVerification(user.id, email)).rejects.toMatchObject({ status: 409 });
+    for (const address of ['student@fake-mnit.ac.in', 'student@mnit.ac.in.attacker.com']) {
+      const other = await student();
+      expect(await login(other.id, address)).toMatchObject({
+        emailVerified: true,
+        collegeVerified: false,
+        collegeVerificationSource: null,
+      });
+      expect((await service.submitVerification(other.id, email)).status).toBe('PENDING');
+    }
+    const unconfirmed = await student();
+    await expect(login(unconfirmed.id, 'student@mnit.ac.in', null)).rejects.toMatchObject({
+      status: 403,
+    });
+    expect(
+      (await db.user.findUniqueOrThrow({ where: { id: unconfirmed.id } })).collegeVerified,
+    ).toBe(false);
+    for (const address of ['student@mnit.ac.in@attacker.com', 'student@.mnit.ac.in', '@mnit.ac.in'])
+      expect(realSession.isVerifiedCollegeEmail(address, '2026-10-07', ['mnit.ac.in'])).toBe(false);
+  });
+  it('optionally associates a domain with an active college and rejects unknown associations', async () => {
+    await db.college.create({
+      data: {
+        id: 'domain-college',
+        name: 'Test college',
+        shortName: 'TC',
+        city: 'Jaipur',
+        state: 'Rajasthan',
+      },
+    });
+    const response = await api('ultimate', 'moderation/domains', {
+      domain: 'association.ac.in',
+      collegeId: 'domain-college',
+    });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toContainEqual({
+      domain: 'association.ac.in',
+      collegeId: 'domain-college',
+      college: { name: 'Test college' },
+    });
+    expect(
+      (
+        await api('ultimate', 'moderation/domains', {
+          domain: 'unknown.ac.in',
+          collegeId: 'unknown',
+        })
+      ).status,
+    ).toBe(400);
+    expect(
+      await db.approvedCollegeDomain.findUnique({ where: { domain: 'unknown.ac.in' } }),
+    ).toBeNull();
+  });
+  it('revokes domain-based verification on the next login but preserves an approved private ID', async () => {
+    const domainUser = await student();
+    const idUser = await student();
+    await login(domainUser.id, 'student@mnit.ac.in');
+    const png = await sharp({ create: { width: 2, height: 2, channels: 3, background: '#123456' } })
+      .png()
+      .toBuffer();
+    await db.user.update({ where: { id: idUser.id }, data: { emailVerified: true } });
+    const submitted = await api(idUser.id, 'verification', {
+      method: 'COLLEGE_ID',
+      documentUrl: `data:image/png;base64,${png.toString('base64')}`,
+      userId: domainUser.id,
+    });
+    expect(submitted.status).toBe(200);
+    const pending = await submitted.json();
+    expect(pending).toMatchObject({ userId: idUser.id, status: 'PENDING' });
+    expect(pending).not.toHaveProperty('documentBytes');
+    expect(
+      (await db.collegeVerificationRequest.findUniqueOrThrow({ where: { id: pending.id } }))
+        .documentBytes?.length,
+    ).toBeGreaterThan(0);
+    expect((await api(idUser.id, `moderation/verifications/${pending.id}/document`)).status).toBe(
+      403,
+    );
+    expect((await api('reviewer', `moderation/verifications/${pending.id}/document`)).status).toBe(
+      200,
+    );
+    await service.reviewVerification('reviewer', pending.id, { status: 'APPROVED' });
+    expect(
+      (await api('ultimate', 'moderation/domains', { domain: '@MNIT.AC.IN' }, 'DELETE')).status,
+    ).toBe(200);
+    expect(await login(domainUser.id, 'student@mnit.ac.in')).toMatchObject({
+      collegeVerified: false,
+      collegeVerificationSource: null,
+    });
+    expect(await login(idUser.id, 'student@mnit.ac.in')).toMatchObject({
+      collegeVerified: true,
+      collegeVerificationSource: 'COLLEGE_ID',
+    });
+    expect(
+      (
+        await api(idUser.id, 'verification', {
+          method: 'COLLEGE_ID',
+          documentUrl: `data:image/png;base64,${png.toString('base64')}`,
+        })
+      ).status,
+    ).toBe(409);
+    expect((await service.submitVerification(domainUser.id, email)).status).toBe('PENDING');
+    expect(await db.moderationAction.count({ where: { targetId: 'mnit.ac.in' } })).toBe(2);
+  });
+  it('rejecting an ID for a confirmed non-approved email never grants college verification', async () => {
+    const user = await student();
+    await login(user.id, 'student@example.com');
+    const pending = await service.submitVerification(user.id, email);
+    await service.reviewVerification('reviewer', pending.id, { status: 'REJECTED' });
+    expect(await db.user.findUniqueOrThrow({ where: { id: user.id } })).toMatchObject({
+      emailVerified: true,
+      collegeVerified: false,
+      collegeVerificationSource: null,
+    });
+    expect((await service.submitVerification(user.id, email)).status).toBe('PENDING');
+  });
 });
 
 describe('college verification workflow', () => {

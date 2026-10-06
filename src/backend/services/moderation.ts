@@ -20,6 +20,8 @@ import {
   reportReviewSchema,
 } from '@/shared/contracts/moderation';
 
+import { normalizeApprovedDomain } from '@/shared/config/college-access';
+
 const person = {
   id: true,
   name: true,
@@ -173,6 +175,54 @@ export async function changeUser(
     return updated;
   });
 }
+export async function listApprovedDomains(actor: string) {
+  await requirePermission(actor, (user) => user.role === 'ULTIMATE_MODERATOR');
+  return db.approvedCollegeDomain.findMany({
+    orderBy: { domain: 'asc' },
+    select: { domain: true, collegeId: true, college: { select: { name: true } } },
+  });
+}
+
+export async function changeApprovedDomain(actor: string, input: unknown, remove = false) {
+  await requirePermission(actor, (user) => user.role === 'ULTIMATE_MODERATOR');
+  const parsed = z
+    .object({
+      domain: z.string().max(254),
+      collegeId: z.string().trim().min(1).max(100).optional(),
+    })
+    .parse(input);
+  const domain = normalizeApprovedDomain(parsed.domain);
+  requireThat(domain, 400, 'Enter a valid email domain, such as mnit.ac.in.');
+  return transaction(async (tx) => {
+    await requirePermission(actor, (user) => user.role === 'ULTIMATE_MODERATOR', tx);
+    if (remove) await tx.approvedCollegeDomain.delete({ where: { domain } });
+    else {
+      const existing = await tx.approvedCollegeDomain.findUnique({ where: { domain } });
+      requireThat(!existing, 409, 'This college domain is already approved.');
+      if (parsed.collegeId)
+        requireThat(
+          await tx.college.findFirst({ where: { id: parsed.collegeId, active: true } }),
+          400,
+          'Select an available college.',
+        );
+      await tx.approvedCollegeDomain.create({
+        data: { domain, createdBy: actor, collegeId: parsed.collegeId },
+      });
+    }
+    await tx.moderationAction.create({
+      data: {
+        actorId: actor,
+        targetId: domain,
+        action: remove ? 'COLLEGE_DOMAIN_REVOKED' : 'COLLEGE_DOMAIN_APPROVED',
+      },
+    });
+    return tx.approvedCollegeDomain.findMany({
+      orderBy: { domain: 'asc' },
+      select: { domain: true, collegeId: true, college: { select: { name: true } } },
+    });
+  });
+}
+
 export async function dashboard(actor: string) {
   await requirePermission(actor, canViewModerationDashboard);
   const [

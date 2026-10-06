@@ -22,6 +22,7 @@ import { PageHeading } from '@/frontend/components/page-heading';
 export function MessagesPage() {
   const { state, api, toast, mutate, busy } = useCircle();
   const [create, setCreate] = useState(false);
+  const [newChat, setNewChat] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -204,10 +205,16 @@ export function MessagesPage() {
   return (
     <>
       <PageHeading title="Messages">
-        <button className="button primary" onClick={() => setCreate(true)}>
-          <Plus size={17} />
-          Create group
-        </button>
+        <div className="message-actions">
+          <button className="button secondary" onClick={() => setNewChat(true)}>
+            <MessageCircle size={16} />
+            New chat
+          </button>
+          <button className="button primary" onClick={() => setCreate(true)}>
+            <Plus size={17} />
+            Create group
+          </button>
+        </div>
       </PageHeading>
       <div className={`chat-layout ${selected ? 'has-selection' : ''}`}>
         <aside className="conversation-sidebar">
@@ -446,6 +453,15 @@ export function MessagesPage() {
           </div>
         </Modal>
       )}
+      {newChat && (
+        <StartDirectChat
+          onClose={() => setNewChat(false)}
+          onCreated={(id) => {
+            setNewChat(false);
+            select(id);
+          }}
+        />
+      )}
       {create && (
         <CreateGroup
           onClose={() => setCreate(false)}
@@ -466,6 +482,71 @@ export function MessagesPage() {
         />
       )}
     </>
+  );
+}
+function StartDirectChat({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (id: string) => void;
+}) {
+  const { api, state, mutate, busy } = useCircle();
+  const [search, setSearch] = useState('');
+  const [target, setTarget] = useState<string>('');
+  const connections = state.connections
+    .filter((c) => c.status === 'ACCEPTED')
+    .map((c) => (c.requesterId === state.me.id ? c.receiver : c.requester));
+  return (
+    <Modal title="Start chat" onClose={onClose}>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!target) return;
+          try {
+            const conversation = await mutate(() =>
+              api.conversations.create({ type: 'DIRECT', userId: target }),
+            );
+            onCreated(conversation.id);
+          } catch {}
+        }}
+      >
+        <label>
+          Choose a connection
+          <input
+            placeholder="Search connections…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
+        <div className="person-picker">
+          {connections
+            .filter((user) => user.name.toLowerCase().includes(search.toLowerCase()))
+            .map((user) => (
+              <label className="select-person" key={user.id}>
+                <input
+                  type="radio"
+                  name="direct-conversation-target"
+                  checked={target === user.id}
+                  onChange={() => setTarget(user.id)}
+                />
+                <Avatar user={user} size="small" />
+                <span className="person-label">
+                  <strong>{user.name}</strong>
+                  <small>{user.college}</small>
+                </span>
+              </label>
+            ))}
+        </div>
+        {!connections.length && (
+          <p className="notice">Connect with students first to start a direct message.</p>
+        )}
+        <button className="button primary full" disabled={busy || !target}>
+          <MessageCircle size={16} />
+          Start conversation
+        </button>
+      </form>
+    </Modal>
   );
 }
 function CreateGroup({

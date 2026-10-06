@@ -12,6 +12,7 @@ import { PageHeading } from '@/frontend/components/page-heading';
 import { canCreateEvent } from '@/shared/contracts/permissions';
 import { EventManager } from './event-manager';
 import { EventAttachments } from './event-attachments';
+import { EventPoster } from './event-poster';
 import { useFeedFilters } from '@/frontend/hooks/use-feed-filters';
 import { FeedPagination } from '@/frontend/components/feed-pagination';
 export function EventsPage() {
@@ -64,18 +65,18 @@ export function EventsPage() {
         {events.map((event, i) => (
           <article className="event-card" key={event.id}>
             <button
-              className={`event-art event-art-${i % 3}`}
+              type="button"
+              className="event-art-button"
               onClick={() => setDetail(event)}
               aria-label={`View ${event.title}`}
             >
-              <span>
-                {event.category === 'Hackathon' ? '</>' : event.category === 'Design' ? '✳' : '↗'}
-              </span>
-              <small>{event.category.toUpperCase()}</small>
-              <div className="event-date">
-                <b>{new Date(event.startsAt).getDate()}</b>
-                {new Date(event.startsAt).toLocaleDateString('en-IN', { month: 'short' })}
-              </div>
+              <EventPoster
+                eventId={event.id}
+                attachments={event.attachments}
+                category={event.category}
+                index={i}
+                startsAt={event.startsAt}
+              />
             </button>
             <div className="event-body">
               <span className="eyebrow">{event.organizer}</span>

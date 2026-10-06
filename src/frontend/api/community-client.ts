@@ -2,6 +2,7 @@ import type { HttpClient } from './http-client';
 import type { ProfilePost, PostInput, PostPage, PostComment } from '@/shared/contracts/posts';
 import type {
   Dashboard,
+  ApprovedCollegeDomain,
   ModerationUser,
   ReportItem,
   EventInput,
@@ -102,6 +103,11 @@ export function createCommunityClient(http: HttpClient) {
     },
     moderation: {
       dashboard: () => http.request<Dashboard>('moderation/dashboard'),
+      domains: () => http.request<ApprovedCollegeDomain[]>('moderation/domains'),
+      addDomain: (domain: string, collegeId?: string) =>
+        http.request<ApprovedCollegeDomain[]>('moderation/domains', { domain, collegeId }),
+      removeDomain: (domain: string) =>
+        http.request<ApprovedCollegeDomain[]>('moderation/domains', { domain }, 'DELETE'),
       users: (query = '', rolesOnly = false) =>
         http.request<ModerationUser[]>(`moderation/${rolesOnly ? 'roles' : 'users'}?${query}`),
       reports: (query = '') => http.request<ReportItem[]>(`moderation/reports?${query}`),

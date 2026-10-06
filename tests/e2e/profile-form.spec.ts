@@ -81,6 +81,31 @@ async function openProfile(page: Page, overrides: Partial<Student> = {}) {
   return saved;
 }
 
+test('approved college email hides ID upload and explains verification', async ({ page }) => {
+  await openProfile(page, {
+    collegeVerified: true,
+    collegeVerificationSource: 'APPROVED_EMAIL_DOMAIN',
+  });
+  await expect(
+    page.getByText('College verified through your college email.', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'College ID', exact: true })).toHaveCount(0);
+});
+
+test('confirmed email without an approved domain still offers college ID upload', async ({
+  page,
+}) => {
+  await openProfile(page, {
+    emailVerified: true,
+    collegeVerified: false,
+    collegeVerificationSource: null,
+  });
+  await page.getByRole('button', { name: 'College ID', exact: true }).click();
+  await expect(page.locator('input[type="file"]').last()).toBeAttached();
+  await expect(page.getByRole('button', { name: 'Submit for review' })).toBeVisible();
+  await expect(page.getByText('College verified.', { exact: true })).toHaveCount(0);
+});
+
 test('creates a profile with suggestions and custom values, leaving optional URLs empty', async ({
   page,
 }) => {

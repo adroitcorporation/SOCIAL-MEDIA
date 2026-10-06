@@ -97,7 +97,9 @@ export function ProfilePage() {
             <h3>{state.me.collegeVerified ? 'College verified.' : 'Verify your college'}</h3>
             <p className="muted">
               {state.me.collegeVerified
-                ? 'You can now send connection requests to other students.'
+                ? state.me.collegeVerificationSource === 'APPROVED_EMAIL_DOMAIN'
+                  ? 'College verified through your college email.'
+                  : 'You can now send connection requests to other students.'
                 : 'Verify your college to send connection requests.'}
             </p>
             {state.me.collegeVerified ? null : verification?.status === 'PENDING' ? (
@@ -162,7 +164,7 @@ export function ProfilePage() {
                 </button>
               </form>
             )}
-            {verification?.status === 'REJECTED' && (
+            {!state.me.collegeVerified && verification?.status === 'REJECTED' && (
               <p className="error">
                 Previous submission was not approved
                 {verification.reviewNote ? `: ${verification.reviewNote}` : '.'} You can submit

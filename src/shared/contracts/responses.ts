@@ -59,6 +59,7 @@ export interface Student {
   portfolio: string;
   emailVerified: boolean;
   collegeVerified: boolean;
+  collegeVerificationSource?: 'APPROVED_EMAIL_DOMAIN' | 'COLLEGE_ID' | 'EMAIL' | null;
   onboarded: boolean;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;

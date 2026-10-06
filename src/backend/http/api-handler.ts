@@ -122,7 +122,16 @@ export async function handleApiRequest(request: Request, path: string[]) {
       if (new URL(request.url).searchParams.get('roles') === 'true')
         await requirePermission(user.id, (actor) => canAssignRole(actor, 'STUDENT'));
       result = { ok: true };
-    } else if (resource === 'moderation' && id === 'dashboard' && !action && method === 'GET')
+    } else if (resource === 'moderation' && id === 'domains' && !action && method === 'GET')
+      result = await moderation.listApprovedDomains(user.id);
+    else if (
+      resource === 'moderation' &&
+      id === 'domains' &&
+      !action &&
+      (method === 'POST' || method === 'DELETE')
+    )
+      result = await moderation.changeApprovedDomain(user.id, input, method === 'DELETE');
+    else if (resource === 'moderation' && id === 'dashboard' && !action && method === 'GET')
       result = present.dashboard(await moderation.dashboard(user.id));
     else if (resource === 'moderation' && id === 'reports' && !action && method === 'GET')
       result = present.reports(

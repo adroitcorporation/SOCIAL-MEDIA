@@ -64,6 +64,18 @@ beforeAll(async () => {
       'utf8',
     ),
   );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202610070001_approved_college_domains/migration.sql',
+      'utf8',
+    ),
+  );
+  await pg.exec(
+    await readFile(
+      'src/backend/database/prisma/migrations/202610070002_domain_college_association/migration.sql',
+      'utf8',
+    ),
+  );
   server = new PGLiteSocketServer({ db: pg, host: '127.0.0.1', port: 54330 });
   await server.start();
   process.env.DATABASE_URL =
@@ -123,13 +135,16 @@ describe('Connection lifecycle', () => {
     });
     await service.transitionConnection('b', request.id, 'accept');
   });
-  it('allows exactly one active relationship for reciprocal/concurrent requests', async () => {
+  it('automatically accepts reciprocal requests while keeping exactly one relationship', async () => {
     const results = await Promise.allSettled([
       service.requestConnection('c', 'd'),
       service.requestConnection('d', 'c'),
     ]);
-    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(2);
     expect(await db.connection.count({ where: { pairKey: 'c:d' } })).toBe(1);
+    expect((await db.connection.findUniqueOrThrow({ where: { pairKey: 'c:d' } })).status).toBe(
+      'ACCEPTED',
+    );
     await expect(service.requestConnection('a', 'a')).rejects.toMatchObject({ status: 400 });
   });
   it('creates a single direct conversation even when both sides initiate', async () => {

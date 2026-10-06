@@ -17,6 +17,7 @@ import { Empty } from '@/frontend/components/ui';
 import { IdeaCard } from '@/frontend/features/ideas/ideas-page';
 import { PageHeading } from '@/frontend/components/page-heading';
 import { StudentCard } from '@/frontend/components/student-card';
+import { EventPoster } from '@/frontend/features/events/event-poster';
 export function HomePage() {
   const { state } = useCircle();
   const accepted = state.connections.filter((c) => c.status === 'ACCEPTED');
@@ -68,20 +69,13 @@ export function HomePage() {
           <div className="event-stack">
             {state.events.slice(0, 3).map((event, i) => (
               <Link href="/events" className="mini-event" key={event.id}>
-                <div className={`event-art event-art-${i}`}>
-                  <span>
-                    {event.category === 'Hackathon'
-                      ? '</>'
-                      : event.category === 'Design'
-                        ? '✳'
-                        : '↗'}
-                  </span>
-                  <small>{event.category.toUpperCase()}</small>
-                  <div className="event-date">
-                    <b>{new Date(event.startsAt).getDate()}</b>
-                    {new Date(event.startsAt).toLocaleDateString('en-IN', { month: 'short' })}
-                  </div>
-                </div>
+                <EventPoster
+                  eventId={event.id}
+                  attachments={event.attachments}
+                  category={event.category}
+                  index={i}
+                  startsAt={event.startsAt}
+                />
                 <h3>{event.title}</h3>
                 <p>
                   <MapPin size={12} />

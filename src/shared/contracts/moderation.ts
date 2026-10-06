@@ -79,3 +79,8 @@ export interface Dashboard {
   }[];
   activitySummary: { action: string; count: number }[];
 }
+export interface ApprovedCollegeDomain {
+  domain: string;
+  collegeId: string | null;
+  college: { name: string } | null;
+}

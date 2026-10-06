@@ -6,6 +6,7 @@ import { validateMutationRequest } from '@/backend/http/middleware';
 // Provider and persistence doubles: these tests do not exercise live Supabase.
 const doubles = vi.hoisted(() => ({
   getUser: vi.fn(),
+  domainLookup: vi.fn(),
   upsert: vi.fn(),
   findUnique: vi.fn(),
   signUp: vi.fn(),
@@ -15,9 +16,18 @@ const doubles = vi.hoisted(() => ({
 vi.mock('@supabase/supabase-js', () => ({
   createClient: () => ({ auth: { getUser: doubles.getUser } }),
 }));
-vi.mock('@/backend/database/client', () => ({
-  db: { user: { upsert: doubles.upsert, findUnique: doubles.findUnique } },
-}));
+vi.mock('@/backend/database/client', () => {
+  const persistence = {
+    approvedCollegeDomain: { findUnique: doubles.domainLookup },
+    user: { upsert: doubles.upsert, findUnique: doubles.findUnique },
+  };
+  return {
+    db: {
+      ...persistence,
+      $transaction: (callback: (client: typeof persistence) => unknown) => callback(persistence),
+    },
+  };
+});
 vi.mock('@/frontend/auth/supabase-browser', () => ({ authClient: () => ({ auth: doubles }) }));
 const actor = {
   id: 'synthetic',
@@ -36,6 +46,9 @@ beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'synthetic-test-key');
   vi.stubEnv('APP_URL', 'http://localhost');
   vi.stubEnv('NEXT_PUBLIC_APP_URL', '');
+  doubles.domainLookup.mockImplementation(({ where }) =>
+    Promise.resolve(where.domain === 'lnmiit.ac.in' ? { domain: where.domain } : null),
+  );
   doubles.findUnique.mockResolvedValue(actor);
   doubles.upsert.mockResolvedValue(actor);
 });
@@ -45,7 +58,12 @@ afterEach(() => {
 });
 describe('real authentication function with mocked Supabase provider', () => {
   it('does not rewrite or reread an unchanged verified profile and still checks current account status', async () => {
-    const verified = { ...actor, emailVerified: true, collegeVerified: true };
+    const verified = {
+      ...actor,
+      emailVerified: true,
+      collegeVerified: true,
+      collegeVerificationSource: 'APPROVED_EMAIL_DOMAIN',
+    };
     doubles.findUnique.mockResolvedValue(verified);
     doubles.getUser.mockResolvedValue({
       data: {
@@ -71,12 +89,13 @@ describe('real authentication function with mocked Supabase provider', () => {
       expect(await authenticate(request())).toEqual(actor);
       expect(doubles.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          update: { emailVerified: true },
+          update: { emailVerified: true, collegeVerified: false, collegeVerificationSource: null },
           create: {
             id: actor.id,
             name: 'New student',
             emailVerified: true,
             collegeVerified: false,
+            collegeVerificationSource: null,
           },
         }),
       );
@@ -105,8 +124,18 @@ describe('real authentication function with mocked Supabase provider', () => {
     expect(await authenticate(request())).toEqual(actor);
     expect(doubles.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        update: { emailVerified: true, collegeVerified: true },
-        create: { id: actor.id, name: 'New student', emailVerified: true, collegeVerified: true },
+        update: {
+          emailVerified: true,
+          collegeVerified: true,
+          collegeVerificationSource: 'APPROVED_EMAIL_DOMAIN',
+        },
+        create: {
+          id: actor.id,
+          name: 'New student',
+          emailVerified: true,
+          collegeVerified: true,
+          collegeVerificationSource: 'APPROVED_EMAIL_DOMAIN',
+        },
       }),
     );
   });

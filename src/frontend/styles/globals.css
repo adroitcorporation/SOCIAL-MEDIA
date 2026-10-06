@@ -1915,6 +1915,15 @@ em {
   text-align: left;
   display: block;
 }
+.event-art.has-poster {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.event-art.has-poster::after {
+  opacity: 0.28;
+}
 .event-art:after {
   content: '';
   position: absolute;
@@ -2735,6 +2744,17 @@ em {
   height: 175px;
   border-radius: 0;
   padding: 25px;
+}
+.event-card > .event-art-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.event-card > .event-art-button .event-art {
+  pointer-events: none;
 }
 .event-card > .event-art > span {
   font-size: 65px;
@@ -3639,6 +3659,14 @@ em {
   background: var(--surface-soft, #f0f4f9);
   font-size: 12px;
 }
+.message-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.message-actions .button {
+  white-space: nowrap;
+}
 .message-compose .button {
   padding: 11px 15px;
 }
@@ -4258,6 +4286,10 @@ em {
     background: #15294566;
     z-index: 55;
     backdrop-filter: blur(2px);
+  }
+  .message-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
   .main-shell {
     margin-left: 0;

@@ -271,12 +271,12 @@ export function EventManager() {
             </label>
             <section className="event-attachment-editor" aria-label="Event attachments">
               <div>
-                <strong>Event information</strong>
-                <small>Attach PDFs or images with schedules, maps, or other useful details.</small>
+                <strong>Event poster and info</strong>
+                <small>Upload the poster image first and add PDFs or extra images with schedules, maps, or other details.</small>
               </div>
               <label className="event-attachment-picker">
                 <span className="button secondary">
-                  <FileText size={16} /> Add PDF or images
+                  <FileText size={16} /> Upload poster or files
                 </span>
                 <input
                   type="file"
