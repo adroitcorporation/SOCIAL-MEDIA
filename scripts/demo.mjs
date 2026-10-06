@@ -6,6 +6,12 @@ const env = {
   DIRECT_URL: 'postgresql://postgres:postgres@127.0.0.1:54329/postgres',
   LOCAL_DEMO: 'true',
   APP_URL: 'http://localhost:3000',
+  // Browser E2E stubs Supabase network calls, but the client still requires
+  // public configuration to construct the SDK. Keep these values demo-only.
+  NEXT_PUBLIC_SUPABASE_URL:
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://synthetic.supabase.co',
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'synthetic-public-key',
 };
 for (const args of [
   [
