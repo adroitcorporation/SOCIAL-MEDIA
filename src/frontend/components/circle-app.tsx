@@ -265,7 +265,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
           )}
           <main className={`page-content ${path === '/messages' ? 'message-page' : ''}`}>
             {screenPending ? (
-              <Loading />
+              <Loading variant="screen" />
             ) : (
               <div className="screen-transition" key={`${path}?${query}`}>
                 {children}

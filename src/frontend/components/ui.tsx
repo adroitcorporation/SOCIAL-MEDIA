@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { X, BadgeCheck, ArrowUpRight, LoaderCircle } from 'lucide-react';
+import { X, BadgeCheck, ArrowUpRight, Circle } from 'lucide-react';
 import type { Student } from '@/shared/contracts/responses';
 export function Avatar({
   user,
@@ -96,11 +96,18 @@ export function Empty({
     </div>
   );
 }
-export function Loading() {
+export function Loading({ variant = 'default' }: { variant?: 'default' | 'screen' }) {
   return (
-    <div className="loading" role="status">
-      <LoaderCircle size={24} />
-      <span>Loading…</span>
+    <div className={`loading ${variant === 'screen' ? 'loading-screen' : ''}`} role="status">
+      <span className="loading-mark" aria-hidden="true">
+        <span className="loading-orbit" />
+        <span className="loading-orbit-dot" />
+        <Circle className="loading-symbol" size={26} strokeWidth={1.8} />
+      </span>
+      <span className="loading-label">Loading…</span>
+      <span className="loading-caption" aria-hidden="true">
+        Bringing your space together
+      </span>
     </div>
   );
 }

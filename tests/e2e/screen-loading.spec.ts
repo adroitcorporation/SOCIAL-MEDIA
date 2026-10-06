@@ -94,6 +94,44 @@ test('tab transition is brief and settles instead of staying active', async ({ p
   expect(await screen.evaluate((node) => getComputedStyle(node).opacity)).toBe('1');
 });
 
+test('screen loading uses the branded orbit animation in a compact shell area', async ({
+  page,
+}) => {
+  await page.goto('/events');
+  await expect(page.locator('.event-card').first()).toBeVisible();
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let requestStarted!: () => void;
+  const requested = new Promise<void>((resolve) => {
+    requestStarted = resolve;
+  });
+  await page.route('**/api/state?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('view') === '/connections') {
+      requestStarted();
+      await pending;
+    }
+    await route.continue();
+  });
+  try {
+    await page.locator('.sidebar').getByRole('link', { name: 'Connections', exact: true }).click();
+    await requestStarted;
+    const loader = page.locator('.loading-screen');
+    await expect(loader).toBeVisible();
+    await expect(loader.locator('.loading-mark')).toBeVisible();
+    expect(await loader.evaluate((node) => getComputedStyle(node).minHeight)).toBe('520px');
+    expect(
+      await loader
+        .locator('.loading-mark')
+        .evaluate((node) => getComputedStyle(node, '::after').animationName),
+    ).not.toBe('none');
+  } finally {
+    release();
+  }
+  await expect(page.getByRole('heading', { name: 'Connections' })).toBeVisible();
+});
+
 test('returning to a visited screen renders its cached state while it refreshes', async ({
   page,
 }) => {

@@ -846,10 +846,89 @@ em {
 .loading {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 7px;
   color: var(--text-secondary, #556986);
+}
+.loading-screen {
+  min-height: min(56vh, 520px);
+  padding: 32px 16px;
+}
+.loading-mark {
+  position: relative;
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+.loading-mark::before,
+.loading-mark::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+.loading-mark::after {
+  inset: -3px;
+  border-color: transparent;
+  border-top-color: var(--accent);
+  border-right-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  animation: loading-orbit 1.15s cubic-bezier(0.55, 0.05, 0.45, 0.95) infinite;
+}
+.loading-symbol {
+  color: var(--primary);
+  animation: loading-pulse 1.15s ease-in-out infinite alternate;
+}
+.loading-orbit {
+  position: absolute;
+  width: 39px;
+  height: 39px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 42%, transparent);
+  border-radius: 50%;
+  animation: loading-orbit 4s linear infinite reverse;
+}
+.loading-orbit-dot {
+  position: absolute;
+  z-index: 1;
+  top: 1px;
+  right: 7px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--background);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.loading-label {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+}
+.loading-caption {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+@keyframes loading-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes loading-pulse {
+  from {
+    transform: scale(0.9);
+    opacity: 0.68;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 .app-shell {
   display: flex;
@@ -4859,6 +4938,11 @@ em {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .loading-mark::after,
+  .loading-orbit,
+  .loading-symbol {
+    animation: none !important;
+  }
   .screen-transition,
   .screen-transition::before {
     animation: none !important;
