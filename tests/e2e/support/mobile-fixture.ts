@@ -232,11 +232,17 @@ export async function emitActivity(page: Page, snapshot: NotificationSnapshot) {
   );
 }
 export async function navigateMobile(page: Page, path: string) {
-  const direct = page.locator(`.bottom-nav a[href="${path}"]`);
-  if (await direct.count()) await direct.click();
-  else {
-    await page.getByRole('button', { name: /^More/ }).click();
-    await page.locator(`.sidebar.open a[href="${path}"]`).click();
+  if (path === '/profile') {
+    await page.locator('.topbar-profile').click();
+  } else if (path === '/notifications') {
+    await page.locator('.topbar a[href="/notifications"]').click();
+  } else {
+    const direct = page.locator(`.bottom-nav a[href="${path}"]`);
+    if (await direct.count()) await direct.click();
+    else {
+      await page.getByRole('button', { name: /^More/ }).click();
+      await page.locator(`.sidebar.open a[href="${path}"]`).click();
+    }
   }
   await expect(page).toHaveURL(new RegExp(`${path === '/' ? '/$' : path.replace('/', '\/')}`));
 }

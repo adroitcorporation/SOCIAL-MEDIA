@@ -11,7 +11,7 @@ for (const theme of themes) {
       if (message.type() === 'error') errors.push(message.text());
     });
     await page.emulateMedia({ colorScheme: theme });
-    await page.goto('/');
+    await page.goto('/profile');
     await expect(page.getByRole('button', { name: 'Dark mode', exact: true })).toHaveAttribute(
       'aria-pressed',
       String(theme === 'dark'),
@@ -31,7 +31,7 @@ test('keyboard toggle persists a manual override across reloads and system chang
   page,
 }) => {
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/');
+  await page.goto('/profile');
   const toggle = page.getByRole('button', { name: 'Dark mode', exact: true });
   await toggle.focus();
   await expect(toggle).toBeFocused();
@@ -54,7 +54,7 @@ test('saved preference applies before React hydrates', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.addInitScript((storageKey) => localStorage.setItem(storageKey, 'dark'), key);
   await page.route('**/_next/static/**/*.js*', (route) => route.abort());
-  await page.goto('/');
+  await page.goto('/profile');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(12, 21, 36)');
 });
@@ -64,7 +64,7 @@ test('invalid or unavailable storage falls back to system and keeps the toggle u
 }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.addInitScript((storageKey) => localStorage.setItem(storageKey, 'invalid'), key);
-  await page.goto('/');
+  await page.goto('/profile');
   await expect(page.getByRole('button', { name: 'Dark mode', exact: true })).toHaveAttribute(
     'aria-pressed',
     'true',
@@ -87,7 +87,7 @@ test('invalid or unavailable storage falls back to system and keeps the toggle u
 
 test('theme preferences stay in sync across open tabs', async ({ page, context }) => {
   await page.emulateMedia({ colorScheme: 'light' });
-  await page.goto('/');
+  await page.goto('/profile');
   const second = await context.newPage();
   await second.emulateMedia({ colorScheme: 'light' });
   await second.goto('/profile');
@@ -118,14 +118,18 @@ for (const theme of themes) {
     ]) {
       await page.goto(route);
       const toggle = page.getByRole('button', { name: 'Dark mode', exact: true });
-      await expect(toggle).toBeVisible();
-      await expect(toggle).toHaveAttribute('aria-pressed', String(theme === 'dark'));
+      if (route === '/profile') {
+        await expect(toggle).toBeVisible();
+        await expect(toggle).toHaveAttribute('aria-pressed', String(theme === 'dark'));
+      } else {
+        await expect(toggle).toHaveCount(0);
+      }
       await expect(page.locator('body')).toHaveCSS(
         'background-color',
         theme === 'dark' ? 'rgb(12, 21, 36)' : 'rgb(245, 247, 251)',
       );
       await page.setViewportSize({ width: 375, height: 812 });
-      await expect(toggle).toBeInViewport();
+      if (route === '/profile') await expect(toggle).toBeInViewport();
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       ).toBe(true);
@@ -135,18 +139,15 @@ for (const theme of themes) {
   });
 }
 
-test('login screen exposes the same theme control on small screens', async ({ page }) => {
+test('login follows the system theme without a duplicate control', async ({ page }) => {
   await page.route('**/api/config', (route) =>
     route.fulfill({ json: { demo: false, configured: false } }),
   );
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto('/login');
-  const toggle = page.getByRole('button', { name: 'Dark mode', exact: true });
-  await expect(toggle).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'Dark mode', exact: true })).toHaveCount(0);
   await expect(page.locator('.auth-card')).toHaveCSS('background-color', 'rgb(20, 34, 56)');
-  await toggle.click();
-  await expect(page.locator('.auth-card')).toHaveCSS('background-color', 'rgb(255, 255, 255)');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );

@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { ArrowRight, Circle, GitBranch, Globe, Mail, ShieldCheck } from 'lucide-react';
 import { browserAuth } from '@/frontend/auth/browser-auth';
 import { brand } from '@/shared/config/brand';
-import { ThemeToggle } from '@/frontend/components/theme-toggle';
 
 const socialProviders = [
   { provider: 'google', label: 'Google' },
@@ -72,9 +71,6 @@ export function AuthForm({
   }
   return (
     <main className="auth-page">
-      <div className="auth-theme-control">
-        <ThemeToggle />
-      </div>
       <div className="auth-story">
         <div className="wordmark">
           <span className="brand-mark">

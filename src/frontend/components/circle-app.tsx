@@ -11,7 +11,6 @@ import {
   CalendarDays,
   MessageCircle,
   Bell,
-  UserRound,
   Search,
   LogOut,
   Circle,
@@ -35,7 +34,6 @@ import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
 import { profilePath } from '@/frontend/utils/profile-path';
 import { Avatar, Loading } from './ui';
-import { ThemeToggle } from './theme-toggle';
 
 const AuthForm = dynamic(
   () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
@@ -43,13 +41,11 @@ const AuthForm = dynamic(
 );
 const nav = [
   { path: '/', label: 'Home', icon: Home },
-  { path: '/events', label: 'Events', icon: CalendarDays },
-  { path: '/profile', label: 'Profile', icon: UserRound },
   { path: '/ideas', label: 'Idea Board', icon: Lightbulb },
   { path: '/discover', label: 'Discover', icon: Compass },
+  { path: '/events', label: 'Events', icon: CalendarDays },
   { path: '/connections', label: 'Connections', icon: Users },
   { path: '/messages', label: 'Messages', icon: MessageCircle },
-  { path: '/notifications', label: 'Notifications', icon: Bell },
 ];
 export function CircleApp({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -233,7 +229,11 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
           ? 'Post'
           : path.startsWith('/u/')
             ? 'User profile'
-            : nav.find((n) => n.path === path)?.label || 'Home';
+            : path === '/profile'
+              ? 'Profile'
+              : path === '/notifications'
+                ? 'Notifications'
+                : nav.find((n) => n.path === path)?.label || 'Home';
   return (
     <CircleContext.Provider value={contextValue}>
       <div className="app-shell">
@@ -266,8 +266,6 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
                 <span>{item.label}</span>
                 {item.path === '/messages' && messagesUnread > 0 ? (
                   <b className="nav-count">{messagesUnread}</b>
-                ) : item.path === '/notifications' && unread > 0 ? (
-                  <b className="nav-count">{unread}</b>
                 ) : null}
               </Link>
             ))}
@@ -331,7 +329,6 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
               <kbd>↵</kbd>
             </form>
             <div className="topbar-actions">
-              <ThemeToggle />
               <Link
                 href="/messages"
                 onPointerEnter={() => prefetchScreen('/messages')}
@@ -376,29 +373,21 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
           </main>
         </div>
         <nav className="bottom-nav">
-          {nav
-            .filter((n) => ['/', '/events', '/discover', '/ideas', '/profile'].includes(n.path))
-            .map((n) => (
-              <Link
-                key={n.path}
-                href={n.path}
-                onPointerEnter={() => prefetchScreen(n.path)}
-                onFocus={() => prefetchScreen(n.path)}
-                className={path === n.path ? 'active' : ''}
-              >
-                <n.icon size={20} />
-                <span>{n.label}</span>
-              </Link>
-            ))}
-          <button
-            onClick={() => setMobile(true)}
-            aria-label={unread ? `More, ${unread} unread notifications` : 'More'}
-          >
+          {nav.slice(0, 5).map((n) => (
+            <Link
+              key={n.path}
+              href={n.path}
+              onPointerEnter={() => prefetchScreen(n.path)}
+              onFocus={() => prefetchScreen(n.path)}
+              className={path === n.path ? 'active' : ''}
+            >
+              <n.icon size={20} />
+              <span>{n.label}</span>
+            </Link>
+          ))}
+          <button onClick={() => setMobile(true)} aria-label="More">
             <Menu size={20} />
             <span>More</span>
-            {unread > 0 && (
-              <b className="more-notification-count">{unread > 99 ? '99+' : unread}</b>
-            )}
           </button>
         </nav>
       </div>
