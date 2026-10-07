@@ -57,3 +57,52 @@ it('ignores ready frames, parses split events, throttles snapshots, and cleans u
   expect(live).toHaveBeenCalledOnce();
   expect(refresh).toHaveBeenCalledTimes(2);
 });
+
+it('delivers notification payloads independently of snapshot throttling and accepts split CRLF frames', async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal('window', new EventTarget());
+  vi.stubGlobal('document', Object.assign(new EventTarget(), { visibilityState: 'visible' }));
+  let stream!: ReadableStreamDefaultController<Uint8Array>;
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      stream = controller;
+    },
+  });
+  const refresh = vi.fn(async () => {});
+  const receive = vi.fn();
+  const live = vi.fn(async (signal: AbortSignal) => {
+    signal.addEventListener('abort', () => stream.close(), { once: true });
+    return new Response(body);
+  });
+  const stop = subscribeToLiveUpdates({ live } as unknown as CommunityClient, refresh, receive);
+  const payload = {
+    items: [
+      {
+        id: 'n1',
+        userId: 'me',
+        title: 'Request',
+        body: 'Connect',
+        href: '/connections',
+        readAt: null,
+        createdAt: '2026-10-07',
+      },
+    ],
+    unreadCount: 101,
+  };
+  stream.enqueue(new TextEncoder().encode('event: notifications\r'));
+  await vi.advanceTimersByTimeAsync(0);
+  stream.enqueue(new TextEncoder().encode(`\ndata: ${JSON.stringify(payload)}\r\n\r\n`));
+  await vi.advanceTimersByTimeAsync(0);
+  expect(receive).toHaveBeenCalledWith(payload);
+  expect(refresh).not.toHaveBeenCalled();
+  stream.enqueue(
+    new TextEncoder().encode(
+      'event: notifications\ndata: invalid\n\nevent: notifications\ndata: {"items":[],"unreadCount":-1}\n\n',
+    ),
+  );
+  await vi.advanceTimersByTimeAsync(0);
+  expect(receive).toHaveBeenCalledOnce();
+  stop();
+  await vi.advanceTimersByTimeAsync(60000);
+  expect(live).toHaveBeenCalledOnce();
+});

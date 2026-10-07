@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { getProfileCompletion } from '@/shared/contracts/profile-completion';
 
 import { CheckCircle2, FileImage, Mail, Pencil, Globe, Upload } from 'lucide-react';
 
@@ -17,7 +19,9 @@ import {
 } from '@/shared/contracts/verification';
 export function ProfilePage() {
   const { api, state, mutate, toast } = useCircle();
-  const [edit, setEdit] = useState(!state.me.onboarded);
+  const searchParams = useSearchParams();
+  const [edit, setEdit] = useState(!state.me.onboarded || searchParams.get('edit') === '1');
+  const completion = getProfileCompletion(state.me);
   const [method, setMethod] = useState<'EMAIL' | 'COLLEGE_ID'>('EMAIL');
   const [collegeEmail, setCollegeEmail] = useState('');
   const [document, setDocument] = useState('');
@@ -74,13 +78,29 @@ export function ProfilePage() {
           </button>
         </div>
       </PageHeading>
+      {!completion.isComplete && (
+        <section className="profile-completion panel" aria-label="Profile completion">
+          <div>
+            <strong>Profile {completion.percentage}% complete</strong>
+            <p className="muted">Complete your profile to start connecting with students.</p>
+          </div>
+          {!edit && (
+            <button className="button secondary" onClick={() => setEdit(true)}>
+              Complete Profile
+            </button>
+          )}
+        </section>
+      )}
       <div className="profile-layout">
         <section className="panel">
           {edit ? (
             <ProfileForm
               user={state.me}
               save={async (body) => {
-                await mutate(() => api.profiles.update(body));
+                await mutate(
+                  () => api.profiles.update(body),
+                  (current, me) => ({ ...current, me }),
+                );
                 setEdit(false);
                 toast('Profile saved.');
               }}

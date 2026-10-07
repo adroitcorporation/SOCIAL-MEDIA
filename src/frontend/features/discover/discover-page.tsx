@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { SlidersHorizontal, Search, ArrowRight } from 'lucide-react';
@@ -29,9 +29,14 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
     });
     navigate(`/discover?${params}`);
   }
-  const visibleStudent = useMemo(
-    () => state.students.find((student) => !actedStudentIds.has(student.id)) || null,
+  const readyStudents = useMemo(
+    () => state.students.filter((student) => !actedStudentIds.has(student.id)).slice(0, 2),
     [actedStudentIds, state.students],
+  );
+  const visibleStudent = readyStudents[0];
+  const afterAction = useCallback(
+    (studentId: string) => setActedStudentIds((acted) => new Set(acted).add(studentId)),
+    [],
   );
   const finishedQueue =
     actedStudentIds.size > 0 && state.students.every((student) => actedStudentIds.has(student.id));
@@ -128,14 +133,15 @@ function DiscoverFeed({ queryKey }: { queryKey: string }) {
       </div>
       <div className="discover-single">
         {visibleStudent ? (
-          <StudentCard
-            key={visibleStudent.id}
-            student={visibleStudent}
-            discoverMode
-            onAfterAction={(studentId) =>
-              setActedStudentIds((acted) => new Set(acted).add(studentId))
-            }
-          />
+          readyStudents.map((student, index) => (
+            <StudentCard
+              key={student.id}
+              student={student}
+              discoverMode
+              preview={index > 0}
+              onAfterAction={afterAction}
+            />
+          ))
         ) : (
           <Empty
             title={finishedQueue ? "You're all caught up." : 'No people found.'}

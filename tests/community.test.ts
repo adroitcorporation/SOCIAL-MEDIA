@@ -1,3 +1,4 @@
+import { connectionReadyProfile } from './fixtures/connection-ready';
 import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
@@ -86,6 +87,7 @@ beforeAll(async () => {
     await db.user.create({
       data: {
         id,
+        ...connectionReadyProfile,
         name: `Student ${id}`,
         college: 'Test College',
         onboarded: true,
@@ -395,5 +397,82 @@ describe('Database constraints and discovery safety', () => {
         [group.id],
       ),
     ).rejects.toThrow('one_owner_per_conversation');
+  });
+});
+
+describe('server-backed activity notifications', () => {
+  it('scopes snapshots, counts unread beyond the page limit, and never marks another user notification read', async () => {
+    const { notificationSnapshot, markNotificationsRead } =
+      await import('@/backend/services/notifications');
+    await db.user.createMany({
+      data: ['activity-owner', 'activity-other'].map((id) => ({ id, name: id })),
+    });
+    await db.notification.createMany({
+      data: Array.from({ length: 110 }, (_, i) => ({
+        userId: 'activity-owner',
+        title: `Activity ${i}`,
+        body: 'Update',
+        href: '/connections',
+      })),
+    });
+    const other = await db.notification.create({
+      data: {
+        userId: 'activity-other',
+        title: 'Private',
+        body: 'Other account',
+        href: '/notifications',
+      },
+    });
+    const snapshot = await notificationSnapshot('activity-owner');
+    expect(snapshot.items).toHaveLength(100);
+    expect(snapshot.unreadCount).toBe(110);
+    expect(snapshot.items.every((item) => item.userId === 'activity-owner')).toBe(true);
+    expect((await markNotificationsRead('activity-owner', other.id)).count).toBe(0);
+    expect(
+      (await db.notification.findUniqueOrThrow({ where: { id: other.id } })).readAt,
+    ).toBeNull();
+    expect((await markNotificationsRead('activity-owner')).unreadCount).toBe(0);
+  });
+  it('creates message activity once, excludes blocked recipients, and marks delivered chat activity read', async () => {
+    await db.user.createMany({
+      data: ['chat-actor', 'chat-recipient', 'chat-blocked'].map((id) => ({
+        id,
+        name: id,
+        collegeVerified: true,
+      })),
+    });
+    const group = await db.conversation.create({
+      data: {
+        type: 'GROUP',
+        name: 'Activity group',
+        ownerId: 'chat-actor',
+        members: {
+          create: [
+            { userId: 'chat-actor', role: 'OWNER' },
+            { userId: 'chat-recipient' },
+            { userId: 'chat-blocked' },
+          ],
+        },
+      },
+    });
+    await db.block.create({ data: { blockerId: 'chat-blocked', blockedId: 'chat-actor' } });
+    const input = { body: 'Message activity', clientId: crypto.randomUUID() };
+    const [one, two] = await Promise.all([
+      service.sendMessage('chat-actor', group.id, input),
+      service.sendMessage('chat-actor', group.id, input),
+    ]);
+    expect(one.id).toBe(two.id);
+    const href = `/messages?conversation=${group.id}`;
+    expect(await db.notification.count({ where: { userId: 'chat-recipient', href } })).toBe(1);
+    expect(
+      await db.notification.count({
+        where: { userId: { in: ['chat-actor', 'chat-blocked'] }, href },
+      }),
+    ).toBe(0);
+    await service.readMessages('chat-recipient', group.id);
+    expect(
+      (await db.notification.findFirstOrThrow({ where: { userId: 'chat-recipient', href } }))
+        .readAt,
+    ).not.toBeNull();
   });
 });

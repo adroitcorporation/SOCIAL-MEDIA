@@ -43,6 +43,43 @@ export async function sendMessage(actor: string, conversationId: string, input: 
       where: { id: conversationId },
       data: { updatedAt: createdAt },
     });
+    // One batched notification write, in the same transaction as the idempotent message.
+    const recipients = member.conversation.members
+      .filter((item) => item.userId !== actor)
+      .map((item) => item.userId);
+    if (recipients.length) {
+      const [sender, users, blocks] = await Promise.all([
+        tx.user.findUniqueOrThrow({ where: { id: actor }, select: { name: true } }),
+        tx.user.findMany({
+          where: { id: { in: recipients }, accountStatus: 'ACTIVE' },
+          select: { id: true },
+        }),
+        tx.block.findMany({
+          where: {
+            OR: [
+              { blockerId: actor, blockedId: { in: recipients } },
+              { blockedId: actor, blockerId: { in: recipients } },
+            ],
+          },
+          select: { blockerId: true, blockedId: true },
+        }),
+      ]);
+      const excluded = new Set(blocks.flatMap((block) => [block.blockerId, block.blockedId]));
+      const eligible = users.filter((user) => !excluded.has(user.id));
+      if (eligible.length)
+        await tx.notification.createMany({
+          data: eligible.map((user) => ({
+            userId: user.id,
+            title:
+              member.conversation.type === 'GROUP'
+                ? `${sender.name} in ${member.conversation.name || 'your group'}`
+                : `${sender.name} sent you a message`,
+            body: message.body.slice(0, 180),
+            href: `/messages?conversation=${encodeURIComponent(conversationId)}`,
+            createdAt,
+          })),
+        });
+    }
     return message;
   });
 }
@@ -112,17 +149,28 @@ export async function readMessages(
     if (
       !before &&
       (!after || messages.length || (boundary && member.lastReadAt < boundary.createdAt))
-    )
+    ) {
+      const notificationReadAt =
+        after && messages.length === 50
+          ? new Date(messages[messages.length - 1].createdAt.getTime() - 1)
+          : readAt;
       await tx.conversationMember.update({
         where: { conversationId_userId: { conversationId, userId: actor } },
         // A full batch may end within a timestamp shared by undelivered messages.
         data: {
-          lastReadAt:
-            after && messages.length === 50
-              ? new Date(messages[messages.length - 1].createdAt.getTime() - 1)
-              : readAt,
+          lastReadAt: notificationReadAt,
         },
       });
+      await tx.notification.updateMany({
+        where: {
+          userId: actor,
+          href: `/messages?conversation=${encodeURIComponent(conversationId)}`,
+          readAt: null,
+          createdAt: { lte: notificationReadAt },
+        },
+        data: { readAt: notificationReadAt },
+      });
+    }
     return after ? messages : messages.reverse();
   });
 }

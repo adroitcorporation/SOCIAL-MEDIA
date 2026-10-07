@@ -211,7 +211,8 @@ test('expired hover-prefetched state is refreshed on navigation', async ({ page 
   });
   await link.hover();
   await expect.poll(() => connectionsReads, { timeout: 5000 }).toBe(1);
-  await page.waitForTimeout(3100);
+  // Completed and prefetched views now share a 15-second freshness window.
+  await page.waitForTimeout(15100);
   await link.click();
   await expect(page.getByRole('heading', { name: 'Connections' })).toBeVisible();
   await expect(page.locator('.connection-card').first()).toBeVisible();

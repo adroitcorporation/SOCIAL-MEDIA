@@ -1,9 +1,12 @@
 import 'server-only';
 import { authenticate } from '@/backend/auth/session';
+import { notificationSnapshot } from '@/backend/services/notifications';
 import { AppError } from '@/backend/utils/errors';
+
 export async function handleLiveRequest(request: Request) {
+  let userId: string;
   try {
-    await authenticate(request);
+    userId = (await authenticate(request)).id;
   } catch (error) {
     return Response.json(
       { error: 'Please sign in.' },
@@ -13,6 +16,8 @@ export async function handleLiveRequest(request: Request) {
   let timer: ReturnType<typeof setInterval>;
   let closeTimer: ReturnType<typeof setTimeout>;
   let stopped = false;
+  let pending = false;
+  let lastNotifications = '';
   let onAbort: (() => void) | undefined;
   const cleanup = () => {
     stopped = true;
@@ -36,10 +41,29 @@ export async function handleLiveRequest(request: Request) {
         return;
       }
       controller.enqueue(encoder.encode('event: ready\ndata: {}\n\n'));
-      // Stateless invalidations work across Render instances. Every subsequent data read
-      // revalidates auth and membership; removed users never receive private payloads here.
+      const publishNotifications = async () => {
+        if (stopped || pending) return;
+        pending = true;
+        try {
+          // Reuses the existing cross-instance, three-second SSE invalidation cadence.
+          // This scoped read rechecks account access and never reruns recommendations.
+          const payload = JSON.stringify(await notificationSnapshot(userId));
+          if (!stopped && payload !== lastNotifications) {
+            lastNotifications = payload;
+            controller.enqueue(encoder.encode(`event: notifications\ndata: ${payload}\n\n`));
+          }
+        } catch {
+          // Close on lost access or a failed read; reconnect authenticates afresh.
+          close();
+        } finally {
+          pending = false;
+        }
+      };
+      void publishNotifications();
       timer = setInterval(() => {
-        if (!stopped) controller.enqueue(encoder.encode('event: refresh\ndata: {}\n\n'));
+        if (stopped) return;
+        controller.enqueue(encoder.encode('event: refresh\ndata: {}\n\n'));
+        void publishNotifications();
       }, 3000);
       closeTimer = setTimeout(close, 55000);
     },

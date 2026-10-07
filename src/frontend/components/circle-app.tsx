@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -21,6 +21,14 @@ import {
   ChevronDown,
   ShieldCheck,
 } from 'lucide-react';
+import { NotificationToasts } from './notification-toasts';
+import { ProfileCompletionPrompt } from './profile-completion-prompt';
+import { getProfileCompletion } from '@/shared/contracts/profile-completion';
+import { ApiError } from '@/frontend/api/http-client';
+import { applyConnection } from '@/frontend/state/connection-update';
+import { useNotificationToasts } from '@/frontend/hooks/use-notification-toasts';
+import { notificationDestination } from '@/frontend/state/notification-tracker';
+import { applyNotificationSnapshot } from '@/frontend/state/notification-update';
 import { brand } from '@/shared/config/brand';
 import { useCircleController } from '@/frontend/hooks/use-circle-controller';
 import type { Student } from '@/shared/contracts/responses';
@@ -48,6 +56,9 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
   const query = useSearchParams().toString();
   const [notice, setNotice] = useState<{ text: string; error: boolean } | null>(null);
   const [mobile, setMobile] = useState(false);
+  const [missingProfileFields, setMissingProfileFields] = useState<string[] | null>(null);
+  const connecting = useRef(false);
+  const sidebarRef = useRef<HTMLElement>(null);
   const [search, setSearch] = useState('');
   const toast = useCallback((text: string, error = false) => setNotice({ text, error }), []);
   useEffect(() => {
@@ -71,6 +82,43 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
     logout,
     onAuthenticated,
   } = useCircleController(path, query, toast);
+  const activity = useNotificationToasts(
+    signedIn ? state?.me.id : undefined,
+    state?.notifications ?? [],
+  );
+  useEffect(() => setMissingProfileFields(null), [state?.me.id]);
+  useEffect(() => {
+    if (!mobile) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const sidebar = sidebarRef.current;
+    sidebar?.querySelector<HTMLButtonElement>('.mobile-close')?.focus();
+    const key = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobile(false);
+        return;
+      }
+      if (event.key !== 'Tab' || !sidebar) return;
+      const focusable = [
+        ...sidebar.querySelectorAll<HTMLElement>(
+          'a[href], button:not(:disabled), input:not(:disabled)',
+        ),
+      ].filter((node) => node.getClientRects().length > 0);
+      const first = focusable[0],
+        last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    };
+    document.addEventListener('keydown', key);
+    return () => {
+      document.removeEventListener('keydown', key);
+      previous?.focus();
+    };
+  }, [mobile]);
   const prefetchScreen = useCallback(
     (destination: string) => {
       void prefetch(destination).catch((error: unknown) => {
@@ -86,6 +134,47 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
     },
     [router],
   );
+  const requestConnection = useCallback(
+    async (student: Student, animate?: () => Promise<void>) => {
+      if (!state || busy || connecting.current) return false;
+      const userId = student.id;
+      const incoming = state.connections.some(
+        (item) =>
+          item.requesterId === userId &&
+          item.receiverId === state.me.id &&
+          item.status === 'PENDING',
+      );
+      const completion = getProfileCompletion(state.me);
+      if (!incoming && !completion.isComplete) {
+        setMissingProfileFields(completion.missingFields);
+        return false;
+      }
+      if (!state.me.collegeVerified) {
+        navigate('/profile');
+        toast('Verify your college email or ID before sending connection requests.');
+        return false;
+      }
+      connecting.current = true;
+      try {
+        await mutate(
+          async () => {
+            const [result] = await Promise.all([api.connections.request({ userId }), animate?.()]);
+            return result;
+          },
+          (current, result) => applyConnection(current, result, student),
+        );
+        toast(incoming ? 'You’re connected.' : 'Request sent.');
+        return true;
+      } catch (error) {
+        if (error instanceof ApiError && error.code === 'PROFILE_INCOMPLETE')
+          setMissingProfileFields(error.missingFields ?? completion.missingFields);
+        return false;
+      } finally {
+        connecting.current = false;
+      }
+    },
+    [state, busy, navigate, toast, mutate, api],
+  );
   const contextValue = useMemo(
     () =>
       state
@@ -95,6 +184,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
             mutate,
             api,
             refresh,
+            requestConnection,
             toast,
             viewProfile: (student: Pick<Student, 'id' | 'name'>) => {
               navigate(profilePath(student));
@@ -103,7 +193,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
             navigate,
           }
         : null,
-    [state, busy, mutate, api, refresh, toast, navigate],
+    [state, busy, mutate, api, refresh, requestConnection, toast, navigate],
   );
   if (!ready) return <Loading />;
   if (loadError && !state)
@@ -131,7 +221,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
       />
     );
   if (!state) return <Loading />;
-  const unread = state.notifications.filter((n) => !n.readAt).length;
+  const unread = state.notificationUnread ?? state.notifications.filter((n) => !n.readAt).length;
   const messagesUnread = state.conversations.reduce((sum, c) => sum + c.unread, 0);
   const title =
     path === '/moderation/roles'
@@ -146,7 +236,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
   return (
     <CircleContext.Provider value={contextValue}>
       <div className="app-shell">
-        <aside className={`sidebar ${mobile ? 'open' : ''}`}>
+        <aside ref={sidebarRef} className={`sidebar ${mobile ? 'open' : ''}`}>
           <Link href="/" className="wordmark">
             <span className="brand-mark">
               <Circle size={22} />
@@ -258,7 +348,9 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
                 aria-label={`${unread} unread notifications`}
               >
                 <Bell size={20} />
-                {unread > 0 && <span />}
+                {unread > 0 && (
+                  <span className="notification-count">{unread > 99 ? '99+' : unread}</span>
+                )}
               </Link>
               <button className="topbar-profile" onClick={() => navigate('/profile')}>
                 <Avatar user={state.me} size="small" />
@@ -296,12 +388,41 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
                 <span>{n.label}</span>
               </Link>
             ))}
-          <button onClick={() => setMobile(true)}>
+          <button
+            onClick={() => setMobile(true)}
+            aria-label={unread ? `More, ${unread} unread notifications` : 'More'}
+          >
             <Menu size={20} />
             <span>More</span>
+            {unread > 0 && (
+              <b className="more-notification-count">{unread > 99 ? '99+' : unread}</b>
+            )}
           </button>
         </nav>
       </div>
+      <NotificationToasts
+        items={activity.toasts}
+        dismiss={activity.dismiss}
+        open={async (item) => {
+          try {
+            await mutate(() => api.notifications.markRead(item.id), applyNotificationSnapshot);
+            activity.dismiss(item.id);
+            navigate(notificationDestination(item.href));
+          } catch {
+            /* The shared mutation handler displays the error and leaves the toast retryable. */
+          }
+        }}
+      />
+      {missingProfileFields && (
+        <ProfileCompletionPrompt
+          missingFields={missingProfileFields}
+          close={() => setMissingProfileFields(null)}
+          edit={() => {
+            setMissingProfileFields(null);
+            navigate('/profile?edit=1');
+          }}
+        />
+      )}
       {notice && (
         <div
           className={`toast ${notice.error ? 'toast-error' : ''}`}

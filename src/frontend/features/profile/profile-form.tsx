@@ -7,6 +7,7 @@ import type { ProfileUpdateRequest } from '@/shared/contracts/requests';
 import { Avatar, Verified, Tag, ExternalLink } from '@/frontend/components/ui';
 import { authClient } from '@/frontend/auth/supabase-browser';
 import { profileSchemaForExisting, safeUrl } from '@/shared/contracts/schemas';
+import { MIN_CONNECTION_BIO_LENGTH } from '@/shared/contracts/profile-completion';
 import {
   MAX_VERIFICATION_IMAGE_BYTES,
   VERIFICATION_IMAGE_TYPES,
@@ -273,9 +274,14 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
           maxLength={1000}
           rows={3}
           placeholder="What are you excited to work on?"
+          aria-describedby="connection-bio-hint"
         />
         {fieldError('bio')}
       </label>
+      <small id="connection-bio-hint" className="muted">
+        Use at least {MIN_CONNECTION_BIO_LENGTH} characters to tell students about yourself before
+        connecting.
+      </small>
       <div className="form-grid">
         {listFields.map((key) =>
           key !== 'domains' ? (

@@ -1,5 +1,10 @@
+import type { NotificationSnapshot } from '@/shared/contracts/responses';
 import type { CommunityClient } from './community-client';
-export function subscribeToLiveUpdates(api: CommunityClient, refresh: () => Promise<void>) {
+export function subscribeToLiveUpdates(
+  api: CommunityClient,
+  refresh: () => Promise<void>,
+  onNotifications?: (snapshot: NotificationSnapshot) => void,
+) {
   const controller = new AbortController();
   let timeout: ReturnType<typeof setTimeout>;
   let lastRefresh = Date.now();
@@ -28,12 +33,42 @@ export function subscribeToLiveUpdates(api: CommunityClient, refresh: () => Prom
       while (!controller.signal.aborted) {
         const { done, value } = await reader.read();
         if (done || controller.signal.aborted) break;
-        buffer += decoder.decode(value, { stream: true });
+        buffer = (buffer + decoder.decode(value, { stream: true })).replace(/\r\n/g, '\n');
         let end: number;
         while ((end = buffer.indexOf('\n\n')) >= 0) {
           const frame = buffer.slice(0, end);
           buffer = buffer.slice(end + 2);
-          if (frame.split('\n').some((line) => line.trim() === 'event: refresh')) update();
+          const lines = frame.split('\n').map((line) => line.trimEnd());
+          if (lines.some((line) => line === 'event: refresh')) update();
+          if (lines.some((line) => line === 'event: notifications')) {
+            try {
+              const payload = JSON.parse(
+                lines
+                  .filter((line) => line.startsWith('data:'))
+                  .map((line) => line.slice(5).trimStart())
+                  .join('\n'),
+              );
+              if (
+                Array.isArray(payload.items) &&
+                Number.isInteger(payload.unreadCount) &&
+                payload.unreadCount >= 0 &&
+                payload.items.every(
+                  (item: Record<string, unknown>) =>
+                    item &&
+                    typeof item.id === 'string' &&
+                    typeof item.userId === 'string' &&
+                    typeof item.title === 'string' &&
+                    typeof item.body === 'string' &&
+                    typeof item.href === 'string' &&
+                    typeof item.createdAt === 'string' &&
+                    (item.readAt === null || typeof item.readAt === 'string'),
+                )
+              )
+                onNotifications?.(payload);
+            } catch {
+              /* Ignore malformed frames without tearing down the shared connection. */
+            }
+          }
         }
       }
     } catch {

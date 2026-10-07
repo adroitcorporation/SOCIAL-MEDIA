@@ -1,4 +1,6 @@
 'use client';
+import { applyNotificationSnapshot } from '@/frontend/state/notification-update';
+import { notificationDestination } from '@/frontend/state/notification-tracker';
 import { relative } from '@/frontend/utils/date';
 import { useState } from 'react';
 
@@ -20,7 +22,7 @@ export function NotificationsPage() {
           disabled={busy}
           onClick={async () => {
             try {
-              await mutate(() => api.notifications.markRead());
+              await mutate(() => api.notifications.markRead(), applyNotificationSnapshot);
             } catch {}
           }}
         >
@@ -33,7 +35,10 @@ export function NotificationsPage() {
           All updates
         </button>
         <button className={unread ? 'active' : ''} onClick={() => setUnread(true)}>
-          Unread<span>{state.notifications.filter((n) => !n.readAt).length}</span>
+          Unread
+          <span>
+            {state.notificationUnread ?? state.notifications.filter((n) => !n.readAt).length}
+          </span>
         </button>
       </div>
       <div className="notification-list">
@@ -43,8 +48,8 @@ export function NotificationsPage() {
             key={n.id}
             onClick={async () => {
               try {
-                await mutate(() => api.notifications.markRead(n.id));
-                navigate(n.href);
+                await mutate(() => api.notifications.markRead(n.id), applyNotificationSnapshot);
+                navigate(notificationDestination(n.href));
               } catch {}
             }}
           >

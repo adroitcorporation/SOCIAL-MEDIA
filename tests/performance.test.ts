@@ -1,3 +1,4 @@
+import { connectionReadyProfile } from './fixtures/connection-ready';
 import { beforeAll, afterAll, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
@@ -26,6 +27,7 @@ beforeAll(async () => {
   await db.user.createMany({
     data: ['actor', 'peer', 'outsider'].map((id) => ({
       id,
+      ...connectionReadyProfile,
       name: id,
       onboarded: true,
       collegeVerified: true,

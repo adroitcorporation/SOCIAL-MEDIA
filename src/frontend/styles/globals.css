@@ -863,7 +863,7 @@ em {
   flex-shrink: 0;
 }
 .loading {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -951,7 +951,7 @@ em {
 }
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 .sidebar {
   overflow-y: auto;
@@ -1133,6 +1133,7 @@ em {
   font-weight: 500;
 }
 .global-search {
+  min-width: 0;
   display: flex;
   align-items: center;
   width: 350px;
@@ -1145,6 +1146,8 @@ em {
   margin-left: auto;
 }
 .global-search input {
+  min-width: 0;
+  width: 100%;
   border: 0;
   padding: 0;
   background: none;
@@ -1285,10 +1288,18 @@ em {
   gap: 14px;
   overflow-x: auto;
   padding-bottom: 8px;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+}
+.horizontal-profile-tray::-webkit-scrollbar {
+  display: none;
 }
 .horizontal-profile-tray > .student-card {
-  min-width: min(220px, 80vw);
+  flex: 0 0 min(260px, 85%);
+  min-width: 0;
   scroll-snap-align: start;
 }
 .idea-stack {
@@ -1629,15 +1640,18 @@ em {
     border-color 0.2s;
   box-shadow: 0 8px 22px rgba(16, 40, 71, 0.04);
   transform: translate3d(var(--drag-x, 0px), 0, 0) rotate(var(--drag-rotation, 0deg));
-  touch-action: pan-y;
+  touch-action: auto;
 }
 .student-card:hover {
   border-color: var(--border-subtle, #cad4e3);
   box-shadow: 0 14px 28px rgba(16, 40, 71, 0.06);
 }
+.discover-profile-card {
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+}
 .student-card.is-dragging {
   cursor: grabbing;
-  box-shadow: 0 24px 48px rgba(18, 35, 56, 0.16);
   transition: none;
   will-change: transform;
 }
@@ -1789,6 +1803,7 @@ em {
   margin-bottom: 15px;
 }
 .idea-top {
+  flex-wrap: wrap;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1796,6 +1811,7 @@ em {
   margin-bottom: 16px;
 }
 .idea-author {
+  min-width: 0;
   display: flex;
   gap: 9px;
   text-align: left;
@@ -2065,6 +2081,8 @@ em {
   min-width: 0;
 }
 .search-field input {
+  min-width: 0;
+  width: 100%;
   padding: 0;
   border: 0;
   background: none;
@@ -2944,6 +2962,8 @@ em {
   background: var(--surface-soft, #eef2f8);
 }
 .notification-row > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
   flex: 1;
 }
 .notification-row h3 {
@@ -2968,6 +2988,7 @@ em {
   gap: 25px;
 }
 .profile-layout > .panel {
+  min-width: 0;
   padding: 35px;
 }
 .profile-layout aside h3 {
@@ -2981,7 +3002,12 @@ em {
   line-height: 1.8;
   display: block;
 }
+.profile-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .profile-details h2 {
+  flex-wrap: wrap;
   margin-top: 18px;
   margin-bottom: 8px;
   display: flex;
@@ -3298,7 +3324,7 @@ em {
   box-shadow: 0 25px 100px #14274225;
   background: var(--card);
   width: min(540px, calc(100% - 32px));
-  max-height: 90vh;
+  max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 32px);
   padding: 27px;
   color: var(--ink);
   margin: auto;
@@ -3439,10 +3465,11 @@ em {
   border-radius: 13px;
   background: var(--card);
   overflow: hidden;
-  height: calc(100vh - 280px);
+  height: calc(100dvh - 280px);
   min-height: 500px;
 }
 .conversation-sidebar {
+  min-width: 0;
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -3485,7 +3512,7 @@ em {
 }
 .conversation-row {
   flex: 1;
-  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3502,6 +3529,7 @@ em {
   padding-left: 14px;
 }
 .pin-button {
+  flex-shrink: 0;
   border: 0;
   background: transparent;
   color: var(--text-muted, #6b7d99);
@@ -3740,7 +3768,7 @@ em {
 .auth-page {
   position: relative;
   display: flex;
-  min-height: 100vh;
+  min-height: 100dvh;
   align-items: center;
   justify-content: center;
   gap: 9vw;
@@ -4923,8 +4951,8 @@ em {
   }
   .chat-layout {
     grid-template-columns: 1fr;
-    height: calc(100dvh - 328px);
-    min-height: 400px;
+    height: max(280px, calc(100dvh - 270px - env(safe-area-inset-bottom)));
+    min-height: 0;
   }
   .chat-main {
     display: none;
@@ -5305,4 +5333,290 @@ label.select-person input {
 
 .discover-profile-card .looking {
   margin-top: 0;
+}
+
+/* Reserve the fixed navigation footprint and constrain intrinsic content widths. */
+@media (max-width: 800px) {
+  :root {
+    --mobile-nav-height: 72px;
+  }
+  html {
+    scroll-padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 16px);
+  }
+  .page-content {
+    padding-bottom: calc(24px + var(--mobile-nav-height) + env(safe-area-inset-bottom));
+  }
+  .bottom-nav {
+    height: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));
+    padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav a,
+  .bottom-nav button {
+    min-width: 0;
+    min-height: 44px;
+  }
+  .sidebar {
+    height: 100dvh;
+    overflow-y: auto;
+    visibility: hidden;
+    padding-top: max(28px, env(safe-area-inset-top));
+  }
+  .sidebar.open {
+    visibility: visible;
+  }
+  .topbar {
+    padding-top: env(safe-area-inset-top);
+    height: calc(67px + env(safe-area-inset-top));
+  }
+  .profile-header-actions {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .profile-layout > aside,
+  .user-profile-columns > *,
+  .page-heading > div {
+    min-width: 0;
+  }
+  .profile-layout .verification-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .verification-option {
+    overflow-wrap: anywhere;
+  }
+  .filter-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .chat-layout {
+    min-width: 0;
+  }
+  .chat-header > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .modal {
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+  }
+  .toast {
+    bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom) + 12px);
+  }
+}
+@media (max-width: 620px) {
+  .topbar {
+    height: calc(61px + env(safe-area-inset-top));
+  }
+  .filter-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sidebar {
+    max-width: calc(100% - 32px);
+  }
+  .profile-layout > .panel {
+    padding: 20px;
+  }
+}
+
+/* The two-card deck clips only the intentional off-stage swipe transforms. */
+.discover-single {
+  display: grid;
+  position: relative;
+  overflow: clip;
+}
+.discover-single > .discover-profile-card {
+  grid-area: 1 / 1;
+  z-index: 1;
+  animation: none;
+}
+.discover-single > .is-preview {
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(0.98);
+}
+.discover-profile-card.is-exiting {
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    transform 180ms ease-out,
+    opacity 180ms ease-out;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .student-card,
+  .discover-profile-card.is-exiting {
+    transition: none;
+  }
+}
+
+.notification-toast-stack {
+  position: fixed;
+  z-index: 90;
+  top: calc(16px + env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  width: min(360px, calc(100% - 32px));
+  max-height: calc(
+    100dvh - var(--mobile-nav-height, 0px) - env(safe-area-inset-top) -
+      env(safe-area-inset-bottom) - 32px
+  );
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  pointer-events: none;
+}
+
+.profile-requirements {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  display: grid;
+  gap: 12px;
+}
+.profile-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-requirements svg {
+  flex-shrink: 0;
+}
+.profile-requirements span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.profile-requirements small {
+  color: var(--muted);
+}
+.profile-completion-action {
+  position: sticky;
+  bottom: 0;
+  padding-top: 12px;
+  background: var(--card);
+}
+.profile-completion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 16px;
+}
+.profile-completion p {
+  margin: 4px 0 0;
+}
+.notification-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 8px 24px #14274220;
+  padding: 6px;
+}
+.notification-toast-open {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+  padding: 10px;
+}
+.notification-toast-open > svg {
+  flex-shrink: 0;
+}
+.notification-toast-open > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.notification-toast-open strong {
+  display: block;
+  font-size: 13px;
+}
+.notification-toast-open span > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.notification-toast > .icon-button {
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+.notification-button > .notification-count {
+  width: auto;
+  height: auto;
+  min-width: 17px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 9px;
+  padding: 1px 4px;
+  top: -2px;
+  right: -5px;
+}
+.bottom-nav > button {
+  position: relative;
+}
+.more-notification-count {
+  position: absolute;
+  top: -2px;
+  right: 8px;
+  border-radius: 9px;
+  padding: 1px 4px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 9px;
+}
+
+.idea-author > span,
+.connection-person > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.idea-author strong,
+.idea-author small,
+.mini-event > p,
+.mini-event-bottom > span {
+  overflow-wrap: anywhere;
+}
+.category-label {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.connection-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 800px) {
+  .connection-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.idea-card,
+.event-card,
+.connection-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.idea-description,
+.event-body > p {
+  overflow-wrap: anywhere;
+}
+.event-meta > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 620px) {
+  .ideas-grid,
+  .events-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

@@ -14,6 +14,9 @@ export interface ApiConfig {
 }
 export interface ApiErrorResponse {
   error: string;
+  code?: string;
+  message?: string;
+  missingFields?: string[];
 }
 export interface SuccessResponse {
   ok: boolean;
@@ -170,7 +173,12 @@ export interface NotificationItem {
   readAt: IsoDateTime | null;
   createdAt: IsoDateTime;
 }
+export interface NotificationSnapshot {
+  items: NotificationItem[];
+  unreadCount: number;
+}
 export interface AppState {
+  notificationUnread?: number;
   feed?: { page: number; hasNext: boolean; categories: string[] };
   me: Student;
   verification?: CollegeVerification | null;

@@ -11,6 +11,7 @@ export interface CircleContextValue {
   ) => Promise<T>;
   api: CommunityClient;
   refresh: () => Promise<void>;
+  requestConnection: (student: Student, animate?: () => Promise<void>) => Promise<boolean>;
   toast: (message: string, error?: boolean) => void;
   viewProfile: (student: Pick<Student, 'id' | 'name'>) => void;
   navigate: (path: string) => void;

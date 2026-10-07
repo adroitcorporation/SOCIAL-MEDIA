@@ -22,6 +22,7 @@ import type {
   GroupUpdateResponse,
   SuccessResponse,
   CountResponse,
+  NotificationSnapshot,
   SkipResponse,
   SavedEvent,
   CollegeVerification,
@@ -208,7 +209,7 @@ export function createCommunityClient(http: HttpClient) {
     },
     notifications: {
       markRead: (notificationId?: string) =>
-        http.request<CountResponse>(
+        http.request<CountResponse & NotificationSnapshot>(
           notificationId ? `notifications/${id(notificationId)}` : 'notifications',
           {},
           'PATCH',

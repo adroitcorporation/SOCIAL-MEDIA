@@ -3,7 +3,13 @@ import { z } from 'zod';
 import { AppError } from '@/backend/utils/errors';
 export function errorResponse(error: unknown) {
   if (error instanceof AppError)
-    return Response.json({ error: error.message }, { status: error.status });
+    return Response.json(
+      {
+        error: error.message,
+        ...(error.details ? { message: error.message, ...error.details } : {}),
+      },
+      { status: error.status },
+    );
   if (error instanceof z.ZodError)
     return Response.json(
       { error: error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ') },

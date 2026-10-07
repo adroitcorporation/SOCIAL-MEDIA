@@ -9,7 +9,7 @@ import { profileHandle } from '@/frontend/utils/profile-path';
 import type { Student } from '@/shared/contracts/responses';
 
 export function UserProfilePage({ userId }: { userId: string }) {
-  const { api, state, mutate, toast, navigate } = useCircle();
+  const { api, state, mutate, toast, navigate, requestConnection, busy } = useCircle();
   const [user, setUser] = useState<Student | null>(null);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
@@ -43,6 +43,11 @@ export function UserProfilePage({ userId }: { userId: string }) {
     );
   if (!user) return <Loading />;
   const accent = [...user.id].reduce((total, char) => total + char.charCodeAt(0), 0) % 6;
+  const connection = state.connections.find(
+    (item) =>
+      [item.requesterId, item.receiverId].includes(user.id) &&
+      ['PENDING', 'ACCEPTED'].includes(item.status),
+  );
 
   return (
     <div className={`user-profile-page profile-accent-${accent}`}>
@@ -84,6 +89,17 @@ export function UserProfilePage({ userId }: { userId: string }) {
         </section>
         {user.id !== state.me.id && (
           <aside className="panel user-profile-actions" aria-label="Profile actions">
+            <button
+              className="button primary"
+              disabled={busy || Boolean(connection)}
+              onClick={() => void requestConnection(user)}
+            >
+              {connection?.status === 'ACCEPTED'
+                ? 'Connected'
+                : connection
+                  ? 'Request pending'
+                  : 'Connect'}
+            </button>
             <ReportUser userId={user.id} />
             <button
               className="text-link danger"

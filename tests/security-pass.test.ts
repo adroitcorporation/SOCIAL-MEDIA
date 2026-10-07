@@ -1,3 +1,4 @@
+import { connectionReadyProfile } from './fixtures/connection-ready';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
@@ -29,6 +30,7 @@ async function user() {
   return db.user.create({
     data: {
       id: `security-pass-${++sequence}`,
+      ...connectionReadyProfile,
       name: 'Synthetic student',
       onboarded: true,
       collegeVerified: true,
@@ -77,6 +79,106 @@ afterAll(async () => {
   await server?.stop();
   await pg?.close();
   vi.unstubAllEnvs();
+});
+
+describe('connection profile completion enforcement', () => {
+  it('reports missing profile fields first while preserving the independent verification gate', async () => {
+    const sender = await user(),
+      receiver = await user();
+    await db.user.update({ where: { id: sender.id }, data: { bio: '', collegeVerified: false } });
+    const incomplete = await api(sender.id, 'connections', { userId: receiver.id });
+    expect(await incomplete.json()).toMatchObject({
+      code: 'PROFILE_INCOMPLETE',
+      missingFields: ['bio'],
+    });
+    await db.user.update({ where: { id: sender.id }, data: { bio: connectionReadyProfile.bio } });
+    const unverified = await api(sender.id, 'connections', { userId: receiver.id });
+    expect(unverified.status).toBe(403);
+    expect(await unverified.json()).toEqual({
+      error: 'Verify your college email or ID before connecting.',
+    });
+  });
+  it.each([
+    ['bio', ''],
+    ['bio', 'short'],
+    ['name', '   '],
+    ['college', ''],
+    ['graduationYear', 0],
+    ['skills', []],
+    ['skills', ['   ']],
+    ['lookingFor', []],
+    ['lookingFor', ['   ']],
+    ['interests', []],
+  ])(
+    'rejects a direct API request with invalid %s from trusted database data',
+    async (field, value) => {
+      const sender = await user(),
+        receiver = await user();
+      await db.user.update({ where: { id: sender.id }, data: { [field as string]: value } });
+      const response = await api(sender.id, 'connections', {
+        userId: receiver.id,
+        isComplete: true,
+        onboarded: true,
+        profile: connectionReadyProfile,
+      });
+      expect(response.status).toBe(403);
+      expect(await response.json()).toMatchObject({
+        code: 'PROFILE_INCOMPLETE',
+        message: 'Complete your profile before sending connection requests.',
+        missingFields: [field === 'interests' ? 'interestsOrDomains' : field],
+      });
+      expect(await db.connection.count({ where: { requesterId: sender.id } })).toBe(0);
+      expect(await db.notification.count({ where: { userId: receiver.id } })).toBe(0);
+      expect((await api(sender.id, 'state?view=/')).status).toBe(200);
+    },
+  );
+  it('allows a complete verified sender and accepts domains instead of interests', async () => {
+    const sender = await user(),
+      receiver = await user();
+    await db.user.update({
+      where: { id: sender.id },
+      data: { interests: [], domains: ['Education'], onboarded: false },
+    });
+    const response = await api(sender.id, 'connections', { userId: receiver.id });
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ status: 'PENDING', requesterId: sender.id });
+  });
+  it('preserves incoming acceptance/rejection and existing direct/group messages after a profile becomes incomplete', async () => {
+    const sender = await user(),
+      peer = await user(),
+      incoming = await user(),
+      rejected = await user();
+    await connect(sender.id, peer.id);
+    const direct = await service.directConversation(sender.id, peer.id);
+    const group = await service.createGroup(sender.id, {
+      name: 'Existing group',
+      memberIds: [peer.id],
+    });
+    const pending = await service.requestConnection(incoming.id, sender.id);
+    const decline = await service.requestConnection(rejected.id, sender.id);
+    await db.user.update({
+      where: { id: sender.id },
+      data: { bio: '', skills: [], lookingFor: [] },
+    });
+    expect((await service.transitionConnection(sender.id, pending.id, 'accept')).status).toBe(
+      'ACCEPTED',
+    );
+    expect((await service.transitionConnection(sender.id, decline.id, 'reject')).status).toBe(
+      'REJECTED',
+    );
+    for (const conversation of [direct, group])
+      expect(
+        (
+          await service.sendMessage(sender.id, conversation.id, {
+            body: 'Existing conversation still works.',
+            clientId: crypto.randomUUID(),
+          })
+        ).body,
+      ).toBe('Existing conversation still works.');
+    const another = await user();
+    await service.requestConnection(another.id, sender.id);
+    expect((await service.requestConnection(sender.id, another.id)).status).toBe('ACCEPTED');
+  });
 });
 
 describe('block privacy regressions', () => {

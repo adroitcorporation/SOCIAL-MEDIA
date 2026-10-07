@@ -10,6 +10,8 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly code?: string,
+    public readonly missingFields?: string[],
   ) {
     super(message);
   }
@@ -71,6 +73,8 @@ export function createHttpClient(options: HttpClientOptions = {}) {
         throw new ApiError(
           response.status,
           (result as ApiErrorResponse).error || 'Unable to complete this action.',
+          (result as ApiErrorResponse).code,
+          (result as ApiErrorResponse).missingFields,
         );
       }
       return result as T;

@@ -139,6 +139,7 @@ export async function snapshot(user: User, query: URLSearchParams) {
     verification,
     categories,
     connections,
+    notificationUnread,
   ] = await Promise.all([
     ranked
       ? ranked.students
@@ -232,6 +233,7 @@ export async function snapshot(user: User, query: URLSearchParams) {
           })
         : [],
     connectionsPromise,
+    db.notification.count({ where: { userId: user.id, readAt: null } }),
   ]);
   const attachments = await listEventAttachments(events.map((event) => event.id));
   const attachmentsByEvent = new Map<string, typeof attachments>();
@@ -304,6 +306,7 @@ export async function snapshot(user: User, query: URLSearchParams) {
         }
       : {}),
     notifications,
+    notificationUnread,
     conversations,
     blockedIds: blocks.filter((b) => b.blockerId === user.id).map((b) => b.blockedId),
   };

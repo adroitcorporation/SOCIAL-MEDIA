@@ -1,5 +1,6 @@
 import { db } from '@/backend/database/client';
-import { requireThat } from '@/backend/utils/errors';
+import { AppError, requireThat } from '@/backend/utils/errors';
+import { getProfileCompletion } from '@/shared/contracts/profile-completion';
 import { transaction } from '@/backend/database/transaction';
 import { notBlocked, pairKey } from './access';
 import { notify } from './notifications';
@@ -11,7 +12,6 @@ export async function requestConnection(actor: string, target: string) {
   requireThat(actor !== target, 400, 'You cannot connect with yourself.');
   return transaction(async (tx) => {
     const requester = await tx.user.findUnique({ where: { id: actor } });
-    requireThat(requester?.collegeVerified, 403, 'Verify your college email or ID before connecting.');
     await notBlocked(tx, actor, target);
     requireThat(
       await tx.user.findFirst({ where: { id: target, onboarded: true } }),
@@ -20,10 +20,28 @@ export async function requestConnection(actor: string, target: string) {
     );
     const key = pairKey(actor, target);
     const existing = await tx.connection.findUnique({ where: { pairKey: key } });
+    // Completeness gates only new outgoing requests, not existing/incoming connections.
+    if (!existing || !['PENDING', 'ACCEPTED'].includes(existing.status)) {
+      const completion = getProfileCompletion(requester ?? {});
+      if (!completion.isComplete)
+        throw new AppError(403, 'Complete your profile before sending connection requests.', {
+          code: 'PROFILE_INCOMPLETE',
+          missingFields: completion.missingFields,
+        });
+    }
+    requireThat(
+      requester?.collegeVerified,
+      403,
+      'Verify your college email or ID before connecting.',
+    );
     if (existing && existing.status === 'PENDING' && existing.receiverId === actor) {
       const accepted = await tx.connection.update({
         where: { id: existing.id },
-        data: { status: 'ACCEPTED', requesterId: existing.requesterId, receiverId: existing.receiverId },
+        data: {
+          status: 'ACCEPTED',
+          requesterId: existing.requesterId,
+          receiverId: existing.receiverId,
+        },
       });
       await notify(
         tx,

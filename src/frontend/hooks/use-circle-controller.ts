@@ -1,15 +1,15 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { ApiConfig, AppState } from '@/shared/contracts/responses';
+import type { ApiConfig, AppState, NotificationSnapshot } from '@/shared/contracts/responses';
 import { browserAuth } from '@/frontend/auth/browser-auth';
-import { createHttpClient } from '@/frontend/api/http-client';
+import { ApiError, createHttpClient } from '@/frontend/api/http-client';
 import { createCommunityClient } from '@/frontend/api/community-client';
 import { subscribeToLiveUpdates } from '@/frontend/api/live-updates';
 import { syncPageSession, clearPageSession } from '@/frontend/api/page-session';
 
 const maxCachedViews = 8;
-const prefetchedStateMaxAge = 3000;
+const prefetchedStateMaxAge = 15000;
 
 function rememberView(cache: Map<string, AppState>, location: string, state: AppState) {
   cache.delete(location);
@@ -50,7 +50,16 @@ export function useCircleController(
   const [stateLocation, setStateLocation] = useState<string | null>(null);
   const [loadError, setLoadError] = useState('');
   const [busy, setBusy] = useState(false);
-  const refreshRef = useRef<() => Promise<void>>(async () => {});
+  const [activity, setActivity] = useState<NotificationSnapshot | null>(null);
+  const activityVersion = useRef(0);
+  const acceptActivity = useCallback((snapshot: NotificationSnapshot) => {
+    activityVersion.current++;
+    prefetchedAt.current.clear();
+    setActivity((previous) =>
+      JSON.stringify(previous) === JSON.stringify(snapshot) ? previous : snapshot,
+    );
+  }, []);
+  const refreshRef = useRef<(force?: boolean) => Promise<void>>(async () => {});
   const refreshVersion = useRef(0);
   const authVersion = useRef(0);
   const pageToken = useRef<string | undefined>(undefined);
@@ -83,6 +92,7 @@ export function useCircleController(
               viewRequests.current.clear();
               prefetchedAt.current.clear();
               setState(null);
+              setActivity(null);
             }
             if (session.recoveringPassword) router.push('/reset-password');
           });
@@ -116,6 +126,7 @@ export function useCircleController(
             prefetchedAt.current.clear();
             setSignedIn(false);
             setState(null);
+            setActivity(null);
           },
         }),
       ),
@@ -143,6 +154,7 @@ export function useCircleController(
       if (prefetchedTime !== undefined && Date.now() - prefetchedTime < prefetchedStateMaxAge)
         return Promise.resolve();
       const version = authVersion.current;
+      const dataVersion = refreshVersion.current;
       return (async () => {
         const token =
           config?.configured && !config.demo
@@ -154,7 +166,7 @@ export function useCircleController(
           pageToken.current = token;
         }
         const result = await loadView(location, params.toString());
-        if (version !== authVersion.current) return;
+        if (version !== authVersion.current || dataVersion !== refreshVersion.current) return;
         rememberView(
           viewCache.current,
           location,
@@ -165,68 +177,82 @@ export function useCircleController(
     },
     [config, loadView, path, signedIn],
   );
-  const refresh = useCallback((): Promise<void> => {
-    if (!signedIn) return Promise.resolve();
-    const location = `${path}?${query}`;
-    const params = new URLSearchParams(query);
-    params.set('view', path);
-    const key = params.toString();
-    if (inFlight.current?.key === key) return inFlight.current.promise;
-    const version = ++refreshVersion.current;
-    const promise = (async () => {
-      const token =
-        config?.configured && !config.demo ? (await browserAuth.session()).accessToken : undefined;
-      if (token && token !== pageToken.current) {
+  const refresh = useCallback(
+    (force = true): Promise<void> => {
+      if (!signedIn) return Promise.resolve();
+      const location = `${path}?${query}`;
+      const params = new URLSearchParams(query);
+      params.set('view', path);
+      const key = params.toString();
+      if (inFlight.current?.key === key) return inFlight.current.promise;
+      const version = ++refreshVersion.current;
+      const incomingActivityVersion = activityVersion.current;
+      const promise = (async () => {
+        const token =
+          config?.configured && !config.demo
+            ? (await browserAuth.session()).accessToken
+            : undefined;
+        if (token && token !== pageToken.current) {
+          try {
+            await syncPageSession(token);
+          } catch (error) {
+            if (version !== refreshVersion.current) return;
+            viewCache.current.clear();
+            setState(null);
+            throw error;
+          }
+          pageToken.current = token;
+        }
+        if (version !== refreshVersion.current) return;
+        const prefetchedState = viewCache.current.get(location);
+        const prefetchedTime = prefetchedAt.current.get(location);
+        if (
+          !force &&
+          prefetchedState &&
+          prefetchedTime !== undefined &&
+          Date.now() - prefetchedTime < prefetchedStateMaxAge
+        ) {
+          setStateLocation(location);
+          setState(prefetchedState);
+          setLoadError('');
+          return;
+        }
+        prefetchedAt.current.delete(location);
+        let result: AppState;
         try {
-          await syncPageSession(token);
+          result = await loadView(location, key);
         } catch (error) {
           if (version !== refreshVersion.current) return;
           viewCache.current.clear();
           setState(null);
+          setLoadError(error instanceof Error ? error.message : 'Account unavailable.');
           throw error;
         }
-        pageToken.current = token;
-      }
-      if (version !== refreshVersion.current) return;
-      const prefetchedState = viewCache.current.get(location);
-      const prefetchedTime = prefetchedAt.current.get(location);
-      if (
-        prefetchedState &&
-        prefetchedTime !== undefined &&
-        Date.now() - prefetchedTime < prefetchedStateMaxAge
-      ) {
-        prefetchedAt.current.delete(location);
-        setStateLocation(location);
-        setState(prefetchedState);
-        setLoadError('');
-        return;
-      }
-      prefetchedAt.current.delete(location);
-      let result: AppState;
-      try {
-        result = await loadView(location, key);
-      } catch (error) {
         if (version !== refreshVersion.current) return;
-        viewCache.current.clear();
-        setState(null);
-        setLoadError(error instanceof Error ? error.message : 'Account unavailable.');
-        throw error;
-      }
-      if (version !== refreshVersion.current) return;
-      const next = reuseUnchangedSections(viewCache.current.get(location), result);
-      rememberView(viewCache.current, location, next);
-      setStateLocation(location);
-      setState(next);
-      setLoadError('');
-    })().finally(() => {
-      if (inFlight.current?.promise === promise) inFlight.current = null;
-    });
-    inFlight.current = { key, promise };
-    return promise;
-  }, [loadView, signedIn, path, query, config]);
+        const next = reuseUnchangedSections(viewCache.current.get(location), result);
+        rememberView(viewCache.current, location, next);
+        prefetchedAt.current.set(location, Date.now());
+        if (incomingActivityVersion === activityVersion.current)
+          setActivity({
+            items: result.notifications,
+            unreadCount:
+              result.notificationUnread ??
+              result.notifications.filter((item) => !item.readAt).length,
+          });
+        setStateLocation(location);
+        setState(next);
+        setLoadError('');
+      })().finally(() => {
+        if (inFlight.current?.promise === promise) inFlight.current = null;
+      });
+      inFlight.current = { key, promise };
+      return promise;
+    },
+    [loadView, signedIn, path, query, config],
+  );
   refreshRef.current = refresh;
   useEffect(() => {
-    if (signedIn) refresh().catch((e) => setLoadError(e.message));
+    if (signedIn) refresh(false).catch((e) => setLoadError(e.message));
     return () => {
       refreshVersion.current++;
       inFlight.current = null;
@@ -234,8 +260,8 @@ export function useCircleController(
   }, [signedIn, refresh, path]);
   useEffect(() => {
     if (!signedIn || !config) return;
-    return subscribeToLiveUpdates(api, () => refreshRef.current());
-  }, [signedIn, config, api]);
+    return subscribeToLiveUpdates(api, () => refreshRef.current(true), acceptActivity);
+  }, [signedIn, config, api, acceptActivity]);
   const mutate = useCallback(
     async <T>(
       operation: () => Promise<T>,
@@ -244,6 +270,8 @@ export function useCircleController(
       setBusy(true);
       try {
         const result = await operation();
+        if (result && typeof result === 'object' && 'unreadCount' in result && 'items' in result)
+          acceptActivity(result as unknown as NotificationSnapshot);
         prefetchedAt.current.clear();
         refreshVersion.current++;
         inFlight.current = null;
@@ -253,20 +281,26 @@ export function useCircleController(
             viewCache.current.get(location) ?? (stateLocation === location ? state : null);
           if (current) {
             const next = update(current, result);
+            if (next.me !== current.me) {
+              viewRequests.current.clear();
+              for (const [key, cached] of viewCache.current)
+                viewCache.current.set(key, { ...cached, me: next.me });
+            }
             rememberView(viewCache.current, location, next);
             setStateLocation(location);
             setState(next);
           }
-        } else await refresh();
+        } else await refresh(true);
         return result;
       } catch (e) {
-        toast(e instanceof Error ? e.message : 'Something went wrong.', true);
+        if (!(e instanceof ApiError && e.code === 'PROFILE_INCOMPLETE'))
+          toast(e instanceof Error ? e.message : 'Something went wrong.', true);
         throw e;
       } finally {
         setBusy(false);
       }
     },
-    [path, query, refresh, state, stateLocation, toast],
+    [path, query, refresh, state, stateLocation, toast, acceptActivity],
   );
   async function logout() {
     if (config?.demo) {
@@ -283,6 +317,7 @@ export function useCircleController(
       return;
     }
     setState(null);
+    setActivity(null);
     viewCache.current.clear();
     viewRequests.current.clear();
     prefetchedAt.current.clear();
@@ -295,7 +330,14 @@ export function useCircleController(
   }
   const location = `${path}?${query}`;
   const cachedState = viewCache.current.get(location);
-  const activeState = cachedState ?? state;
+  const baseState = cachedState ?? state;
+  const activeState = useMemo(
+    () =>
+      baseState && activity
+        ? { ...baseState, notifications: activity.items, notificationUnread: activity.unreadCount }
+        : baseState,
+    [baseState, activity],
+  );
   return {
     config,
     signedIn,

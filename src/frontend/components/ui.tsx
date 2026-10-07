@@ -5,9 +5,11 @@ import type { Student } from '@/shared/contracts/responses';
 export function Avatar({
   user,
   size = 'normal',
+  eager = false,
 }: {
   user: Pick<Student, 'name' | 'photo'>;
   size?: 'small' | 'normal' | 'large';
+  eager?: boolean;
 }) {
   const color = [...user.name].reduce((s, c) => s + c.charCodeAt(0), 0) % 5;
   return (
@@ -16,7 +18,8 @@ export function Avatar({
         <img
           src={user.photo}
           alt=""
-          loading="lazy"
+          loading={eager ? 'eager' : 'lazy'}
+          draggable={false}
           referrerPolicy="no-referrer"
           onError={(e) => {
             e.currentTarget.style.display = 'none';

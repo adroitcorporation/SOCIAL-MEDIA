@@ -103,7 +103,12 @@ export function HomePage() {
               View all <ArrowRight size={15} />
             </Link>
           </div>
-          <div className="horizontal-profile-tray">
+          <div
+            className="horizontal-profile-tray"
+            role="region"
+            aria-label="People to meet"
+            tabIndex={0}
+          >
             {state.students.slice(0, 6).map((student) => (
               <StudentCard key={student.id} student={student} />
             ))}

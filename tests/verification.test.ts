@@ -1,3 +1,4 @@
+import { connectionReadyProfile } from './fixtures/connection-ready';
 import { beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
 import { PGlite } from '@electric-sql/pglite';
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket';
@@ -697,6 +698,7 @@ describe('college verification workflow', () => {
     expect((await db.user.findUniqueOrThrow({ where: { id: user.id } })).collegeVerified).toBe(
       true,
     );
+    await db.user.update({ where: { id: user.id }, data: connectionReadyProfile });
     expect((await service.requestConnection(user.id, 'target')).status).toBe('PENDING');
     await expect(service.submitVerification(user.id, email)).rejects.toMatchObject({ status: 409 });
   });
