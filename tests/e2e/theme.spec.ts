@@ -56,7 +56,7 @@ test('saved preference applies before React hydrates', async ({ page }) => {
   await page.route('**/_next/static/**/*.js*', (route) => route.abort());
   await page.goto('/profile');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(12, 21, 36)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(28, 32, 33)');
 });
 
 test('invalid or unavailable storage falls back to system and keeps the toggle usable', async ({
@@ -126,7 +126,7 @@ for (const theme of themes) {
       }
       await expect(page.locator('body')).toHaveCSS(
         'background-color',
-        theme === 'dark' ? 'rgb(12, 21, 36)' : 'rgb(245, 247, 251)',
+        theme === 'dark' ? 'rgb(28, 32, 33)' : 'rgb(241, 240, 235)',
       );
       await page.setViewportSize({ width: 375, height: 812 });
       if (route === '/profile') await expect(toggle).toBeInViewport();
@@ -147,7 +147,7 @@ test('login follows the system theme without a duplicate control', async ({ page
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto('/login');
   await expect(page.getByRole('button', { name: 'Dark mode', exact: true })).toHaveCount(0);
-  await expect(page.locator('.auth-card')).toHaveCSS('background-color', 'rgb(20, 34, 56)');
+  await expect(page.locator('.auth-card')).toHaveCSS('background-color', 'rgb(48, 54, 56)');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );

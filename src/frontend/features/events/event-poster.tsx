@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useCircle } from '@/frontend/state/circle-context';
 import type { EventAttachment } from '@/shared/contracts/responses';
 
@@ -51,23 +52,24 @@ export function EventPoster({
   }, [api, attachments, eventId]);
 
   const posterStyle = posterUrl
-    ? {
-        backgroundImage: `linear-gradient(135deg, rgba(9, 19, 31, 0.35), rgba(9, 19, 31, 0.18)), url(${posterUrl})`,
+    ? ({
+        '--event-poster': `url(${posterUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-      }
+      } as CSSProperties)
     : undefined;
 
   const eventDate = new Date(startsAt);
 
   return (
-    <div className={`event-art event-art-${index % 3}${posterUrl ? ' has-poster' : ''}`} style={posterStyle}>
+    <div
+      className={`event-art event-art-${index % 3}${posterUrl ? ' has-poster' : ''}`}
+      style={posterStyle}
+    >
       {!posterUrl && (
         <>
-          <span>
-            {category === 'Hackathon' ? '</>' : category === 'Design' ? '✳' : '↗'}
-          </span>
+          <span>{category === 'Hackathon' ? '</>' : category === 'Design' ? '✳' : '↗'}</span>
           <small>{category.toUpperCase()}</small>
         </>
       )}

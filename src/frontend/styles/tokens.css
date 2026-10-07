@@ -1,0 +1,105 @@
+/* Soft Industrial: semantic roles shared by all existing feature components. */
+:root {
+  color-scheme: light;
+  --background: #f1f0eb;
+  --surface: #e8e7e1;
+  --surface-elevated: #f8f7f3;
+  --surface-higher: #dedfd7;
+  --text-primary: #202323;
+  --text-secondary: #696e6c;
+  --text-muted: #696e6c;
+  /* A slightly deeper light-mode sage keeps small CTA labels above 4.5:1. */
+  --brand-primary: #637258;
+  --brand-primary-hover: #56644d;
+  --brand-secondary: #a96750;
+  --brand-secondary-hover: #965b45;
+  --brand-text: #536148;
+  --on-primary: #f8f7f3;
+  --border: #d7d7d0;
+  --border-strong: #b7bab0;
+  --active-surface: rgba(116, 130, 105, 0.13);
+  --success: #536148;
+  --warning: #945738;
+  --danger: #a24940;
+  --danger-surface: #f2e1db;
+  --rust-surface: #eee1d9;
+  --on-rust: #f8f7f3;
+  --badge-background: var(--brand-secondary-hover);
+  --badge-text: var(--on-rust);
+  --glass-surface: rgba(241, 240, 235, 0.96);
+  --overlay: rgba(28, 32, 33, 0.65);
+  --shadow-soft: 0 3px 12px rgba(28, 32, 33, 0.04);
+  --shadow-dialog: 0 12px 36px rgba(28, 32, 33, 0.16);
+  --photo-text: #e8e4db;
+  --photo-background: #383e3f;
+  --photo-muted: #d9d9ce;
+  --photo-scrim: rgba(28, 32, 33, 0.86);
+  --photo-tint: rgba(28, 32, 33, 0.2);
+  --logo-background: #102847;
+  --logo-accent: #ff8a3d;
+  --logo-dot-border: #ffffff;
+  --radius: 12px;
+  --font-sans: var(--font-inter), Arial, sans-serif;
+  --font-heading: var(--font-sora), Arial, sans-serif;
+
+  /* Compatibility aliases let existing components keep their semantic roles. */
+  --card: var(--surface-elevated);
+  --ink: var(--text-primary);
+  --muted: var(--text-muted);
+  --line: var(--border);
+  --primary: var(--brand-primary);
+  --primary-hover: var(--brand-primary-hover);
+  --accent: var(--brand-primary);
+  --accent-ink: var(--brand-text);
+  --accent-soft: var(--active-surface);
+  --surface-soft: var(--surface);
+  --surface-strong: var(--surface-higher);
+  --surface-tint: var(--active-surface);
+  --mint: var(--active-surface);
+  --peach: var(--rust-surface);
+  --lavender: var(--surface);
+  --border-subtle: var(--border);
+  --link-ink: var(--brand-text);
+  --focus-ring: var(--brand-primary);
+  --selection: var(--active-surface);
+  --warm-surface: var(--rust-surface);
+  --warm-ink: var(--warning);
+  --warm-border: var(--border);
+  --violet-surface: var(--surface);
+  --violet-ink: var(--text-secondary);
+  --danger-ink: var(--danger);
+  --date-surface: var(--surface-elevated);
+  --profile-accent: var(--brand-primary);
+  --profile-accent-alt: var(--brand-secondary);
+  --tag-accent: var(--brand-primary);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --background: #1c2021;
+  --surface: #252a2b;
+  --surface-elevated: #303638;
+  --surface-higher: #383e3f;
+  --text-primary: #e8e4db;
+  --text-secondary: #b4b2ac;
+  --text-muted: #a8afad;
+  --brand-primary: #b8c2a5;
+  --brand-primary-hover: #aab596;
+  --brand-secondary: #b86f50;
+  --brand-secondary-hover: #a86047;
+  --on-rust: #101414;
+  --badge-background: var(--brand-secondary);
+  --brand-text: #b8c2a5;
+  --on-primary: #1c2021;
+  --border: rgba(168, 175, 173, 0.16);
+  --border-strong: rgba(168, 175, 173, 0.26);
+  --active-surface: rgba(184, 194, 165, 0.15);
+  --success: #b8c2a5;
+  --warning: #d3a58c;
+  --danger: #dfa090;
+  --danger-surface: #3c2d2a;
+  --rust-surface: #362d29;
+  --glass-surface: rgba(28, 32, 33, 0.96);
+  --shadow-soft: 0 3px 12px rgba(0, 0, 0, 0.08);
+  --shadow-dialog: 0 12px 36px rgba(0, 0, 0, 0.24);
+}
