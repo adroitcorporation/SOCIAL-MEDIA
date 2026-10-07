@@ -75,7 +75,9 @@ export function ProfilePage() {
     <>
       <PageHeading title="Profile">
         <div className="profile-header-actions">
-          <ThemeToggle />
+          <span id="profile-settings">
+            <ThemeToggle />
+          </span>
           <button className="button primary" onClick={() => setEdit(!edit)}>
             <Pencil size={16} />
             {edit ? 'View profile' : 'Edit profile'}

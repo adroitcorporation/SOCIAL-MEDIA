@@ -32,7 +32,7 @@ for (const width of [1440, 768, 375, 320]) {
     await expect(page.locator('.topbar a[href="/messages"]')).toBeVisible();
     const mobile = await page.getByRole('button', { name: 'Open navigation' }).isVisible();
     if (mobile) {
-      await expect(page.locator('.bottom-nav a')).toHaveText(labels.slice(0, 5));
+      await expect(page.locator('.bottom-nav a')).toHaveText(['Home', 'Discover', 'Idea Board']);
     }
     for (let index = 0; index < routes.length; index++) {
       if (mobile) await page.getByRole('button', { name: 'Open navigation' }).click();

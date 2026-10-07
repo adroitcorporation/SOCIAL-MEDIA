@@ -241,7 +241,7 @@ export async function navigateMobile(page: Page, path: string) {
     if (await direct.count()) await direct.click();
     else {
       await page.getByRole('button', { name: /^More/ }).click();
-      await page.locator(`.sidebar.open a[href="${path}"]`).click();
+      await page.locator(`.mobile-more-sheet a[href="${path}"]`).click();
     }
   }
   await expect(page).toHaveURL(new RegExp(`${path === '/' ? '/$' : path.replace('/', '\/')}`));

@@ -19,6 +19,8 @@ import {
   Check,
   ChevronDown,
   ShieldCheck,
+  Settings,
+  UserRound,
 } from 'lucide-react';
 import { NotificationToasts } from './notification-toasts';
 import { ProfileCompletionPrompt } from './profile-completion-prompt';
@@ -33,7 +35,7 @@ import { useCircleController } from '@/frontend/hooks/use-circle-controller';
 import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
 import { profilePath } from '@/frontend/utils/profile-path';
-import { Avatar, Loading } from './ui';
+import { Avatar, Loading, Modal } from './ui';
 
 const AuthForm = dynamic(
   () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
@@ -47,12 +49,32 @@ const nav = [
   { path: '/connections', label: 'Connections', icon: Users },
   { path: '/messages', label: 'Messages', icon: MessageCircle },
 ];
+const mobilePrimary = ['/', '/discover', '/ideas'].map((path) =>
+  nav.find((item) => item.path === path)!,
+);
+const mobileSecondary = nav.filter((item) =>
+  ['/events', '/connections', '/messages'].includes(item.path),
+);
 export function CircleApp({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const query = useSearchParams().toString();
   const [notice, setNotice] = useState<{ text: string; error: boolean } | null>(null);
   const [mobile, setMobile] = useState(false);
+  const [more, setMore] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const closeMore = () => {
+    setMore(false);
+    requestAnimationFrame(() => moreButtonRef.current?.focus());
+  };
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 801px)');
+    const close = () => {
+      if (desktop.matches) setMore(false);
+    };
+    desktop.addEventListener('change', close);
+    return () => desktop.removeEventListener('change', close);
+  }, []);
   const [missingProfileFields, setMissingProfileFields] = useState<string[] | null>(null);
   const connecting = useRef(false);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -412,25 +434,90 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
             )}
           </main>
         </div>
-        <nav className="bottom-nav">
-          {nav.slice(0, 5).map((n) => (
+        <nav className="bottom-nav" aria-label="Mobile navigation">
+          {mobilePrimary.map((n) => (
             <Link
               key={n.path}
               href={n.path}
               onPointerEnter={() => prefetchScreen(n.path)}
               onFocus={() => prefetchScreen(n.path)}
               className={path === n.path ? 'active' : ''}
+              aria-current={path === n.path ? 'page' : undefined}
             >
               <n.icon size={20} />
               <span>{n.label}</span>
             </Link>
           ))}
-          <button onClick={() => setMobile(true)} aria-label="More">
+          <button
+            onClick={() => {
+              setMobile(false);
+              setMore(true);
+            }}
+            aria-label={`More${unread + messagesUnread > 0 ? `, ${unread + messagesUnread} unread` : ''}`}
+            ref={moreButtonRef}
+            aria-expanded={more}
+            aria-haspopup="dialog"
+            className={mobilePrimary.some((item) => item.path === path) ? '' : 'active'}
+          >
+            {unread + messagesUnread > 0 && (
+              <span className="mobile-more-badge" aria-hidden="true">
+                {unread + messagesUnread > 99 ? '99+' : unread + messagesUnread}
+              </span>
+            )}
             <Menu size={20} />
             <span>More</span>
           </button>
         </nav>
       </div>
+      {more && (
+        <Modal title="More" className="mobile-more-sheet" onClose={closeMore}>
+          <nav className="mobile-more-menu" aria-label="More destinations">
+            {[
+              ...mobileSecondary,
+              { path: '/notifications', label: 'Notifications', icon: Bell },
+              { path: '/profile', label: 'Profile', icon: UserRound },
+              { path: '/profile#profile-settings', label: 'Settings', icon: Settings },
+              ...(state.isModerator
+                ? [{ path: '/moderation', label: 'Moderation', icon: ShieldCheck }]
+                : []),
+            ].map((item) => {
+              const count =
+                item.path === '/messages'
+                  ? messagesUnread
+                  : item.path === '/notifications'
+                    ? unread
+                    : 0;
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  prefetch={item.path === '/moderation' ? false : undefined}
+                  onPointerEnter={() => prefetchScreen(item.path.split('#')[0])}
+                  onFocus={() => prefetchScreen(item.path.split('#')[0])}
+                  onClick={() => setMore(false)}
+                >
+                  <item.icon size={20} />
+                  <span>{item.label}</span>
+                  {count > 0 && (
+                    <span className="nav-count" aria-label={`${count} unread`}>
+                      {count > 99 ? '99+' : count}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+            <button
+              onClick={() => {
+                setMore(false);
+                void logout();
+              }}
+            >
+              <LogOut size={20} />
+              <span>Log out</span>
+            </button>
+          </nav>
+        </Modal>
+      )}
       <NotificationToasts
         items={activity.toasts}
         dismiss={activity.dismiss}

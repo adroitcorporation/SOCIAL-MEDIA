@@ -93,7 +93,7 @@ test.describe('mobile layout and gestures', () => {
           await expect(page.getByRole('button', { name: 'Block student' })).toBeVisible();
       }
       await page.getByRole('button', { name: /^More/ }).click();
-      const menu = page.locator('.sidebar.open');
+      const menu = page.locator('.mobile-more-sheet');
       await menu.getByRole('button', { name: 'Log out' }).scrollIntoViewIfNeeded();
       await expect(menu.getByRole('button', { name: 'Log out' })).toBeVisible();
       expect(
@@ -247,6 +247,7 @@ test.describe('mobile layout and gestures', () => {
     state.notifications.unshift(item);
     await emitActivity(page, { items: state.notifications, unreadCount: 1 });
     await expect(page.locator('.notification-toast')).toContainText(item.title);
+    await page.keyboard.press('Escape');
     await page.getByRole('button', { name: `Dismiss ${item.title}` }).click();
     await expect(page.locator('.notification-toast')).toHaveCount(0);
     await expect(page.getByRole('link', { name: '1 unread notifications' })).toBeVisible();
