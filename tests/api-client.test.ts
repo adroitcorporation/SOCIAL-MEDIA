@@ -21,6 +21,21 @@ describe('frontend/backend transport contract', () => {
       cache: 'no-store',
     });
   });
+  it('sends connection receiver ID under the authenticated backend userId contract', async () => {
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(Response.json({ id: 'connection', status: 'PENDING' }));
+    const api = createCommunityClient(
+      createHttpClient({ getAccessToken: async () => 'connection-token', fetch: fetcher }),
+    );
+    await api.connections.request({ userId: 'receiver' });
+    expect(fetcher).toHaveBeenCalledWith('/api/connections', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer connection-token', 'Content-Type': 'application/json' },
+      body: '{"userId":"receiver"}',
+      cache: 'no-store',
+    });
+  });
   it('keeps reads body-free and passes query parameters through', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({ students: [] }));
     const api = createCommunityClient(createHttpClient({ fetch: fetcher }));

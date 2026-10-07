@@ -141,7 +141,8 @@ test.describe('mobile layout and gestures', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    const { actions, calls, controls } = await mockMobileApp(page);
+    const { actions, calls, controls, state } = await mockMobileApp(page);
+    state.connections = [];
     await page.goto('/discover');
     const active = () => page.locator('.discover-profile-card:not(.is-preview)');
     await expect(active().locator('.student-name')).toHaveText('Student A');
@@ -270,7 +271,7 @@ test('desktop layouts and horizontal trackpad navigation remain functional', asy
   await expect(
     page
       .locator('.discover-profile-card:not(.is-preview)')
-      .getByRole('button', { name: 'Connect', exact: true }),
+      .getByRole('button', { name: 'Respond', exact: true }),
   ).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1440);
 });

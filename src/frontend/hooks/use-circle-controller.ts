@@ -1,7 +1,13 @@
 'use client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { ApiConfig, AppState, NotificationSnapshot } from '@/shared/contracts/responses';
+import type {
+  ApiConfig,
+  AppState,
+  NotificationSnapshot,
+  Connection,
+} from '@/shared/contracts/responses';
+import { applyConnection } from '@/frontend/state/connection-update';
 import { browserAuth } from '@/frontend/auth/browser-auth';
 import { ApiError, createHttpClient } from '@/frontend/api/http-client';
 import { createCommunityClient } from '@/frontend/api/community-client';
@@ -281,6 +287,26 @@ export function useCircleController(
             viewCache.current.get(location) ?? (stateLocation === location ? state : null);
           if (current) {
             const next = update(current, result);
+            if (
+              result &&
+              typeof result === 'object' &&
+              'requesterId' in result &&
+              'receiverId' in result &&
+              'status' in result
+            ) {
+              const connection = result as unknown as Connection;
+              const otherId =
+                connection.requesterId === next.me.id
+                  ? connection.receiverId
+                  : connection.requesterId;
+              const other =
+                next.students.find((student) => student.id === otherId) ??
+                next.connections.find((item) => item.id === connection.id)?.[
+                  connection.requesterId === next.me.id ? 'receiver' : 'requester'
+                ];
+              for (const [key, cached] of viewCache.current)
+                viewCache.current.set(key, applyConnection(cached, connection, other));
+            }
             if (next.me !== current.me) {
               viewRequests.current.clear();
               for (const [key, cached] of viewCache.current)

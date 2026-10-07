@@ -384,7 +384,22 @@ export function ProfileDetails({ user, compact = false }: { user: Student; compa
           <h4>{key === 'lookingFor' ? 'Looking for' : key[0].toUpperCase() + key.slice(1)}</h4>
           <div className={`tags profile-group-${key}`}>
             {user[key].length ? (
-              user[key].map((s) => <Tag key={s}>{s}</Tag>)
+              user[key].map((s) => (
+                <Tag
+                  key={s}
+                  category={
+                    key === 'skills'
+                      ? 'skill'
+                      : key === 'interests'
+                        ? 'interest'
+                        : key === 'domains'
+                          ? 'domain'
+                          : 'looking'
+                  }
+                >
+                  {s}
+                </Tag>
+              ))
             ) : (
               <span className="muted">Not added yet</span>
             )}

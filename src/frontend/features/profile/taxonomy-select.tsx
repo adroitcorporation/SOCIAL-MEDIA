@@ -39,7 +39,9 @@ export function TaxonomySelect({
     setSearch('');
   };
   return (
-    <fieldset className="taxonomy-select">
+    <fieldset
+      className={`taxonomy-select tag-category-${field === 'skills' ? 'skill' : field === 'interests' ? 'interest' : 'looking'}`}
+    >
       <legend>
         {label}{' '}
         <span className="muted">

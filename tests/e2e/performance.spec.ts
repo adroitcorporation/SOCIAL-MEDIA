@@ -55,7 +55,7 @@ test('connection actions update the card without a state refetch', async ({ page
   await expect(card).toBeVisible();
   const initial = reads.length;
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
-  await expect(card).toHaveCount(0);
+  await expect(card.getByRole('button', { name: 'Pending', exact: true })).toBeDisabled();
   expect(reads).toHaveLength(initial);
   const updated: AppState = await (await request.get('/api/state?view=/connections')).json();
   const sent = updated.connections.find(

@@ -50,7 +50,12 @@ async function openFeed(page: Page) {
     const url = new URL(request.url());
     if (url.pathname === '/api/config')
       return route.fulfill({ json: { demo: true, configured: false } });
-    if (url.pathname === '/api/state') return route.fulfill({ json: state });
+    if (url.pathname === '/api/state')
+      return route.fulfill({
+        json: url.searchParams.get('search')
+          ? { ...state, students, totalStudents: students.length }
+          : state,
+      });
     if (url.pathname === '/api/live')
       return route.fulfill({
         contentType: 'text/event-stream',
@@ -90,23 +95,26 @@ async function openFeed(page: Page) {
   return { actions, controls };
 }
 
-test('pending Connect and shrinking Pass advance once, exhaust, and reset on query change', async ({
+test('pending Connect stays visible; Skip advances, exhausts, and resets on query change', async ({
   page,
 }) => {
   const { actions } = await openFeed(page);
   await page.getByRole('button', { name: 'Connect', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Pending', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Skip Student A', exact: true }).click();
   await expect(page.locator('.student-card:not(.is-preview) .student-name')).toHaveText(
     'Student B',
   );
-  await expect(page.getByRole('button', { name: 'Cancel Request' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Skip Student B', exact: true }).click();
   await expect(page.locator('.student-card:not(.is-preview) .student-name')).toHaveText(
     'Student C',
   );
   await page.getByRole('button', { name: 'Connect', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Pending', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Skip Student C', exact: true }).click();
   await expect(page.getByText("You're all caught up.", { exact: true })).toBeVisible();
   await expect(page.locator('.student-card:not(.is-preview)')).toHaveCount(0);
-  expect(actions).toEqual(['connect:A', 'pass:B', 'connect:C']);
+  expect(actions).toEqual(['connect:A', 'pass:A', 'pass:B', 'connect:C', 'pass:C']);
   await page.getByPlaceholder('Name, college, city').fill('Student');
   await page.getByRole('button', { name: 'Search profiles' }).click();
   await expect(page).toHaveURL(/search=Student/);
@@ -121,7 +129,9 @@ test('failed Connect and Pass keep the current profile, then allow a successful 
   const { actions, controls } = await openFeed(page);
   controls.fail = true;
   await page.getByRole('button', { name: 'Connect', exact: true }).click();
-  await expect(page.getByText('Action failed', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Couldn't send connection request. Please try again.", { exact: true }),
+  ).toBeVisible();
   await expect(page.locator('.student-card:not(.is-preview) .student-name')).toHaveText(
     'Student A',
   );

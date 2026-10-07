@@ -135,6 +135,26 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
     async (student: Student, animate?: () => Promise<void>) => {
       if (!state || busy || connecting.current) return false;
       const userId = student.id;
+      const existing = state.connections.find(
+        (item) =>
+          [item.requesterId, item.receiverId].includes(userId) &&
+          ['PENDING', 'ACCEPTED'].includes(item.status),
+      );
+      if (state.blockedIds.includes(userId)) {
+        toast('Unblock this person before connecting.', true);
+        return false;
+      }
+      if (
+        existing?.status === 'ACCEPTED' ||
+        (existing?.status === 'PENDING' && existing.requesterId === state.me.id)
+      ) {
+        toast(
+          existing.status === 'ACCEPTED'
+            ? 'You’re already connected.'
+            : 'Connection request already sent.',
+        );
+        return false;
+      }
       const incoming = state.connections.some(
         (item) =>
           item.requesterId === userId &&
@@ -155,7 +175,15 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
       try {
         await mutate(
           async () => {
-            const [result] = await Promise.all([api.connections.request({ userId }), animate?.()]);
+            let result;
+            try {
+              result = await api.connections.request({ userId });
+            } catch (error) {
+              if (!(error instanceof ApiError) || error.status >= 500)
+                throw new Error("Couldn't send connection request. Please try again.");
+              throw error;
+            }
+            await animate?.();
             return result;
           },
           (current, result) => applyConnection(current, result, student),
@@ -165,12 +193,24 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
       } catch (error) {
         if (error instanceof ApiError && error.code === 'PROFILE_INCOMPLETE')
           setMissingProfileFields(error.missingFields ?? completion.missingFields);
+        if (error instanceof ApiError && error.status === 409) {
+          try {
+            await refresh();
+          } catch (refreshError) {
+            toast(
+              refreshError instanceof Error
+                ? refreshError.message
+                : 'Could not refresh connection status. Please refresh the page.',
+              true,
+            );
+          }
+        }
         return false;
       } finally {
         connecting.current = false;
       }
     },
-    [state, busy, navigate, toast, mutate, api],
+    [state, busy, navigate, toast, mutate, api, refresh],
   );
   const contextValue = useMemo(
     () =>

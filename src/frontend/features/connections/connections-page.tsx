@@ -70,7 +70,9 @@ export function ConnectionsPage() {
               </div>
               <div className="tags">
                 {student.skills.slice(0, 4).map((s) => (
-                  <Tag key={s}>{s}</Tag>
+                  <Tag key={s} category="skill">
+                    {s}
+                  </Tag>
                 ))}
               </div>
               <div className="connection-actions">

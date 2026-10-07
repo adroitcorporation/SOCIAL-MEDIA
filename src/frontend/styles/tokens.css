@@ -103,3 +103,44 @@
   --shadow-soft: 0 3px 12px rgba(0, 0, 0, 0.08);
   --shadow-dialog: 0 12px 36px rgba(0, 0, 0, 0.24);
 }
+
+:root {
+  --card-border: #dddcd5;
+  --shadow-card: 0 4px 18px rgba(32, 35, 35, 0.05);
+  --shadow-elevated: 0 8px 24px rgba(32, 35, 35, 0.07);
+  --connect-hover: #68775e;
+  --connect-active: #56644d;
+  --chip-skill-bg: #e8ece1;
+  --chip-skill-text: #536047;
+  --chip-skill-border: #d4dbc8;
+  --chip-interest-bg: #e7ecef;
+  --chip-interest-text: #52636d;
+  --chip-interest-border: #d3dde1;
+  --chip-domain-bg: #f1e4de;
+  --chip-domain-text: #81543f;
+  --chip-domain-border: #e5d1c8;
+  --chip-looking-bg: #eee9df;
+  --chip-looking-text: #665c49;
+  --chip-looking-border: #dfd7c8;
+}
+
+:root[data-theme='dark'] {
+  --card: #252a2b;
+  --card-border: rgba(168, 175, 173, 0.12);
+  --shadow-card: 0 6px 24px rgba(0, 0, 0, 0.12);
+  --shadow-elevated: 0 8px 30px rgba(0, 0, 0, 0.16);
+  --connect-hover: #c4cdaf;
+  --connect-active: #aab596;
+  --chip-skill-bg: rgba(184, 194, 165, 0.13);
+  --chip-skill-text: #d9e1cd;
+  --chip-skill-border: rgba(184, 194, 165, 0.26);
+  --chip-interest-bg: rgba(145, 163, 174, 0.13);
+  --chip-interest-text: #cbd6dc;
+  --chip-interest-border: rgba(145, 163, 174, 0.25);
+  --chip-domain-bg: rgba(184, 111, 80, 0.12);
+  --chip-domain-text: #d9b09d;
+  --chip-domain-border: rgba(184, 111, 80, 0.24);
+  --chip-looking-bg: rgba(199, 184, 154, 0.13);
+  --chip-looking-text: #ddd1b8;
+  --chip-looking-border: rgba(199, 184, 154, 0.24);
+}

@@ -147,7 +147,7 @@ test('login follows the system theme without a duplicate control', async ({ page
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto('/login');
   await expect(page.getByRole('button', { name: 'Dark mode', exact: true })).toHaveCount(0);
-  await expect(page.locator('.auth-card')).toHaveCSS('background-color', 'rgb(48, 54, 56)');
+  await expect(page.locator('.auth-card')).toHaveCSS('background-color', 'rgb(37, 42, 43)');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );

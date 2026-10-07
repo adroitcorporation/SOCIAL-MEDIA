@@ -136,6 +136,17 @@ describe('Connection lifecycle', () => {
       status: 403,
     });
     await service.transitionConnection('b', request.id, 'accept');
+    for (const id of ['a', 'b']) {
+      const connected = await service.snapshot(
+        await db.user.findUniqueOrThrow({ where: { id } }),
+        new URLSearchParams('view=/connections'),
+      );
+      expect(connected.connections.find((item) => item.id === request.id)?.status).toBe('ACCEPTED');
+      await expect(service.requestConnection(id, id === 'a' ? 'b' : 'a')).rejects.toMatchObject({
+        status: 409,
+      });
+    }
+    expect(await db.connection.count({ where: { pairKey: 'a:b' } })).toBe(1);
   });
   it('automatically accepts reciprocal requests while keeping exactly one relationship', async () => {
     const results = await Promise.allSettled([

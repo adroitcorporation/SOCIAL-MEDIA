@@ -114,8 +114,9 @@ export function Loading({ variant = 'default' }: { variant?: 'default' | 'screen
     </div>
   );
 }
-export function Tag({ children }: { children: React.ReactNode }) {
-  return <span className="tag">{children}</span>;
+export type TagCategory = 'skill' | 'interest' | 'domain' | 'looking';
+export function Tag({ children, category }: { children: React.ReactNode; category?: TagCategory }) {
+  return <span className={`tag${category ? ` tag-${category}` : ''}`}>{children}</span>;
 }
 export function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (

@@ -38,7 +38,9 @@ export function IdeaCard({ idea, compact = false }: { idea: IdeaItem; compact?: 
         <p className="idea-description">{idea.description}</p>
         <div className="tags">
           {idea.skills.slice(0, 4).map((s) => (
-            <Tag key={s}>{s}</Tag>
+            <Tag key={s} category="skill">
+              {s}
+            </Tag>
           ))}
           {idea.tags.slice(0, 2).map((s) => (
             <span className="hashtag" key={s}>
@@ -112,7 +114,9 @@ function IdeaDetail({ idea: initial, onClose }: { idea: IdeaItem; onClose: () =>
         <h4>Skills needed</h4>
         <div className="tags">
           {idea.skills.map((s) => (
-            <Tag key={s}>{s}</Tag>
+            <Tag key={s} category="skill">
+              {s}
+            </Tag>
           ))}
         </div>
         <div className="tags">

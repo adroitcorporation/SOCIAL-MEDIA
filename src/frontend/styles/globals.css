@@ -2305,20 +2305,6 @@ em {
   background: var(--brand-primary-hover) !important;
   border-color: var(--brand-primary-hover) !important;
 }
-.discover-connect-symbol {
-  display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--surface);
-}
-.discover-connect-symbol svg {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.5;
-}
 .discover-single .discover-connect {
   flex: 1;
   justify-content: center;
@@ -6251,4 +6237,158 @@ select:focus-visible {
 .profile-details .tag {
   max-width: 100%;
   white-space: normal;
+}
+
+/* Attribute hierarchy and restrained depth. */
+.tag-skill,
+.tag-category-skill {
+  --chip-bg: var(--chip-skill-bg);
+  --chip-text: var(--chip-skill-text);
+  --chip-border: var(--chip-skill-border);
+}
+.tag-interest,
+.tag-category-interest {
+  --chip-bg: var(--chip-interest-bg);
+  --chip-text: var(--chip-interest-text);
+  --chip-border: var(--chip-interest-border);
+}
+.tag-domain,
+.tag-category-domain {
+  --chip-bg: var(--chip-domain-bg);
+  --chip-text: var(--chip-domain-text);
+  --chip-border: var(--chip-domain-border);
+}
+.tag-looking,
+.tag-category-looking {
+  --chip-bg: var(--chip-looking-bg);
+  --chip-text: var(--chip-looking-text);
+  --chip-border: var(--chip-looking-border);
+}
+
+.tag,
+.student-card .tag,
+.discover-profile-card .tag {
+  background: var(--chip-bg, var(--surface));
+  color: var(--chip-text, var(--text-secondary));
+  border: 1px solid var(--chip-border, var(--border));
+  border-radius: 7px;
+  padding: 5px 9px;
+  font: 500 12px/1.5 var(--font-sans);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.panel,
+.student-card,
+.idea-card,
+.event-card,
+.connection-card {
+  border-color: var(--card-border);
+  box-shadow: var(--shadow-card);
+}
+.profile-layout > .panel,
+.profile-layout > aside .panel,
+.discover-single > .discover-profile-card {
+  box-shadow: var(--shadow-elevated);
+  border-color: var(--card-border);
+}
+.profile-details > section {
+  margin-top: 22px;
+}
+.profile-details > section h4 {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.profile-details > h2 {
+  font-size: 28px;
+  margin: 16px 0 8px;
+}
+.profile-details .bio {
+  font-size: 15px;
+  line-height: 1.75;
+  margin-block: 20px;
+}
+.profile-details > p .tag {
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+.discover-details .match-score {
+  color: var(--brand-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+.discover-details .looking,
+.student-card .looking {
+  white-space: normal;
+  overflow: visible;
+  flex-wrap: wrap;
+}
+.discover-profile-card > .student-actions {
+  border-top: 1px solid var(--border);
+}
+.discover-single .discover-pass {
+  border-radius: 8px;
+  font-size: 13px;
+  width: auto;
+  flex: 0 0 auto;
+  padding: 10px 16px;
+}
+.discover-single .discover-connect:hover:not(:disabled),
+.button.connect:hover:not(:disabled) {
+  background: var(--connect-hover) !important;
+}
+.discover-single .discover-connect:active:not(:disabled),
+.button.connect:active:not(:disabled) {
+  background: var(--connect-active) !important;
+}
+.connection-spinner {
+  animation: connection-spin 800ms linear infinite;
+}
+@keyframes connection-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 800px) {
+  .discover-cover-copy .student-name {
+    overflow-wrap: anywhere;
+    font-size: clamp(24px, 5vw, 32px);
+  }
+}
+
+.discover-cover-copy .student-name {
+  overflow-wrap: anywhere;
+}
+.discover-interests {
+  margin: 12px 0;
+}
+
+/* Let long names increase the cover height rather than collide with its fallback avatar. */
+.discover-single > .discover-profile-card .discover-cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.discover-cover-copy {
+  position: relative;
+  inset: auto;
+  margin: 130px 25px 28px 30px;
+}
+.discover-single > .discover-profile-card .discover-cover > .avatar.large > span {
+  position: absolute;
+  top: 42px;
+  left: 30px;
+  font-size: 56px;
+}
+
+@media (max-width: 800px) {
+  .discover-single > .discover-profile-card {
+    grid-template-rows: minmax(220px, auto) auto auto;
+  }
+  .discover-single > .discover-profile-card .discover-cover {
+    height: auto;
+    min-height: 220px;
+  }
+  .discover-cover-copy {
+    margin: 115px 18px 22px;
+  }
 }

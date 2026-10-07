@@ -1,7 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
-import { ArrowUpRight, Plus, X, Users, GraduationCap, Handshake } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowUpRight,
+  Plus,
+  X,
+  Users,
+  GraduationCap,
+  UserPlus,
+  LoaderCircle,
+  Check,
+} from 'lucide-react';
 import { normalizeList } from '@/shared/recommendations/taxonomy';
 import type { Student } from '@/shared/contracts/responses';
 
@@ -24,11 +33,16 @@ export function StudentCard({
   discoverMode?: boolean;
   preview?: boolean;
 }) {
-  const { api, state, mutate, busy, viewProfile, requestConnection, toast } = useCircle();
-  const connection = state.connections.find((c) =>
-    [c.requesterId, c.receiverId].includes(student.id),
+  const { api, state, mutate, busy, viewProfile, requestConnection, toast, navigate } = useCircle();
+  const connection = state.connections.find(
+    (c) =>
+      [c.requesterId, c.receiverId].includes(student.id) &&
+      ['PENDING', 'ACCEPTED'].includes(c.status),
   );
-  const pending = !discoverMode && connection?.status === 'PENDING';
+  const pending = connection?.status === 'PENDING';
+  const accepted = connection?.status === 'ACCEPTED';
+  const blocked = state.blockedIds.includes(student.id);
+  const [sending, setSending] = useState(false);
   const outgoing = connection?.requesterId === state.me.id;
   const shared = student.interests.filter((i) => state.me.interests.includes(i));
   const quickSkills = useMemo(
@@ -98,14 +112,29 @@ export function StudentCard({
   const recoverCard = () => {
     if (mounted.current && cardRef.current) resetDrag(cardRef.current);
   };
-  const handleConnect = async () => {
+  const handleConnect = async (advance = false) => {
     if (preview || busy || actionInFlight.current) return;
+    if (blocked || accepted || (pending && outgoing)) {
+      recoverCard();
+      return;
+    }
+    if (pending) {
+      recoverCard();
+      navigate('/connections');
+      return;
+    }
     actionInFlight.current = true;
+    setSending(true);
     try {
-      if (await requestConnection(student, () => exitCard(1))) finishAction();
-      else recoverCard();
+      if (await requestConnection(student)) {
+        if (advance) {
+          await exitCard(1);
+          finishAction();
+        } else recoverCard();
+      } else recoverCard();
     } finally {
       actionInFlight.current = false;
+      if (mounted.current) setSending(false);
     }
   };
   const handleSkip = async () => {
@@ -195,7 +224,7 @@ export function StudentCard({
         const threshold = Math.min(120, event.currentTarget.offsetWidth * 0.28);
         dragStartX.current = null;
         dragPointerId.current = null;
-        if (delta > threshold || (delta > 45 && velocity > 0.55)) void handleConnect();
+        if (delta > threshold || (delta > 45 && velocity > 0.55)) void handleConnect(true);
         else if (delta < -threshold || (delta < -45 && velocity < -0.55)) void handleSkip();
         else resetDrag(event.currentTarget);
         if ((delta > 0 && !state.me.collegeVerified) || busy) resetDrag(event.currentTarget);
@@ -244,6 +273,13 @@ export function StudentCard({
               )}
             </div>
           )}
+          <div className="tags discover-interests">
+            {student.interests.slice(0, 2).map((interest) => (
+              <Tag key={interest} category="interest">
+                {interest}
+              </Tag>
+            ))}
+          </div>
           <p className="college">
             <GraduationCap size={15} />
             {student.college}
@@ -258,13 +294,15 @@ export function StudentCard({
 
           <div className="tags">
             {quickSkills.map((skill) => (
-              <Tag key={skill}>{skill}</Tag>
+              <Tag key={skill} category="skill">
+                {skill}
+              </Tag>
             ))}
           </div>
           {lookingLabel && (
             <div className="looking">
               <span className="status-dot" />
-              Looking for: <span>{lookingLabel}</span>
+              Looking for: <Tag category="looking">{lookingLabel}</Tag>
             </div>
           )}
         </div>
@@ -284,13 +322,15 @@ export function StudentCard({
 
           <div className="tags">
             {quickSkills.map((skill) => (
-              <Tag key={skill}>{skill}</Tag>
+              <Tag key={skill} category="skill">
+                {skill}
+              </Tag>
             ))}
           </div>
           {lookingLabel && (
             <div className="looking">
               <span className="status-dot" />
-              Looking for: {lookingLabel}
+              Looking for: <Tag category="looking">{lookingLabel}</Tag>
             </div>
           )}
           {shared.length > 0 && (
@@ -305,7 +345,7 @@ export function StudentCard({
         {discoverMode ? (
           <>
             <button
-              disabled={busy}
+              disabled={busy || sending}
               className="button ghost discover-pass"
               aria-label={`Skip ${student.name}`}
               title="Skip"
@@ -313,22 +353,39 @@ export function StudentCard({
             >
               <X size={21} /> Skip
             </button>
-            <button
-              disabled={busy}
-              className="button secondary connect discover-connect"
-              onClick={() => void handleConnect()}
-            >
-              <span className="discover-connect-symbol" aria-hidden="true">
-                <Handshake size={21} strokeWidth={2.5} />
-              </span>
-              Connect
-            </button>
+            {!blocked && (
+              <button
+                disabled={busy || sending || accepted || Boolean(pending && outgoing)}
+                aria-busy={sending}
+                className="button secondary connect discover-connect"
+                onClick={() => void handleConnect()}
+              >
+                {sending ? (
+                  <LoaderCircle className="connection-spinner" size={18} />
+                ) : accepted ? (
+                  <Check size={18} />
+                ) : (
+                  <UserPlus size={18} />
+                )}
+                {sending
+                  ? 'Connecting...'
+                  : accepted
+                    ? 'Connected'
+                    : pending
+                      ? outgoing
+                        ? 'Pending'
+                        : 'Respond'
+                      : 'Connect'}
+              </button>
+            )}
           </>
+        ) : accepted || blocked ? (
+          <span className="pending-label">{blocked ? 'Blocked' : 'Connected'}</span>
         ) : pending ? (
           <>
             <span className="pending-label">{outgoing ? 'Request Sent' : 'Wants to connect'}</span>
             <button
-              disabled={busy}
+              disabled={busy || sending}
               className="button small secondary"
               onClick={async () => {
                 try {
@@ -354,8 +411,12 @@ export function StudentCard({
               className="button secondary connect"
               onClick={() => void handleConnect()}
             >
-              <Plus size={15} />
-              Connect
+              {sending ? (
+                <LoaderCircle className="connection-spinner" size={15} />
+              ) : (
+                <Plus size={15} />
+              )}
+              {sending ? 'Connecting...' : 'Connect'}
             </button>
             <button
               disabled={busy}
