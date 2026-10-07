@@ -9,13 +9,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const preference = useRef<Theme | null>(null);
 
   useEffect(() => {
-    const system = window.matchMedia('(prefers-color-scheme: dark)');
     try {
       const stored = localStorage.getItem(themeStorageKey);
       preference.current = isTheme(stored) ? stored : null;
     } catch {}
     const apply = () => {
-      const next = preference.current ?? (system.matches ? 'dark' : 'light');
+      const next = preference.current ?? 'light';
       document.documentElement.dataset.theme = next;
       setTheme(next);
     };
@@ -25,10 +24,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       apply();
     };
     apply();
-    system.addEventListener('change', apply);
     window.addEventListener('storage', onStorage);
     return () => {
-      system.removeEventListener('change', apply);
       window.removeEventListener('storage', onStorage);
     };
   }, []);

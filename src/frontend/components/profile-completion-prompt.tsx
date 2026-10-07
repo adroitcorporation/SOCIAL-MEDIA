@@ -35,6 +35,9 @@ export function ProfileCompletionPrompt({
         })}
       </ul>
       <div className="profile-completion-action">
+        <button className="button secondary" onClick={close}>
+          Not now
+        </button>
         <button className="button primary" onClick={edit}>
           Complete Profile
         </button>

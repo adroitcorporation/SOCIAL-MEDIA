@@ -212,6 +212,10 @@ for (const theme of ['dark', 'light'] as const)
     test(`${theme} refined chips and long Discover content fit ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 1000 });
       await page.emulateMedia({ colorScheme: theme });
+      await page.addInitScript(
+        (theme) => localStorage.setItem('founder-circle-theme', theme),
+        theme,
+      );
       const { state } = await mockMobileApp(page, true);
       state.connections = [];
       await page.goto('/discover');

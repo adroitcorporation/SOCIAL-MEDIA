@@ -564,6 +564,74 @@ describe('approved college domain management and authenticated evaluation', () =
     for (const address of ['student@mnit.ac.in@attacker.com', 'student@.mnit.ac.in', '@mnit.ac.in'])
       expect(realSession.isVerifiedCollegeEmail(address, '2026-10-07', ['mnit.ac.in'])).toBe(false);
   });
+  it('approved authenticated domain verifies an incomplete account but still gates the real Connect endpoint', async () => {
+    const user = await student();
+    const verified = await login(user.id, 'student@MNIT.AC.IN');
+    expect(verified).toMatchObject({
+      collegeVerified: true,
+      collegeVerificationSource: 'APPROVED_EMAIL_DOMAIN',
+      onboarded: false,
+    });
+    expect(await db.collegeVerificationRequest.count({ where: { userId: user.id } })).toBe(0);
+    const profileState = await api(user.id, 'state?view=/profile');
+    expect((await profileState.json()).me).toMatchObject({
+      collegeVerified: true,
+      collegeVerificationSource: 'APPROVED_EMAIL_DOMAIN',
+      onboarded: false,
+    });
+    const denied = await api(user.id, 'connections', { userId: 'target' });
+    expect(denied.status).toBe(403);
+    expect(await denied.json()).toMatchObject({
+      code: 'PROFILE_INCOMPLETE',
+      missingFields: expect.arrayContaining(['bio', 'skills', 'lookingFor']),
+    });
+    expect(await db.connection.count({ where: { requesterId: user.id } })).toBe(0);
+    await db.user.update({
+      where: { id: user.id },
+      data: { ...connectionReadyProfile, onboarded: true },
+    });
+    const sent = await api(user.id, 'connections', { userId: 'target' });
+    expect(sent.status).toBe(200);
+    expect(await sent.json()).toMatchObject({
+      requesterId: user.id,
+      receiverId: 'target',
+      status: 'PENDING',
+    });
+    expect((await api(user.id, 'connections', { userId: 'target' })).status).toBe(409);
+    expect(await db.connection.count({ where: { requesterId: user.id } })).toBe(1);
+  });
+  it('a claimed approved college email in profile or provider metadata cannot grant affiliation', async () => {
+    const user = await student();
+    await db.user.update({
+      where: { id: user.id },
+      data: { ...connectionReadyProfile, college: 'LNMIIT', onboarded: true },
+    });
+    provider.getUser.mockResolvedValue({
+      data: {
+        user: {
+          id: user.id,
+          email: 'student@example.com',
+          email_confirmed_at: '2026-10-07',
+          user_metadata: { collegeEmail: 'student@lnmiit.ac.in', collegeVerified: true },
+        },
+      },
+      error: null,
+    });
+    expect(
+      await realSession.authenticate(
+        new Request('http://localhost/api/state', {
+          headers: { authorization: 'Bearer test-token' },
+        }),
+      ),
+    ).toMatchObject({ collegeVerified: false, collegeVerificationSource: null });
+    const denied = await api(user.id, 'connections', {
+      userId: 'target',
+      collegeEmail: 'student@lnmiit.ac.in',
+      collegeVerified: true,
+    });
+    expect(denied.status).toBe(403);
+    expect(await db.connection.count({ where: { requesterId: user.id } })).toBe(0);
+  });
   it('optionally associates a domain with an active college and rejects unknown associations', async () => {
     await db.college.create({
       data: {
@@ -643,6 +711,11 @@ describe('approved college domain management and authenticated evaluation', () =
         })
       ).status,
     ).toBe(409);
+    await db.user.update({
+      where: { id: idUser.id },
+      data: { ...connectionReadyProfile, onboarded: true },
+    });
+    expect((await api(idUser.id, 'connections', { userId: 'target' })).status).toBe(200);
     expect((await service.submitVerification(domainUser.id, email)).status).toBe('PENDING');
     expect(await db.moderationAction.count({ where: { targetId: 'mnit.ac.in' } })).toBe(2);
   });

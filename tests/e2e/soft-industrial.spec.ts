@@ -22,6 +22,10 @@ for (const theme of ['light', 'dark'] as const) {
     try {
       await db.user.update({ where: { id: original.id }, data: { role: 'MODERATOR' } });
       await page.emulateMedia({ colorScheme: theme });
+      await page.addInitScript(
+        (theme) => localStorage.setItem('founder-circle-theme', theme),
+        theme,
+      );
       for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto('/moderation');
@@ -48,6 +52,10 @@ for (const theme of ['light', 'dark'] as const) {
       page.on('pageerror', (error) => errors.push(error.message));
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme: theme });
+      await page.addInitScript(
+        (theme) => localStorage.setItem('founder-circle-theme', theme),
+        theme,
+      );
       const { state } = await mockMobileApp(page);
       state.isModerator = true;
       state.me.role = 'MODERATOR';

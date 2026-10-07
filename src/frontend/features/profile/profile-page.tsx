@@ -20,8 +20,12 @@ import {
 export function ProfilePage() {
   const { api, state, mutate, toast } = useCircle();
   const searchParams = useSearchParams();
-  const [edit, setEdit] = useState(!state.me.onboarded || searchParams.get('edit') === '1');
+  const requestedEdit = searchParams.get('edit') === '1';
+  const [edit, setEdit] = useState(!state.me.onboarded || requestedEdit);
   const completion = getProfileCompletion(state.me);
+  useEffect(() => {
+    if (requestedEdit) setEdit(true);
+  }, [requestedEdit]);
   const [method, setMethod] = useState<'EMAIL' | 'COLLEGE_ID'>('EMAIL');
   const [collegeEmail, setCollegeEmail] = useState('');
   const [document, setDocument] = useState('');
@@ -119,7 +123,9 @@ export function ProfilePage() {
               {state.me.collegeVerified
                 ? state.me.collegeVerificationSource === 'APPROVED_EMAIL_DOMAIN'
                   ? 'College verified through your college email.'
-                  : 'You can now send connection requests to other students.'
+                  : completion.isComplete
+                    ? 'You can now send connection requests to other students.'
+                    : 'College verified. Complete your profile before sending connection requests.'
                 : 'Verify your college to send connection requests.'}
             </p>
             {state.me.collegeVerified ? null : verification?.status === 'PENDING' ? (
@@ -192,17 +198,19 @@ export function ProfilePage() {
               </p>
             )}
           </section>
-          <div className="panel">
-            <span className="stat-icon mint">
-              <Globe size={22} />
-            </span>
-            <h3>Verification privacy</h3>
+          {!state.me.collegeVerified && (
+            <div className="panel">
+              <span className="stat-icon mint">
+                <Globe size={22} />
+              </span>
+              <h3>Verification privacy</h3>
 
-            <small>
-              Verification requests are reviewed by moderators. Your profile remains visible while a
-              request is pending.
-            </small>
-          </div>
+              <small>
+                Verification requests are reviewed by moderators. Your profile remains visible while
+                a request is pending.
+              </small>
+            </div>
+          )}
           {state.blockedIds.length > 0 && (
             <div className="panel blocked-panel">
               <h3>Blocked connections</h3>

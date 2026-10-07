@@ -5377,6 +5377,9 @@ label.select-person input {
   color: var(--muted);
 }
 .profile-completion-action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   position: sticky;
   bottom: 0;
   padding-top: 12px;

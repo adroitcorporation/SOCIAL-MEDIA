@@ -65,7 +65,11 @@ export async function authenticate(request: Request) {
     const source =
       manualSource === 'COLLEGE_ID' || manualSource === 'EMAIL'
         ? manualSource
-        : approved
+        : isVerifiedCollegeEmail(
+              data.user.email,
+              data.user.email_confirmed_at,
+              approved ? [approved.domain] : [],
+            )
           ? ('APPROVED_EMAIL_DOMAIN' as const)
           : null;
     const collegeVerified = Boolean(source);
