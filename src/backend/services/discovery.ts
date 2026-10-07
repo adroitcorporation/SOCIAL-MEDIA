@@ -187,7 +187,25 @@ export async function snapshot(user: User, query: URLSearchParams) {
       where: {
         userId: user.id,
         conversation: {
-          OR: [{ type: 'GROUP' }, { members: { none: { userId: { in: blockedIds } } } }],
+          OR: [
+            { type: 'GROUP' },
+            {
+              type: 'DIRECT',
+              members: {
+                none: { userId: { in: blockedIds } },
+                some: {
+                  userId: { not: user.id },
+                  user: {
+                    accountStatus: 'ACTIVE',
+                    OR: [
+                      { sent: { some: { receiverId: user.id, status: 'ACCEPTED' } } },
+                      { received: { some: { requesterId: user.id, status: 'ACCEPTED' } } },
+                    ],
+                  },
+                },
+              },
+            },
+          ],
         },
       },
       include: {

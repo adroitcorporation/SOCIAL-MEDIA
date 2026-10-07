@@ -2,6 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { handleLiveRequest } from '@/backend/http/live-handler';
 import { AppError } from '@/backend/utils/errors';
 const doubles = vi.hoisted(() => ({ authenticate: vi.fn(), snapshot: vi.fn() }));
+vi.mock('@/backend/http/middleware', () => ({ enforceLiveRateLimit: vi.fn() }));
 vi.mock('@/backend/auth/session', () => ({ authenticate: doubles.authenticate }));
 vi.mock('@/backend/services/notifications', () => ({ notificationSnapshot: doubles.snapshot }));
 afterEach(() => {

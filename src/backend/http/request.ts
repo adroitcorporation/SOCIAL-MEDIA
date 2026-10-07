@@ -25,7 +25,11 @@ export async function boundedJson(request: Request, maxBytes = 20000): Promise<u
   }
 }
 
-export async function boundedBytes(request: Request, maxBytes: number): Promise<Uint8Array> {
+export async function boundedBytes(
+  request: Request,
+  maxBytes: number,
+  message = 'Attachment exceeds the 8 MB limit.',
+): Promise<Uint8Array> {
   const reader = request.body?.getReader();
   if (!reader) return new Uint8Array();
   const chunks: Uint8Array[] = [];
@@ -37,7 +41,7 @@ export async function boundedBytes(request: Request, maxBytes: number): Promise<
       size += chunk.value.byteLength;
       if (size > maxBytes) {
         await reader.cancel();
-        requireThat(false, 413, 'Attachment exceeds the 8 MB limit.');
+        requireThat(false, 413, message);
       }
       chunks.push(chunk.value);
     }

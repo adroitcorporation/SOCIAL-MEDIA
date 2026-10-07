@@ -25,6 +25,15 @@ export function errorResponse(error: unknown) {
       { error: 'This item changed or is unavailable. Refresh and try again.' },
       { status: 409 },
     );
-  console.error('API request failed', error instanceof Error ? error.message : 'Unknown error');
+  // Exception text can include ORM arguments, tokens or private content. Log only safe categories.
+  console.error(
+    JSON.stringify({
+      event: 'api_request_failed',
+      kind: error instanceof Prisma.PrismaClientKnownRequestError ? 'database' : 'unexpected',
+      ...(error instanceof Prisma.PrismaClientKnownRequestError && /^P[0-9]{4}$/.test(error.code)
+        ? { code: error.code }
+        : {}),
+    }),
+  );
   return Response.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
 }

@@ -1,17 +1,16 @@
 import 'server-only';
 import { authenticate } from '@/backend/auth/session';
 import { notificationSnapshot } from '@/backend/services/notifications';
-import { AppError } from '@/backend/utils/errors';
+import { enforceLiveRateLimit } from './middleware';
+import { errorResponse } from './error-response';
 
 export async function handleLiveRequest(request: Request) {
   let userId: string;
   try {
     userId = (await authenticate(request)).id;
+    await enforceLiveRateLimit(userId);
   } catch (error) {
-    return Response.json(
-      { error: 'Please sign in.' },
-      { status: error instanceof AppError ? error.status : 500 },
-    );
+    return errorResponse(error);
   }
   let timer: ReturnType<typeof setInterval>;
   let closeTimer: ReturnType<typeof setTimeout>;

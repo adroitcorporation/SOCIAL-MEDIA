@@ -1,8 +1,16 @@
-import { db } from '@/backend/database/client';
-export const clearSkips = (userId: string) => db.skip.deleteMany({ where: { userId } });
+import { transaction } from '@/backend/database/transaction';
+import { requireActiveActor } from './permissions';
+export const clearSkips = (userId: string) =>
+  transaction(async (tx) => {
+    await requireActiveActor(userId, tx);
+    return tx.skip.deleteMany({ where: { userId } });
+  });
 export const skipStudent = (userId: string, targetId: string) =>
-  db.skip.upsert({
-    where: { userId_targetId: { userId, targetId } },
-    create: { userId, targetId },
-    update: {},
+  transaction(async (tx) => {
+    await requireActiveActor(userId, tx);
+    return tx.skip.upsert({
+      where: { userId_targetId: { userId, targetId } },
+      create: { userId, targetId },
+      update: {},
+    });
   });

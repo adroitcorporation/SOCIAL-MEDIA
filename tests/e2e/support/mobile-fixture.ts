@@ -237,10 +237,12 @@ export async function navigateMobile(page: Page, path: string) {
   } else if (path === '/notifications') {
     await page.locator('.topbar a[href="/notifications"]').click();
   } else {
-    const direct = page.locator(`.bottom-nav a[href="${path}"]`);
+    const bar = page.getByRole('navigation', { name: 'Mobile navigation', exact: true });
+    await expect(bar).toBeVisible();
+    const direct = bar.locator(`a[href="${path}"]`);
     if (await direct.count()) await direct.click();
     else {
-      await page.getByRole('button', { name: /^More/ }).click();
+      await bar.getByRole('button', { name: /^More/ }).click();
       await page.locator(`.mobile-more-sheet a[href="${path}"]`).click();
     }
   }

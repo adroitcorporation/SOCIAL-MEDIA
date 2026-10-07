@@ -24,6 +24,7 @@ export async function listResonances(actor: string, ideaId: string) {
 export async function getOrCreateIdeaGroup(actor: string, ideaId: string, memberIds: string[]) {
   requireThat(memberIds.length <= 49, 400, 'Select up to 49 students.');
   return transaction(async (tx) => {
+    await requireActiveActor(actor, tx);
     const idea = await tx.idea.findUnique({ where: { id: ideaId } });
     requireThat(idea, 404, 'Idea not found.');
     requireThat(
@@ -80,6 +81,7 @@ export async function getOrCreateIdeaGroup(actor: string, ideaId: string, member
 
 export async function resonate(actor: string, ideaId: string, enabled: boolean) {
   return transaction(async (tx) => {
+    await requireActiveActor(actor, tx);
     const idea = await tx.idea.findUnique({ where: { id: ideaId } });
     requireThat(idea, 404, 'Idea not found.');
     requireThat(idea.authorId !== actor, 400, 'You already own this idea.');

@@ -39,13 +39,13 @@ export function createHttpClient(options: HttpClientOptions = {}) {
       }
       return response.blob();
     },
-    async upload<T>(path: string, file: File): Promise<T> {
+    async upload<T>(path: string, file: File, typeHeader = 'X-Event-Attachment-Type'): Promise<T> {
       const response = await fetcher(`${baseUrl}/${path}`, {
         method: 'POST',
         headers: {
           ...(await headers()),
           'Content-Type': 'application/octet-stream',
-          'X-Event-Attachment-Type': file.type,
+          [typeHeader]: file.type,
         },
         body: file,
         cache: 'no-store',

@@ -12,6 +12,7 @@ import {
   EVENT_ATTACHMENT_TYPES,
 } from '@/shared/contracts/event-attachments';
 import { AppError, requireThat } from '@/backend/utils/errors';
+import { requireImageSignature } from '@/backend/utils/image-signature';
 import { requirePermission } from './permissions';
 
 export type EventAttachmentMetadata = {
@@ -62,6 +63,7 @@ async function validateFile(mimeType: string, input: Uint8Array) {
     return input;
   }
 
+  requireImageSignature(input, mimeType);
   const formats = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
   try {
     const image = sharp(input, { limitInputPixels: 40_000_000 });

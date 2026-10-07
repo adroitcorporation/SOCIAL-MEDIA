@@ -7,6 +7,19 @@ const { pathToRegexp } = createRequire(import.meta.url)('next/dist/compiled/path
 afterEach(() => vi.unstubAllEnvs());
 
 describe('frontend to backend routing', () => {
+  it('sets production browser security headers without development eval permissions', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const rules = await config.headers!();
+    expect(rules[0].source).toBe('/(.*)');
+    const headers = Object.fromEntries(rules[0].headers.map(({ key, value }) => [key, value]));
+    expect(headers['X-Content-Type-Options']).toBe('nosniff');
+    expect(headers['X-Frame-Options']).toBe('DENY');
+    expect(headers['Strict-Transport-Security']).toContain('max-age=31536000');
+    expect(headers['Content-Security-Policy']).toContain("frame-ancestors 'none'");
+    expect(headers['Content-Security-Policy']).not.toContain('unsafe-eval');
+    expect(headers['Permissions-Policy']).toContain('camera=()');
+    expect(config.poweredByHeader).toBe(false);
+  });
   it('forwards production Vercel API routes before matching local handlers', async () => {
     vi.stubEnv('BACKEND_URL', '');
     vi.stubEnv('VERCEL_ENV', 'production');

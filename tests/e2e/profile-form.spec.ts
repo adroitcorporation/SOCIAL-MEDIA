@@ -221,16 +221,21 @@ test('previews a photo while uploading, then saves its public URL in the owner f
     release = resolve;
   });
   const uploads: string[] = [];
-  await page.route('**/storage/v1/object/**', async (route) => {
+  await page.route('**/api/profile/photo', async (route) => {
     const request = route.request();
     if (request.method() !== 'POST')
       return route.fulfill({ contentType: 'image/png', body: photoFile.buffer });
     const path = new URL(request.url()).pathname;
     uploads.push(path);
-    expect(request.headers().authorization).toBe('Bearer mock-photo-token');
-    expect(request.headers()['x-upsert']).toBe('false');
+    expect(request.headers()['content-type']).toBe('application/octet-stream');
+    expect(request.headers()['x-profile-photo-type']).toBe('image/png');
+    expect(request.postDataBuffer()).toEqual(photoFile.buffer);
     await waiting;
-    return route.fulfill({ json: { Key: path.split('/object/')[1] } });
+    return route.fulfill({
+      json: {
+        url: 'https://synthetic.supabase.co/storage/v1/object/public/profile-photos/profile-test/validated.png',
+      },
+    });
   });
   await page.locator('#profile-photo-upload').setInputFiles(photoFile);
   await expect.poll(() => uploads.length).toBe(1);
@@ -244,7 +249,7 @@ test('previews a photo while uploading, then saves its public URL in the owner f
     'src',
     /^https:.*\/storage\/v1\/object\/public\/profile-photos\/profile-test\/.*\.png$/,
   );
-  expect(uploads[0]).toMatch(/^\/storage\/v1\/object\/profile-photos\/profile-test\/[\w-]+\.png$/);
+  expect(uploads[0]).toBe('/api/profile/photo');
   const publicUrl = await preview.getAttribute('src');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await expect.poll(() => saved.length).toBe(1);
@@ -258,10 +263,10 @@ test('failed upload preserves the saved photo and allows profile save', async ({
     route.fulfill({ contentType: 'image/png', body: photoFile.buffer }),
   );
   const saved = await openProfile(page, { photo: originalPhoto });
-  await page.route('**/storage/v1/object/profile-photos/**', (route) =>
+  await page.route('**/api/profile/photo', (route) =>
     route.fulfill({
       status: 403,
-      json: { statusCode: '403', error: 'Forbidden', message: 'Upload denied' },
+      json: { error: 'Upload denied' },
     }),
   );
   await page.locator('#profile-photo-upload').setInputFiles(photoFile);
@@ -272,17 +277,18 @@ test('failed upload preserves the saved photo and allows profile save', async ({
   expect(saved[0].photo).toBe(originalPhoto);
 });
 
-test('explains how to configure Storage when the profile photo bucket is missing', async ({
-  page,
-}) => {
+test('shows the backend configuration error when uploads are unavailable', async ({ page }) => {
   await mockPhotoSession(page);
   await openProfile(page);
-  await page.route('**/storage/v1/object/profile-photos/**', (route) =>
-    route.fulfill({ status: 404, json: { statusCode: '404', message: 'Bucket not found' } }),
+  await page.route('**/api/profile/photo', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { error: 'Profile photo uploads are not configured. Contact support.' },
+    }),
   );
   await page.locator('#profile-photo-upload').setInputFiles(photoFile);
   await expect(page.locator('.profile-photo-field [role="alert"]')).toHaveText(
-    'Profile photo storage is not set up. Run supabase/profile-photos.sql in the Supabase project configured for this app.',
+    'Profile photo uploads are not configured. Contact support.',
   );
   await expect(page.locator('.profile-photo-control img')).toHaveCount(0);
 });
@@ -292,7 +298,8 @@ test('rejects oversized photos before any Storage request', async ({ page }) => 
   await openProfile(page);
   const requests: string[] = [];
   page.on('request', (request) => {
-    if (request.url().includes('/storage/v1/')) requests.push(request.url());
+    if (request.url().includes('/storage/v1/') || request.url().includes('/api/profile/photo'))
+      requests.push(request.url());
   });
   await page
     .locator('#profile-photo-upload')

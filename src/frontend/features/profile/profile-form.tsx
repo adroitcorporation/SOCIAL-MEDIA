@@ -6,6 +6,7 @@ import type { Student } from '@/shared/contracts/responses';
 import type { ProfileUpdateRequest } from '@/shared/contracts/requests';
 import { Avatar, Verified, Tag, ExternalLink } from '@/frontend/components/ui';
 import { authClient } from '@/frontend/auth/supabase-browser';
+import { useCircle } from '@/frontend/state/circle-context';
 import { profileSchemaForExisting, safeUrl } from '@/shared/contracts/schemas';
 import { MIN_CONNECTION_BIO_LENGTH } from '@/shared/contracts/profile-completion';
 import {
@@ -17,7 +18,6 @@ import { ProfileSelect } from './profile-select';
 import { TaxonomySelect } from './taxonomy-select';
 import { CollegeSelect } from './college-select';
 type Save = (body: ProfileUpdateRequest) => Promise<void>;
-const profilePhotoBucket = 'profile-photos';
 const listFields = ['skills', 'interests', 'domains', 'lookingFor'] as const;
 const labels = {
   skills: 'Skills',
@@ -31,6 +31,7 @@ const splitList = (value: string) =>
     .map((item) => item.trim())
     .filter(Boolean);
 export function ProfileForm({ user, save }: { user: Student; save: Save }) {
+  const { api } = useCircle();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [photoUploading, setPhotoUploading] = useState(false);
@@ -106,27 +107,15 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
       if (sessionError) throw sessionError;
       if (!data.session || data.session.user.id !== user.id)
         throw new Error('Sign in to your account before uploading a profile photo.');
-      const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.slice('image/'.length);
-      const path = `${data.session.user.id}/${crypto.randomUUID()}.${extension}`;
-      const storage = supabase.storage.from(profilePhotoBucket);
-      const { data: uploaded, error: uploadError } = await storage.upload(path, file, {
-        cacheControl: '31536000',
-        contentType: file.type,
-        upsert: false,
-      });
-      if (uploadError) throw uploadError;
-      const publicUrl = safeUrl.parse(storage.getPublicUrl(uploaded.path).data.publicUrl);
+      const uploaded = await api.uploadProfilePhoto(file);
+      const publicUrl = safeUrl.parse(uploaded.url);
       change('photo', publicUrl);
     } catch (uploadError) {
       const message =
         uploadError instanceof Error
           ? uploadError.message
           : 'Unable to upload this photo. Please try again.';
-      setPhotoError(
-        /bucket not found/i.test(message)
-          ? 'Profile photo storage is not set up. Run supabase/profile-photos.sql in the Supabase project configured for this app.'
-          : message,
-      );
+      setPhotoError(message);
     } finally {
       uploadInFlight.current = false;
       setPhotoPreview('');

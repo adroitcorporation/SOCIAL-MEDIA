@@ -1,6 +1,6 @@
 import { db } from '@/backend/database/client';
 import { transaction } from '@/backend/database/transaction';
-import { requirePermission } from './permissions';
+import { requirePermission, requireActiveActor } from './permissions';
 import { canCreateEvent, canEditEvent, canDeleteEvent } from '@/shared/contracts/permissions';
 import { eventSchema } from '@/shared/contracts/moderation';
 import { requireThat } from '@/backend/utils/errors';
@@ -84,8 +84,12 @@ export async function deleteEvent(actor: string, id: string) {
   });
 }
 export async function saveEvent(userId: string, eventId: string, saved: unknown) {
-  const key = { eventId, userId };
-  return saved === true
-    ? db.savedEvent.upsert({ where: { userId_eventId: key }, create: key, update: {} })
-    : db.savedEvent.deleteMany({ where: key });
+  const enabled = z.boolean().parse(saved);
+  return transaction(async (tx) => {
+    await requireActiveActor(userId, tx);
+    const key = { eventId, userId };
+    return enabled
+      ? tx.savedEvent.upsert({ where: { userId_eventId: key }, create: key, update: {} })
+      : tx.savedEvent.deleteMany({ where: key });
+  });
 }

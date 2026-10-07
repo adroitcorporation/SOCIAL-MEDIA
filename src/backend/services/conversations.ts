@@ -4,6 +4,7 @@ import { accepted, notBlocked, pairKey, membership } from './access';
 import { notify } from './notifications';
 import { z } from 'zod';
 import { groupSchema, groupActionSchema, safeUrl } from '@/shared/contracts/schemas';
+import { requireActiveActor } from './permissions';
 import { visibleTo } from './query-shapes';
 
 export async function directConversation(actor: string, target: string) {
@@ -38,9 +39,11 @@ export async function createGroup(actor: string, input: unknown) {
   const ids = [...new Set(memberIds)].filter((id) => id !== actor);
   requireThat(ids.length > 0, 400, 'Select at least one connection.');
   return transaction(async (tx) => {
+    await requireActiveActor(actor, tx);
     const eligible = await tx.user.count({
       where: {
         id: { in: ids },
+        accountStatus: 'ACTIVE',
         ...visibleTo(actor),
         OR: [
           { sent: { some: { receiverId: actor, status: 'ACCEPTED' } } },
@@ -115,6 +118,7 @@ export async function manageGroup(actor: string, conversationId: string, input: 
     });
     if (data.action === 'add') {
       requireThat(group.members.length < 100, 400, 'Groups support up to 100 members.');
+      await requireActiveActor(data.userId, tx);
       await notBlocked(tx, actor, data.userId);
       if (group.ideaId) {
         await notBlocked(tx, group.ownerId!, data.userId);

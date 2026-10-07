@@ -21,7 +21,7 @@ test('request can be cancelled after refresh, persisted, and sent again', async 
     has: page.getByRole('button', { name: 'Ananya Sharma Email verified', exact: true }),
   });
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
-  await expect(card).toHaveCount(0);
+  await expect(card.getByRole('button', { name: 'Pending', exact: true })).toBeDisabled();
   await page.goto('/connections');
   await page.getByRole('button', { name: /Sent Requests/ }).click();
   await page.reload();
@@ -38,7 +38,7 @@ test('request can be cancelled after refresh, persisted, and sent again', async 
     updated.connections.some((c: { receiverId: string }) => c.receiverId === 'demo-ananya'),
   ).toBe(false);
   await card.getByRole('button', { name: 'Connect', exact: true }).click();
-  await expect(card).toHaveCount(0);
+  await expect(card.getByRole('button', { name: 'Pending', exact: true })).toBeDisabled();
   await page.goto('/connections');
   await page.getByRole('button', { name: /Sent Requests/ }).click();
   await page
@@ -156,14 +156,13 @@ test('stream refreshes connection state in a second open browser', async ({
   await expect(page.locator('.connection-card').filter({ hasText: 'Zoya Khan' })).toBeVisible({
     timeout: 22000,
   });
-  await expect(other.locator('.results-bar strong')).toHaveText('0', { timeout: 22000 });
+  await expect(card.getByRole('button', { name: 'Pending', exact: true })).toBeDisabled();
   await page
     .locator('.connection-card')
     .filter({ hasText: 'Zoya Khan' })
     .getByRole('button', { name: 'Cancel Request' })
     .click();
   await expect(other.locator('.results-bar strong')).toHaveText('1', { timeout: 22000 });
-  await other.getByRole('button', { name: 'More people', exact: true }).click();
   await expect(card.getByRole('button', { name: 'Connect', exact: true })).toBeVisible({
     timeout: 15000,
   });

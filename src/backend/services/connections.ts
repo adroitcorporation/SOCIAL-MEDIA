@@ -1,4 +1,4 @@
-import { db } from '@/backend/database/client';
+import { requireActiveActor } from './permissions';
 import { AppError, requireThat } from '@/backend/utils/errors';
 import { getProfileCompletion } from '@/shared/contracts/profile-completion';
 import { transaction } from '@/backend/database/transaction';
@@ -6,15 +6,18 @@ import { notBlocked, pairKey } from './access';
 import { notify } from './notifications';
 
 export const unblockUser = (actor: string, target: string) =>
-  db.block.deleteMany({ where: { blockerId: actor, blockedId: target } });
+  transaction(async (tx) => {
+    await requireActiveActor(actor, tx);
+    return tx.block.deleteMany({ where: { blockerId: actor, blockedId: target } });
+  });
 
 export async function requestConnection(actor: string, target: string) {
   requireThat(actor !== target, 400, 'You cannot connect with yourself.');
   return transaction(async (tx) => {
-    const requester = await tx.user.findUnique({ where: { id: actor } });
+    const requester = await requireActiveActor(actor, tx);
     await notBlocked(tx, actor, target);
     requireThat(
-      await tx.user.findFirst({ where: { id: target, onboarded: true } }),
+      await tx.user.findFirst({ where: { id: target, onboarded: true, accountStatus: 'ACTIVE' } }),
       404,
       'Student not found.',
     );
@@ -80,6 +83,7 @@ export async function transitionConnection(
   action: 'accept' | 'reject' | 'cancel',
 ) {
   return transaction(async (tx) => {
+    await requireActiveActor(actor, tx);
     const c = await tx.connection.findUnique({ where: { id } });
     requireThat(c, 404, 'Request not found.');
     requireThat(
@@ -88,6 +92,7 @@ export async function transitionConnection(
       'You do not have permission to change this request.',
     );
     requireThat(c.status === 'PENDING', 409, 'This request is no longer pending.');
+    if (action === 'accept') await requireActiveActor(c.requesterId, tx);
     await notBlocked(tx, c.requesterId, c.receiverId);
     const result = await tx.connection.update({
       where: { id },
@@ -110,6 +115,7 @@ export async function transitionConnection(
 export async function blockUser(actor: string, target: string) {
   requireThat(actor !== target, 400, 'You cannot block yourself.');
   return transaction(async (tx) => {
+    await requireActiveActor(actor, tx);
     await tx.block.upsert({
       where: { blockerId_blockedId: { blockerId: actor, blockedId: target } },
       create: { blockerId: actor, blockedId: target },

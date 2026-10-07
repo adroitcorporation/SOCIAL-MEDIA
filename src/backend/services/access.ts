@@ -1,3 +1,4 @@
+import { requireActiveActor } from './permissions';
 import type { Tx } from '@/backend/types/database';
 import { requireThat } from '@/backend/utils/errors';
 
@@ -19,6 +20,8 @@ export async function notBlocked(tx: Tx, a: string, b: string) {
 }
 
 export async function accepted(tx: Tx, a: string, b: string) {
+  await requireActiveActor(a, tx);
+  await requireActiveActor(b, tx);
   await notBlocked(tx, a, b);
   requireThat(
     await tx.connection.findFirst({ where: { pairKey: pairKey(a, b), status: 'ACCEPTED' } }),
@@ -28,6 +31,7 @@ export async function accepted(tx: Tx, a: string, b: string) {
 }
 
 export async function membership(tx: Tx, actor: string, conversationId: string) {
+  await requireActiveActor(actor, tx);
   const member = await tx.conversationMember.findUnique({
     where: { conversationId_userId: { conversationId, userId: actor } },
     include: { conversation: { include: { members: true } } },

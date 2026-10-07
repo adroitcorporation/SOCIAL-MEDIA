@@ -9,12 +9,18 @@ import { boundedBytes, boundedJson } from '@/backend/http/request';
 import * as service from '@/backend/services/community';
 import * as events from '@/backend/services/events';
 import * as eventAttachments from '@/backend/services/event-attachments';
+import { uploadProfilePhoto } from '@/backend/services/profile-photos';
 import * as moderation from '@/backend/services/moderation';
 import * as posts from '@/backend/services/posts';
 import { requireActiveActor, requirePermission } from '@/backend/services/permissions';
 import { canViewModerationDashboard, canAssignRole } from '@/shared/contracts/permissions';
 
-import { validateMutationRequest, enforceMutationRateLimit } from './middleware';
+import {
+  validateMutationRequest,
+  enforceMutationRateLimit,
+  enforceReadRateLimit,
+  enforcePhotoUploadRateLimit,
+} from './middleware';
 import { present } from './presenters';
 import {
   rankedProfiles,
@@ -28,6 +34,8 @@ export async function handleApiRequest(request: Request, path: string[]) {
   try {
     const [resource, id, action, detail] = path;
     const method = request.method;
+    const isProfilePhotoUpload =
+      resource === 'profile' && id === 'photo' && !action && method === 'POST';
     const isEventAttachmentUpload =
       resource === 'events' &&
       Boolean(id) &&
@@ -39,13 +47,15 @@ export async function handleApiRequest(request: Request, path: string[]) {
       return Response.json({ status: 'ok' });
     }
     if (resource === 'config' && method === 'GET') return handleConfigRequest();
-    if (method !== 'GET') validateMutationRequest(request, isEventAttachmentUpload);
+    if (method !== 'GET')
+      validateMutationRequest(request, isEventAttachmentUpload || isProfilePhotoUpload);
     const identity = await authenticate(request);
     const user = await requireActiveActor(identity.id);
     if (resource === 'moderation') await requirePermission(user.id, canViewModerationDashboard);
+    if (method === 'GET') await enforceReadRateLimit(user.id);
     let input: Record<string, unknown> = {};
     if (method !== 'GET') {
-      if (!isEventAttachmentUpload)
+      if (!isEventAttachmentUpload && !isProfilePhotoUpload)
         input = z
           .record(z.string(), z.unknown())
           .parse(
@@ -55,6 +65,14 @@ export async function handleApiRequest(request: Request, path: string[]) {
             ),
           );
       await enforceMutationRateLimit(user.id);
+    }
+    if (isProfilePhotoUpload) {
+      await enforcePhotoUploadRateLimit(user.id);
+      const bytes = await boundedBytes(request, 4_000_000, 'Image must be at most 4 MB.');
+      return Response.json(
+        await uploadProfilePhoto(user.id, bytes, request.headers.get('x-profile-photo-type') || ''),
+        { headers: { 'Cache-Control': 'no-store' } },
+      );
     }
     if (isEventAttachmentUpload) {
       const bytes = await boundedBytes(request, 8_000_000);

@@ -1,0 +1,6 @@
+{
+  "disable_signup": false,
+  "mailer_autoconfirm": false,
+  "phone_autoconfirm": false,
+  "providerSettingsReadSucceeded": true
+}

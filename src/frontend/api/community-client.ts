@@ -51,6 +51,8 @@ import type {
 const id = encodeURIComponent;
 export function createCommunityClient(http: HttpClient) {
   return {
+    uploadProfilePhoto: (file: File) =>
+      http.upload<{ url: string }>('profile/photo', file, 'X-Profile-Photo-Type'),
     posts: {
       list: (authorId: string, cursor?: string) =>
         http.request<PostPage<ProfilePost>>(

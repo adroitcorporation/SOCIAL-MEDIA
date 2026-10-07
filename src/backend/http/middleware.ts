@@ -19,18 +19,40 @@ export function validateMutationRequest(request: Request, allowBinary = false) {
   );
 }
 
-export async function enforceMutationRateLimit(userId: string) {
+async function enforceRateLimit(key: string, maximum: number, message: string) {
   const now = Date.now();
-  const bucket = `${userId}:${Math.floor(now / 60000)}`;
   const rate = await db.rateLimit.upsert({
-    where: { key: bucket },
-    create: { key: bucket, expiresAt: new Date(now + 120000) },
+    where: { key },
+    create: { key, expiresAt: new Date(now + 120000) },
     update: { count: { increment: 1 } },
   });
-  requireThat(rate.count <= 90, 429, 'Please wait a moment before trying again.');
-
+  requireThat(rate.count <= maximum, 429, message);
   if (now - lastRateLimitCleanup >= rateLimitCleanupIntervalMs) {
     lastRateLimitCleanup = now;
     await db.rateLimit.deleteMany({ where: { expiresAt: { lt: new Date(now) } } });
   }
 }
+export const enforceMutationRateLimit = (userId: string) =>
+  enforceRateLimit(
+    `${userId}:${Math.floor(Date.now() / 60000)}`,
+    90,
+    'Please wait a moment before trying again.',
+  );
+export const enforceReadRateLimit = (userId: string) =>
+  enforceRateLimit(
+    `read:${userId}:${Math.floor(Date.now() / 60000)}`,
+    240,
+    'Please wait a moment before loading more data.',
+  );
+export const enforceLiveRateLimit = (userId: string) =>
+  enforceRateLimit(
+    `live:${userId}:${Math.floor(Date.now() / 60000)}`,
+    20,
+    'Please wait before opening more live connections.',
+  );
+export const enforcePhotoUploadRateLimit = (userId: string) =>
+  enforceRateLimit(
+    `photo:${userId}:${Math.floor(Date.now() / 60000)}`,
+    6,
+    'Please wait before uploading more photos.',
+  );

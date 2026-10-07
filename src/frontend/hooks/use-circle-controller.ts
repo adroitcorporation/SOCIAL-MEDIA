@@ -49,6 +49,8 @@ export function useCircleController(
   toast: (text: string, error?: boolean) => void,
 ) {
   const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [signedIn, setSignedIn] = useState(false);
   const [ready, setReady] = useState(false);
@@ -100,7 +102,7 @@ export function useCircleController(
               setState(null);
               setActivity(null);
             }
-            if (session.recoveringPassword) router.push('/reset-password');
+            if (session.recoveringPassword) routerRef.current.push('/reset-password');
           });
         }
         if (active) setReady(true);
@@ -114,7 +116,7 @@ export function useCircleController(
       active = false;
       unsubscribe?.();
     };
-  }, [router]);
+  }, []);
   const api = useMemo(
     () =>
       createCommunityClient(

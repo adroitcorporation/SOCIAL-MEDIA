@@ -74,6 +74,44 @@ beforeAll(async () => {
   ({ handleApiRequest: handle } = await import('@/backend/http/api-handler'));
 });
 afterEach(() => vi.restoreAllMocks());
+
+describe('profile photo gateway', () => {
+  async function photo(actor: string, bytes: Uint8Array, mime = 'image/png') {
+    vi.mocked(authenticate).mockResolvedValue(
+      await db.user.findUniqueOrThrow({ where: { id: actor } }),
+    );
+    return handle(
+      new Request('http://localhost:3000/api/profile/photo', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/octet-stream',
+          'x-profile-photo-type': mime,
+          origin: 'http://localhost:3000',
+        },
+        body: new Uint8Array(bytes),
+      }),
+      ['profile', 'photo'],
+    );
+  }
+  it('denies inactive accounts before accepting bytes', async () => {
+    const actor = await user();
+    await db.user.update({ where: { id: actor.id }, data: { accountStatus: 'BANNED' } });
+    expect((await photo(actor.id, Buffer.alloc(4_000_001))).status).toBe(403);
+  });
+  it('bounds the binary body on the server and rejects forged images', async () => {
+    const actor = await user();
+    expect((await photo(actor.id, Buffer.alloc(4_000_001))).status).toBe(413);
+    expect((await photo(actor.id, Buffer.from('<script>not an image</script>'))).status).toBe(400);
+  });
+  it('limits photo requests independently of other mutations', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000);
+    const actor = await user();
+    for (let i = 0; i < 6; i++)
+      expect((await photo(actor.id, Buffer.from('bad image'))).status).toBe(400);
+    expect((await photo(actor.id, Buffer.from('bad image'))).status).toBe(429);
+    expect((await api(actor.id, `skips/${(await user()).id}`, {})).status).toBe(200);
+  });
+});
 afterAll(async () => {
   await db?.$disconnect();
   await server?.stop();
@@ -182,6 +220,32 @@ describe('connection profile completion enforcement', () => {
 });
 
 describe('block privacy regressions', () => {
+  it('hides revoked direct conversations from every state view after blocking and unblocking', async () => {
+    const a = await user();
+    const b = await user();
+    await connect(a.id, b.id);
+    const direct = await service.directConversation(a.id, b.id);
+    await service.sendMessage(b.id, direct.id, {
+      body: 'Private revoked preview',
+      clientId: crypto.randomUUID(),
+    });
+    await service.blockUser(a.id, b.id);
+    await service.unblockUser(a.id, b.id);
+    expect((await api(a.id, `conversations/${direct.id}/messages`)).status).toBe(403);
+    for (const query of ['', '?view=/messages', '?view=/profile', '?view=/']) {
+      const response = await api(a.id, `state${query}`);
+      expect(response.status).toBe(200);
+      const state = await response.json();
+      expect(state.conversations.some((item: { id: string }) => item.id === direct.id)).toBe(false);
+      // Previously delivered notifications belong to the recipient; revoke chat previews/history.
+      expect(JSON.stringify(state.conversations)).not.toContain('Private revoked preview');
+    }
+    const pending = await service.requestConnection(a.id, b.id);
+    await service.transitionConnection(b.id, pending.id, 'accept');
+    const restored = await (await api(a.id, 'state?view=/messages')).json();
+    expect(restored.conversations.some((item: { id: string }) => item.id === direct.id)).toBe(true);
+  });
+
   it.each(['owner', 'resonator'])(
     'hides resonator profiles after a block by the %s',
     async (direction) => {
@@ -269,6 +333,33 @@ describe('deterministic in-flight revocation', () => {
     }
     return pending;
   }
+
+  it('rejects a group message when suspension commits after API authentication', async () => {
+    const owner = await user();
+    const member = await user();
+    await connect(owner.id, member.id);
+    const group = await service.createGroup(owner.id, {
+      name: 'Revocation fixture',
+      memberIds: [member.id],
+    });
+    const response = await pausedMutation(
+      member.id,
+      `conversations/${group.id}/messages`,
+      { body: 'Must not persist after suspension', clientId: crypto.randomUUID() },
+      () => db.user.update({ where: { id: member.id }, data: { accountStatus: 'SUSPENDED' } }),
+    );
+    expect(response.status).toBe(403);
+    expect(await db.message.count({ where: { conversationId: group.id } })).toBe(0);
+  });
+  it('rejects a connection when banning commits after API authentication', async () => {
+    const actor = await user();
+    const target = await user();
+    const response = await pausedMutation(actor.id, 'connections', { userId: target.id }, () =>
+      db.user.update({ where: { id: actor.id }, data: { accountStatus: 'BANNED' } }),
+    );
+    expect(response.status).toBe(403);
+    expect(await db.connection.count({ where: { requesterId: actor.id } })).toBe(0);
+  });
   it('rejects idea creation when suspension commits before the service starts', async () => {
     const actor = await user();
     const response = await pausedMutation(actor.id, 'ideas', ideaInput, () =>
@@ -318,6 +409,17 @@ describe('deterministic in-flight revocation', () => {
 });
 
 describe('API bounds and identity isolation', () => {
+  it('bounds authenticated search reads independently from other users and mutations', async () => {
+    const actor = await user();
+    const other = await user();
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now());
+    for (let i = 0; i < 240; i++)
+      expect((await api(actor.id, 'colleges?search=Synthetic')).status).toBe(200);
+    expect((await api(actor.id, 'colleges?search=Synthetic')).status).toBe(429);
+    expect((await api(other.id, 'colleges?search=Synthetic')).status).toBe(200);
+    expect((await api(actor.id, 'ideas', ideaInput)).status).toBe(200);
+  });
+
   it.each(['-1', '10001', '1.5', 'Infinity', 'NaN'])(
     'rejects invalid discovery page %s',
     async (page) => {
@@ -402,5 +504,120 @@ describe('additional image limits', () => {
     await expect(
       decodeVerificationImage(`data:image/webp;base64,${bytes.toString('base64')}`),
     ).rejects.toMatchObject({ status: 400 });
+  });
+});
+
+describe('service-boundary account revocation', () => {
+  it.each([
+    'request',
+    'transition',
+    'direct',
+    'group-create',
+    'group-manage',
+    'group-clear',
+    'message-send',
+    'message-read',
+    'message-delete',
+    'idea-group',
+    'resonate',
+    'profile',
+    'skip',
+    'skip-clear',
+    'block',
+    'unblock',
+    'event-save',
+  ])('rejects %s after suspension with current transactional account state', async (operation) => {
+    const actor = await user();
+    const peer = await user();
+    const other = await user();
+    await connect(actor.id, peer.id);
+    const pending = await service.requestConnection(actor.id, other.id);
+    const group = await service.createGroup(actor.id, {
+      name: 'Account status fixture',
+      memberIds: [peer.id],
+    });
+    const idea = await service.createIdea(actor.id, ideaInput);
+    const peerIdea = await service.createIdea(peer.id, ideaInput);
+    const message = await service.sendMessage(actor.id, group.id, {
+      body: 'Existing message',
+      clientId: crypto.randomUUID(),
+    });
+    const event = await db.event.create({
+      data: {
+        title: 'Fixture event',
+        description: 'Local only',
+        category: 'Test',
+        organizer: 'Test',
+        location: 'Local',
+        startsAt: new Date(),
+        url: '',
+      },
+    });
+    await db.user.update({ where: { id: actor.id }, data: { accountStatus: 'SUSPENDED' } });
+    const actions: Record<string, () => Promise<unknown>> = {
+      request: () => service.requestConnection(actor.id, other.id),
+      transition: () => service.transitionConnection(actor.id, pending.id, 'cancel'),
+      direct: () => service.directConversation(actor.id, peer.id),
+      'group-create': () => service.createGroup(actor.id, { name: 'Denied', memberIds: [peer.id] }),
+      'group-manage': () =>
+        service.manageGroup(actor.id, group.id, { action: 'rename', value: 'Denied' }),
+      'group-clear': () => service.clearConversation(actor.id, group.id),
+      'message-send': () =>
+        service.sendMessage(actor.id, group.id, { body: 'Denied', clientId: crypto.randomUUID() }),
+      'message-read': () => service.readMessages(actor.id, group.id),
+      'message-delete': () => service.deleteMessage(actor.id, group.id, message.id),
+      'idea-group': () => service.getOrCreateIdeaGroup(actor.id, idea.id, []),
+      resonate: () => service.resonate(actor.id, peerIdea.id, true),
+      profile: () =>
+        service.saveProfile(actor.id, {
+          ...actor,
+          degree: 'B.Tech',
+          city: 'Jaipur',
+          name: 'Denied',
+        }),
+      skip: () => service.skipStudent(actor.id, other.id),
+      'skip-clear': () => service.clearSkips(actor.id),
+      block: () => service.blockUser(actor.id, other.id),
+      unblock: () => service.unblockUser(actor.id, other.id),
+      'event-save': () => service.saveEvent(actor.id, event.id, true),
+    };
+    await expect(actions[operation]()).rejects.toMatchObject({ status: 403 });
+    expect((await db.conversation.findUniqueOrThrow({ where: { id: group.id } })).name).toBe(
+      'Account status fixture',
+    );
+    expect(await db.message.count({ where: { conversationId: group.id } })).toBe(1);
+    expect((await db.user.findUniqueOrThrow({ where: { id: actor.id } })).name).toBe(actor.name);
+  });
+  it('rejects inactive connection targets and group invitees', async () => {
+    const a = await user(),
+      b = await user(),
+      c = await user();
+    await connect(a.id, b.id);
+    await connect(a.id, c.id);
+    const group = await service.createGroup(a.id, { name: 'Target status', memberIds: [c.id] });
+    await db.user.update({ where: { id: b.id }, data: { accountStatus: 'BANNED' } });
+    await expect(service.requestConnection(c.id, b.id)).rejects.toMatchObject({ status: 404 });
+    await expect(
+      service.createGroup(a.id, { name: 'Denied', memberIds: [b.id] }),
+    ).rejects.toMatchObject({ status: 403 });
+    await expect(
+      service.manageGroup(a.id, group.id, { action: 'add', userId: b.id }),
+    ).rejects.toMatchObject({ status: 403 });
+  });
+});
+describe('live connection abuse bounds', () => {
+  it('bounds SSE opens with shared database counters before allocating a stream', async () => {
+    const actor = await user();
+    vi.spyOn(Date, 'now').mockReturnValue(Date.now());
+    vi.mocked(authenticate).mockResolvedValue(actor);
+    const { handleLiveRequest } = await import('@/backend/http/live-handler');
+    for (let i = 0; i < 20; i++) {
+      const response = await handleLiveRequest(new Request('http://localhost:3000/api/live'));
+      expect(response.status).toBe(200);
+      await response.body!.cancel();
+    }
+    expect((await handleLiveRequest(new Request('http://localhost:3000/api/live'))).status).toBe(
+      429,
+    );
   });
 });

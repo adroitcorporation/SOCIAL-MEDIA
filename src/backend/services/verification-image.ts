@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import { MAX_VERIFICATION_IMAGE_BYTES } from '@/shared/contracts/verification';
 import { AppError, requireThat } from '@/backend/utils/errors';
+import { requireImageSignature } from '@/backend/utils/image-signature';
 
 export async function decodeVerificationImage(dataUrl: string) {
   const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(dataUrl);
@@ -12,6 +13,7 @@ export async function decodeVerificationImage(dataUrl: string) {
     413,
     'Image must be at most 4 MB.',
   );
+  requireImageSignature(bytes, match[1]);
   const formats = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
   try {
     const image = sharp(bytes, { limitInputPixels: 20_000_000 });
