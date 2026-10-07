@@ -1,5 +1,9 @@
 import { db } from '@/backend/database/client';
 import { requireThat } from '@/backend/utils/errors';
+
+const rateLimitCleanupIntervalMs = 60_000;
+let lastRateLimitCleanup = 0;
+
 export function validateMutationRequest(request: Request, allowBinary = false) {
   const origin = request.headers.get('origin');
   const expected =
@@ -14,13 +18,19 @@ export function validateMutationRequest(request: Request, allowBinary = false) {
     'Send JSON.',
   );
 }
+
 export async function enforceMutationRateLimit(userId: string) {
-  const bucket = `${userId}:${Math.floor(Date.now() / 60000)}`;
+  const now = Date.now();
+  const bucket = `${userId}:${Math.floor(now / 60000)}`;
   const rate = await db.rateLimit.upsert({
     where: { key: bucket },
-    create: { key: bucket, expiresAt: new Date(Date.now() + 120000) },
+    create: { key: bucket, expiresAt: new Date(now + 120000) },
     update: { count: { increment: 1 } },
   });
   requireThat(rate.count <= 90, 429, 'Please wait a moment before trying again.');
-  await db.rateLimit.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+
+  if (now - lastRateLimitCleanup >= rateLimitCleanupIntervalMs) {
+    lastRateLimitCleanup = now;
+    await db.rateLimit.deleteMany({ where: { expiresAt: { lt: new Date(now) } } });
+  }
 }

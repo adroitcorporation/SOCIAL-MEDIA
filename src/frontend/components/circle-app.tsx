@@ -35,6 +35,7 @@ import type { Student } from '@/shared/contracts/responses';
 import { CircleContext } from '@/frontend/state/circle-context';
 import { profilePath } from '@/frontend/utils/profile-path';
 import { Avatar, Loading } from './ui';
+import { ThemeToggle } from './theme-toggle';
 
 const AuthForm = dynamic(
   () => import('@/frontend/features/auth/auth-form').then((module) => module.AuthForm),
@@ -330,6 +331,7 @@ export function CircleApp({ children }: { children: React.ReactNode }) {
               <kbd>↵</kbd>
             </form>
             <div className="topbar-actions">
+              <ThemeToggle />
               <Link
                 href="/messages"
                 onPointerEnter={() => prefetchScreen('/messages')}

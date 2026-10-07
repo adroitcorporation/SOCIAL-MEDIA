@@ -156,14 +156,21 @@ it('pages and filters ideas and upcoming events across the entire dataset', asyn
   expect(saved.events).toEqual([]);
 });
 
-it('excludes skipped and accepted users directly in discovery', async () => {
+it('excludes skipped and accepted users directly in discovery when recommendations are disabled', async () => {
   await db.skip.create({ data: { userId: 'actor', targetId: 'outsider' } });
-  const state = await service.snapshot(
-    await db.user.findUniqueOrThrow({ where: { id: 'actor' } }),
-    new URLSearchParams({ view: '/discover' }),
-  );
-  expect(state.students).toEqual([]);
-  expect(state.totalStudents).toBe(0);
+  const previous = process.env.RECOMMENDATIONS_ENABLED;
+  process.env.RECOMMENDATIONS_ENABLED = 'false';
+  try {
+    const state = await service.snapshot(
+      await db.user.findUniqueOrThrow({ where: { id: 'actor' } }),
+      new URLSearchParams({ view: '/discover' }),
+    );
+    expect(state.students).toEqual([]);
+    expect(state.totalStudents).toBe(0);
+  } finally {
+    if (previous === undefined) delete process.env.RECOMMENDATIONS_ENABLED;
+    else process.env.RECOMMENDATIONS_ENABLED = previous;
+  }
 });
 
 it('applies the performance migration on PostgreSQL', async () => {

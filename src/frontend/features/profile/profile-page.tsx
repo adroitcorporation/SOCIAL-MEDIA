@@ -12,7 +12,6 @@ import { ProfileForm } from '@/frontend/features/profile/profile-form';
 import { ProfileContent } from '@/frontend/features/profile/profile-content';
 
 import { PageHeading } from '@/frontend/components/page-heading';
-import { ThemeToggle } from '@/frontend/components/theme-toggle';
 import {
   MAX_VERIFICATION_IMAGE_BYTES,
   VERIFICATION_IMAGE_TYPES,
@@ -71,7 +70,6 @@ export function ProfilePage() {
     <>
       <PageHeading title="Profile">
         <div className="profile-header-actions">
-          <ThemeToggle />
           <button className="button primary" onClick={() => setEdit(!edit)}>
             <Pencil size={16} />
             {edit ? 'View profile' : 'Edit profile'}

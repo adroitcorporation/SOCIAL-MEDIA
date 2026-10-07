@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { brand } from '@/shared/config/brand';
 import '@/frontend/styles/globals.css';
 import { ThemeProvider } from '@/frontend/theme/theme-provider';
@@ -8,12 +8,10 @@ export const metadata: Metadata = {
   description: brand.description,
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: 'cover',
-  userScalable: false,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
