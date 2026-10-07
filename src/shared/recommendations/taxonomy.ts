@@ -3,7 +3,7 @@ import data from './taxonomy.json';
 export const taxonomy = data;
 export type TaxonomyField = keyof typeof taxonomy;
 export const selectionLimits = { skills: 7, interests: 7, lookingFor: 4, domains: 7 };
-export const keyOf = (value: string) =>
+const keyOf = (value: string) =>
   value
     .trim()
     .toLowerCase()
@@ -34,7 +34,7 @@ export function searchTaxonomy(field: TaxonomyField, search: string) {
   );
 }
 
-export const intentSkills: Record<string, string[]> = {
+const intentSkills: Record<string, string[]> = {
   'Web Developer': ['Web Development', 'Full Stack Development'],
   'App Developer': ['App Development', 'Full Stack Development'],
   'AI/ML Developer': ['AI / Machine Learning', 'Data Science'],
@@ -48,7 +48,7 @@ export const intentSkills: Record<string, string[]> = {
   'Film/Content Team': ['Filmmaking', 'Acting', 'Videography', 'Video Editing'],
   'E-Cell Collaborations': ['Event Management', 'Community Building', 'Sponsorship & Outreach'],
 };
-export const complementaryPairs = [
+const complementaryPairs = [
   ['Web Development', 'UI/UX Design'],
   ['App Development', 'UI/UX Design'],
   ['Full Stack Development', 'Product Design'],

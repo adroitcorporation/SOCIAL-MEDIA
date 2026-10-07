@@ -15,7 +15,7 @@ import { AppError, requireThat } from '@/backend/utils/errors';
 import { requireImageSignature } from '@/backend/utils/image-signature';
 import { requirePermission } from './permissions';
 
-export type EventAttachmentMetadata = {
+type EventAttachmentMetadata = {
   id: string;
   eventId: string;
   name: string;
@@ -24,13 +24,20 @@ export type EventAttachmentMetadata = {
 };
 
 export async function listEventAttachments(eventIds: string[]) {
-  if (!eventIds.length) return [];
-  return db.$queryRaw<EventAttachmentMetadata[]>(Prisma.sql`
+  const byEvent = new Map<string, Omit<EventAttachmentMetadata, 'eventId'>[]>();
+  if (!eventIds.length) return byEvent;
+  const attachments = await db.$queryRaw<EventAttachmentMetadata[]>(Prisma.sql`
     SELECT id, "eventId", name, "mimeType", size
     FROM "EventAttachment"
     WHERE "eventId" IN (${Prisma.join(eventIds)})
     ORDER BY "createdAt" ASC, id ASC
   `);
+  for (const { eventId, ...attachment } of attachments) {
+    const current = byEvent.get(eventId) ?? [];
+    current.push(attachment);
+    byEvent.set(eventId, current);
+  }
+  return byEvent;
 }
 
 function cleanName(input: string) {

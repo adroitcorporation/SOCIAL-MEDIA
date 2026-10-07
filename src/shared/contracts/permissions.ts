@@ -17,7 +17,7 @@ export const roleLabels: Record<UserRole, string> = {
   ULTIMATE_MODERATOR: 'Ultimate Moderator',
 };
 export type Principal = { id: string; role: UserRole; accountStatus: AccountStatus };
-export const isActive = (user: Principal) => user.accountStatus === 'ACTIVE';
+const isActive = (user: Principal) => user.accountStatus === 'ACTIVE';
 export const canCreateEvent = (user: Principal) =>
   isActive(user) && ['ORGANISER', 'ULTIMATE_MODERATOR'].includes(user.role);
 export const canEditEvent = (user: Principal, event: { ownerId: string | null }) =>

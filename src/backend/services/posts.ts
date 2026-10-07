@@ -21,7 +21,7 @@ const activeVisible = (actor: string): Prisma.UserWhereInput => ({
   onboarded: true,
   ...visibleTo(actor),
 });
-export const visiblePost = (actor: string): Prisma.PostWhereInput => ({
+const visiblePost = (actor: string): Prisma.PostWhereInput => ({
   author: activeVisible(actor),
   OR: [
     { authorId: actor },

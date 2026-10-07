@@ -9,7 +9,7 @@ export interface Signals {
   interests: string[];
   lookingFor: string[];
 }
-export const overlap = (a: string[], b: string[]) => a.filter((v) => b.includes(v));
+const overlap = (a: string[], b: string[]) => a.filter((v) => b.includes(v));
 export function matchReasons(actor: Signals, target: Signals) {
   const a = {
     skills: normalizeList('skills', actor.skills),

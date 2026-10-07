@@ -16,7 +16,7 @@ export const inferenceSchema = z
     domains: z.array(z.string().trim().min(1).max(50)).max(7).default([]),
   })
   .strict();
-export type Inference = z.infer<typeof inferenceSchema>;
+type Inference = z.infer<typeof inferenceSchema>;
 export interface AIProvider {
   readonly model: string;
   readonly extractionModel?: string;

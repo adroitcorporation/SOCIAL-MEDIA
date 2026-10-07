@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { authenticate } from '@/backend/auth/session';
 import { handleConfigRequest } from './config-handler';
 import { db } from '@/backend/database/client';
-import { AppError, requireThat } from '@/backend/utils/errors';
+import { AppError } from '@/backend/utils/errors';
 import { boundedBytes, boundedJson } from '@/backend/http/request';
 import * as service from '@/backend/services/community';
 import * as events from '@/backend/services/events';

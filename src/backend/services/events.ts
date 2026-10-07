@@ -27,17 +27,9 @@ export async function managedEvents(actor: string, query = new URLSearchParams()
     include: { savedBy: { where: { userId: actor } } },
   });
   const attachments = await listEventAttachments(events.map((event) => event.id));
-  const byEvent = new Map<string, typeof attachments>();
-  for (const attachment of attachments) {
-    const current = byEvent.get(attachment.eventId) ?? [];
-    current.push(attachment);
-    byEvent.set(attachment.eventId, current);
-  }
   return events.map((event) => ({
     ...event,
-    attachments: (byEvent.get(event.id) ?? []).map(
-      ({ eventId: _eventId, ...attachment }) => attachment,
-    ),
+    attachments: attachments.get(event.id) ?? [],
   }));
 }
 export async function createEvent(actor: string, input: unknown) {

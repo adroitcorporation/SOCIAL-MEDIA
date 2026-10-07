@@ -7,7 +7,7 @@ import type {
   VerificationStatus,
 } from './enums';
 // Dates cross the HTTP boundary as ISO-8601 strings, never ORM Date objects.
-export type IsoDateTime = string;
+type IsoDateTime = string;
 export interface ApiConfig {
   demo: boolean;
   configured: boolean;
@@ -76,7 +76,7 @@ export interface Connection {
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 }
-export interface ConnectionItem extends Connection {
+interface ConnectionItem extends Connection {
   requester: Student;
   receiver: Student;
 }

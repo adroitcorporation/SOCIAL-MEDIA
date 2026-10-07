@@ -27,7 +27,7 @@ export const commentSchema = z
   .object({ content: content(postLimits.comment), clientId: z.string().uuid() })
   .strict();
 export type PostInput = z.input<typeof postSchema>;
-export interface PostAuthor {
+interface PostAuthor {
   id: string;
   name: string;
   photo: string;

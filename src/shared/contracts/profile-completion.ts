@@ -8,7 +8,7 @@ export const profileRequirements = [
   { field: 'interestsOrDomains', label: 'At least one interest or domain' },
   { field: 'lookingFor', label: 'At least one Looking for selection' },
 ] as const;
-export type ProfileRequirement = (typeof profileRequirements)[number]['field'];
+type ProfileRequirement = (typeof profileRequirements)[number]['field'];
 type ProfileInput = Partial<
   Record<Exclude<ProfileRequirement, 'interestsOrDomains'> | 'interests' | 'domains', unknown>
 >;

@@ -30,7 +30,7 @@ type Ranked = {
   lookingFor: string[];
 };
 type Context = Signals & { requiredSkills?: string[]; documentKind?: string; documentId?: string };
-export const recommendationPage = (query: URLSearchParams) =>
+const recommendationPage = (query: URLSearchParams) =>
   z.coerce
     .number()
     .int()

@@ -12,16 +12,10 @@ import {
 export const isLocalDemo = () =>
   process.env.NODE_ENV !== 'production' && process.env.LOCAL_DEMO === 'true';
 const isEmailConfirmed = (confirmedAt: string | null | undefined) => Boolean(confirmedAt);
-export const isConfirmedLoginEmail = (
+const isConfirmedLoginEmail = (
   email: string | undefined,
   confirmedAt: string | null | undefined,
 ) => Boolean(email && isEmailConfirmed(confirmedAt));
-
-export async function getApprovedCollegeDomains() {
-  return (await db.approvedCollegeDomain.findMany({ orderBy: { domain: 'asc' } })).map(
-    (row) => row.domain,
-  );
-}
 
 export const isVerifiedCollegeEmail = (
   email: string | undefined,

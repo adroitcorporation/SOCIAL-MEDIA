@@ -255,17 +255,9 @@ export async function snapshot(user: User, query: URLSearchParams) {
     db.notification.count({ where: { userId: user.id, readAt: null } }),
   ]);
   const attachments = await listEventAttachments(events.map((event) => event.id));
-  const attachmentsByEvent = new Map<string, typeof attachments>();
-  for (const attachment of attachments) {
-    const current = attachmentsByEvent.get(attachment.eventId) ?? [];
-    current.push(attachment);
-    attachmentsByEvent.set(attachment.eventId, current);
-  }
   const eventsWithAttachments = events.map((event) => ({
     ...event,
-    attachments: (attachmentsByEvent.get(event.id) ?? []).map(
-      ({ eventId: _eventId, ...attachment }) => attachment,
-    ),
+    attachments: attachments.get(event.id) ?? [],
   }));
   if (rankedIdeas)
     ideas.sort(
