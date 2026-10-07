@@ -10,6 +10,7 @@ import { Empty } from '@/frontend/components/ui';
 import { IdeaCard } from '@/frontend/features/ideas/ideas-page';
 import { PageHeading } from '@/frontend/components/page-heading';
 import { StudentCard } from '@/frontend/components/student-card';
+import { ProfileCarousel } from '@/frontend/components/profile-carousel';
 import { EventPoster } from '@/frontend/features/events/event-poster';
 export function HomePage() {
   const { state } = useCircle();
@@ -80,24 +81,11 @@ export function HomePage() {
           )}
         </aside>
         <div className="home-main">
-          <div className="section-heading">
-            <div>
-              <h2>People to meet</h2>
-            </div>
-            <Link href="/discover" className="text-link">
-              View all <ArrowRight size={15} />
-            </Link>
-          </div>
-          <div
-            className="horizontal-profile-tray"
-            role="region"
-            aria-label="People to meet"
-            tabIndex={0}
-          >
+          <ProfileCarousel>
             {state.students.slice(0, 6).map((student) => (
               <StudentCard key={student.id} student={student} />
             ))}
-          </div>
+          </ProfileCarousel>
           {!state.students.length && <Empty title="No people yet." />}
         </div>
       </div>

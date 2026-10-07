@@ -163,6 +163,7 @@ test.describe('mobile layout and gestures', () => {
             pointerId: 1,
             isPrimary: true,
             clientX: x,
+            clientY: card.getBoundingClientRect().y + 40,
           }),
         );
       await new Promise(requestAnimationFrame);

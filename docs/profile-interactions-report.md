@@ -1,0 +1,53 @@
+# Profile carousel and Discover gesture fixes
+
+## Root causes
+
+Home rendered People to meet in a native, scroll-snapping horizontal tray with its scrollbar hidden and no Previous/Next controls. Native touch and trackpad scrolling existed, but mouse and keyboard users had no obvious navigation controls.
+
+Discover already used Pointer Events and animation-frame transform updates, with `touch-action: pan-y pinch-zoom`. It recorded only startX, captured the pointer immediately, and treated horizontal displacement as a swipe regardless of vertical intent. Browser scrolling could cancel the pointer stream and reset the card. Direction ownership was missing. During testing, delayed capture also revealed that an implicit child capture's lost-capture event bubbled to the card; filtering that event to the card itself prevents an erroneous reset.
+
+## Files changed
+
+| File                                                                                      | Change                                                                                                                                                                                                                                                                                                                                                                                           |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/frontend/components/profile-carousel.tsx`                                            | New wrapper around the existing native tray. Heading-adjacent Previous/Next buttons, smooth one-card scrolling, reduced-motion support, disabled endpoints and overflow-aware visibility. ResizeObserver and child-list MutationObserver recalculate range after resize and data changes. Passive scroll listener preserves trackpad/touch support.                                              |
+| `src/frontend/pages/home-page.tsx`                                                        | Uses ProfileCarousel while retaining existing StudentCard rendering, six-profile limit, recommendation data, and empty state.                                                                                                                                                                                                                                                                    |
+| `src/frontend/components/student-card.tsx`                                                | Adds startY, gesture direction and cached card width; delays capture until horizontal intent; prevents default scrolling only for a locked horizontal touch gesture via a scoped non-passive listener. Releases capture and resets cancellation correctly, ignores lost-capture events from children, and suppresses click after meaningful drag including a drag beginning on an action button. |
+| `src/frontend/utils/swipe-gesture.ts`                                                     | Pure helpers for 10px intent threshold, 1.2 horizontal dominance, permanent direction lock, and 28%-width or velocity completion.                                                                                                                                                                                                                                                                |
+| `src/frontend/styles/globals.css`                                                         | Small rounded carousel controls using existing semantic surfaces, borders, hover and disabled states. Existing Discover touch-action, page scrolling, safe-area padding and bottom navigation remain unchanged.                                                                                                                                                                                  |
+| `tests/swipe-gesture.test.ts`                                                             | Unit regression coverage for ambiguous movement, horizontal/vertical locks, persistent direction, distance, velocity and short/reverse gestures.                                                                                                                                                                                                                                                 |
+| `tests/e2e/profile-interactions.spec.ts`                                                  | 46 interaction tests: requested carousel widths, keyboard activation, native wheel scrolling, boundaries, Connect/dismiss/View all, no-overflow visibility, all requested mobile gesture cases, pointer cancellation, action-button drag suppression, and viewport-height change during an active gesture.                                                                                       |
+| `tests/e2e/mobile-interactions.spec.ts`                                                   | Existing synthetic batching test now supplies the actual pointer Y coordinate so its movement represents horizontal intent.                                                                                                                                                                                                                                                                      |
+| `docs/profile-interactions-report.md`                                                     | This report.                                                                                                                                                                                                                                                                                                                                                                                     |
+| `artifacts/profile-interactions/home-carousel-1440.png` and `home-carousel-next-1440.png` | Manually inspected screenshots using existing demo profiles.                                                                                                                                                                                                                                                                                                                                     |
+
+## Gesture handling and performance
+
+The gesture starts pending. At least 10px of movement is required. Horizontal intent requires abs(deltaX) > 1.2 × abs(deltaY); vertical intent requires abs(deltaY) > abs(deltaX). Once chosen, direction stays fixed until release/cancel.
+
+Only horizontal motion adds the dragging class and captures the pointer. A native touchmove listener on the active card cancels default scrolling only after horizontal lock; normal vertical gestures remain native. Input/select/textarea interaction remains excluded. Taps still activate actions; meaningful drags suppress the subsequent click. Right swipe still uses the existing Connect action, and left swipe still uses the existing Skip action. Desktop Discover's existing explicit Connect and Skip buttons remain available.
+
+Release completes at 28% of the card width captured at pointerdown, or at more than 45px with a same-direction velocity above 0.55px/ms. Velocity expires after a 100ms pause. Incomplete/cancelled gestures animate back to rest. Existing connection permission checks, completion prompts, mutations, failure recovery and animations remain in their existing action handlers.
+
+The existing requestAnimationFrame batching and translate3d/rotation approach is preserved. Direction and movement use refs, not per-pixel React state. Card width is read once at gesture start; coordinates use clientX/clientY rather than viewport height. Tests confirm transform writes are batched and gestures do not refetch profile state. No new animation/carousel library or backend changes.
+
+## Browser considerations and verification
+
+Desktop interaction checks passed at 1440, 1280, 1024 and 768px. Touch interaction checks passed at 430, 390, 375 and 360px using actual Chromium touch input through CDP. The matrix covers slow swipes, fast flicks, horizontal-then-vertical drift, vertical scrolling, both diagonal intents, short cancellation, pointer cancellation, swipes near the fixed navigation, and Connect/Skip taps. The fixed Home/Discover/Idea Board/More structure and notification behavior were also rechecked.
+
+A height-only viewport change during a captured drag preserves the horizontal transform and suppresses action clicks. This tests resilience to viewport changes; it does not reproduce every physical mobile browser toolbar behavior. Physical Chrome Android and iPhone Safari were not available and were not tested. No Safari-device result is claimed.
+
+The implementation follows the browser gesture/cancellation behavior described in [MDN touch-action documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/touch-action) and [Pointer Events documentation](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events).
+
+## Results
+
+- `npm run typecheck`: passed.
+- `npm test`: 317 tests across 26 files passed on the final run.
+- Browser regression suite: 64 tests passed on the final stable run (46 profile interaction tests, 12 existing mobile interaction tests, 6 mobile navigation tests).
+- `npm run build`: passed, including compilation, TypeScript, static generation and page optimization.
+- Changed-file Prettier checks, architecture boundaries and git diff whitespace check: passed.
+- `npm run lint`: unavailable because package.json contains no lint script. No unrelated lint setup was introduced.
+
+Early tests exposed the child capture reset and it was fixed. Native wheel momentum required waiting for scroll settling before the test's programmatic end jump. The fast-flick test was changed from many small protocol-driven moves to two rapid moves, so the input actually exceeds the specified velocity threshold. The final suite passed with these cases included.
+
+Recommendation logic, backend/API contracts, profile data, authentication, database, theme, routes, and desktop/mobile navigation configurations were intentionally left unchanged. Existing college/connection authorization still runs in requestConnection; this task changes gesture recognition and card motion only.

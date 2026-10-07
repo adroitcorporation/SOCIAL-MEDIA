@@ -6470,3 +6470,24 @@ select:focus-visible {
 .mobile-more-menu .nav-count {
   margin-left: auto;
 }
+
+.profile-carousel-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profile-carousel-controls > button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  background: var(--surface-elevated);
+  border-radius: 50%;
+}
+.profile-carousel-controls > button:hover:not(:disabled) {
+  background: var(--surface-higher);
+  border-color: var(--border-strong);
+}
+.profile-carousel-controls > button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

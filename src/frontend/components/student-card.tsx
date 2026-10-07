@@ -16,6 +16,11 @@ import type { Student } from '@/shared/contracts/responses';
 
 import { useCircle } from '@/frontend/state/circle-context';
 import { Avatar, Tag, Verified } from '@/frontend/components/ui';
+import {
+  lockSwipeDirection,
+  completesSwipe,
+  type SwipeDirection,
+} from '@/frontend/utils/swipe-gesture';
 import { applyConnection } from '@/frontend/state/connection-update';
 
 export function cardSwipeEnabled(discoverMode: boolean) {
@@ -77,16 +82,41 @@ export function StudentCard({
     });
   };
   const dragStartX = useRef<number | null>(null);
+  const dragStartY = useRef(0);
+  const dragDirection = useRef<SwipeDirection>('pending');
+  const dragWidth = useRef(0);
   const dragPointerId = useRef<number | null>(null);
   const dragX = useRef(0);
   const dragVelocity = useRef(0);
   const lastPointerSample = useRef<{ x: number; time: number } | null>(null);
   const actionInFlight = useRef(false);
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!discoverMode || preview || !card) return;
+    // React delegates touch listeners passively. Cancel only a locked horizontal gesture.
+    const move = (event: TouchEvent) => {
+      if (dragStartX.current === null || event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      dragDirection.current = lockSwipeDirection(
+        dragDirection.current,
+        touch.clientX - dragStartX.current,
+        touch.clientY - dragStartY.current,
+      );
+      if (dragDirection.current === 'horizontal' && event.cancelable) event.preventDefault();
+    };
+    card.addEventListener('touchmove', move, { passive: false });
+    return () => card.removeEventListener('touchmove', move);
+  }, [discoverMode, preview]);
+
   const resetDrag = (card: HTMLElement) => {
     if (frame.current !== null) cancelAnimationFrame(frame.current);
     frame.current = null;
     dragStartX.current = null;
+    const pointerId = dragPointerId.current;
     dragPointerId.current = null;
+    dragDirection.current = 'pending';
+    if (pointerId !== null && card.hasPointerCapture(pointerId))
+      card.releasePointerCapture(pointerId);
     dragX.current = 0;
     dragVelocity.current = 0;
     lastPointerSample.current = null;
@@ -186,15 +216,16 @@ export function StudentCard({
           homePointer.current = { x: event.clientX, y: event.clientY };
           return;
         }
-        if ((event.target as HTMLElement).closest('button, a, input, select, textarea')) return;
+        if ((event.target as HTMLElement).closest('input, select, textarea')) return;
         if (busy || actionInFlight.current || !event.isPrimary || event.button !== 0) return;
         dragStartX.current = event.clientX;
+        dragStartY.current = event.clientY;
+        dragDirection.current = 'pending';
+        dragWidth.current = event.currentTarget.offsetWidth;
         dragPointerId.current = event.pointerId;
         dragX.current = 0;
         dragVelocity.current = 0;
         lastPointerSample.current = { x: event.clientX, time: event.timeStamp };
-        event.currentTarget.classList.add('is-dragging');
-        event.currentTarget.setPointerCapture(event.pointerId);
       }}
       onPointerMove={(event) => {
         if (!cardSwipeEnabled(discoverMode)) {
@@ -205,6 +236,15 @@ export function StudentCard({
         }
         if (dragStartX.current === null || event.pointerId !== dragPointerId.current) return;
         const delta = event.clientX - dragStartX.current;
+        dragDirection.current = lockSwipeDirection(
+          dragDirection.current,
+          delta,
+          event.clientY - dragStartY.current,
+        );
+        if (dragDirection.current !== 'horizontal') return;
+        if (!event.currentTarget.hasPointerCapture(event.pointerId))
+          event.currentTarget.setPointerCapture(event.pointerId);
+        event.currentTarget.classList.add('is-dragging');
         const previous = lastPointerSample.current;
         const elapsed = previous ? event.timeStamp - previous.time : 0;
         if (previous && elapsed > 0) dragVelocity.current = (event.clientX - previous.x) / elapsed;
@@ -220,21 +260,33 @@ export function StudentCard({
         }
         if (dragStartX.current === null || event.pointerId !== dragPointerId.current) return;
         const delta = event.clientX - dragStartX.current;
-        const velocity = dragVelocity.current;
-        const threshold = Math.min(120, event.currentTarget.offsetWidth * 0.28);
+        const elapsed = lastPointerSample.current
+          ? event.timeStamp - lastPointerSample.current.time
+          : Infinity;
+        const velocity = elapsed < 100 ? dragVelocity.current : 0;
+        const horizontal = dragDirection.current === 'horizontal';
+        const width = dragWidth.current;
+        const pointerId = dragPointerId.current;
         dragStartX.current = null;
         dragPointerId.current = null;
-        if (delta > threshold || (delta > 45 && velocity > 0.55)) void handleConnect(true);
-        else if (delta < -threshold || (delta < -45 && velocity < -0.55)) void handleSkip();
-        else resetDrag(event.currentTarget);
-        if ((delta > 0 && !state.me.collegeVerified) || busy) resetDrag(event.currentTarget);
+        if (pointerId !== null && event.currentTarget.hasPointerCapture(pointerId))
+          event.currentTarget.releasePointerCapture(pointerId);
+        if (horizontal && completesSwipe(delta, velocity, width)) {
+          if (delta > 0) void handleConnect(true);
+          else void handleSkip();
+        } else resetDrag(event.currentTarget);
+        if (busy) resetDrag(event.currentTarget);
       }}
       onPointerCancel={(event) => {
         homePointer.current = null;
         if (event.pointerId === dragPointerId.current) resetDrag(event.currentTarget);
       }}
       onLostPointerCapture={(event) => {
-        if (dragStartX.current !== null && event.pointerId === dragPointerId.current)
+        if (
+          event.target === event.currentTarget &&
+          dragStartX.current !== null &&
+          event.pointerId === dragPointerId.current
+        )
           resetDrag(event.currentTarget);
       }}
     >
