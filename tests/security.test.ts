@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { boundedBytes, boundedJson } from '../src/backend/http/request';
 import { isLocalDemo, isVerifiedCollegeEmail } from '../src/backend/auth/session';
 import { profileSchema } from '../src/shared/contracts/schemas';
-import { isAllowedCollegeEmail } from '../src/shared/config/college-access';
 afterEach(() => vi.unstubAllEnvs());
 describe('Request and environment safety', () => {
   it('never enables demo authentication in production', () => {
@@ -21,11 +20,25 @@ describe('Request and environment safety', () => {
       false,
     );
   });
-  it('allows only LNMIIT college email addresses', () => {
-    expect(isAllowedCollegeEmail('student@lnmiit.ac.in')).toBe(true);
-    expect(isAllowedCollegeEmail('STUDENT@LNMIIT.AC.IN')).toBe(true);
-    expect(isAllowedCollegeEmail('student@othercollege.ac.in')).toBe(false);
-    expect(isAllowedCollegeEmail('student@lnmiit.ac.in.attacker.example')).toBe(false);
+  it('verifies only confirmed emails matching an explicitly approved college domain', () => {
+    const confirmedAt = '2026-09-26T10:00:00.000Z';
+    const approvedDomains = ['lnmiit.ac.in', 'othercollege.ac.in'];
+    expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', confirmedAt, approvedDomains)).toBe(true);
+    expect(isVerifiedCollegeEmail('STUDENT@LNMIIT.AC.IN', confirmedAt, approvedDomains)).toBe(true);
+    expect(isVerifiedCollegeEmail('student@othercollege.ac.in', confirmedAt, approvedDomains)).toBe(
+      true,
+    );
+    expect(isVerifiedCollegeEmail('student@unapproved.ac.in', confirmedAt, approvedDomains)).toBe(
+      false,
+    );
+    expect(
+      isVerifiedCollegeEmail('student@lnmiit.ac.in.attacker.example', confirmedAt, approvedDomains),
+    ).toBe(false);
+    expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', null, approvedDomains)).toBe(false);
+    expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', confirmedAt, [])).toBe(false);
+    expect(isVerifiedCollegeEmail('student@@lnmiit.ac.in', confirmedAt, approvedDomains)).toBe(
+      false,
+    );
   });
   it('limits streamed request bytes before buffering the complete payload', async () => {
     const request = new Request('http://localhost/api/profile', {
