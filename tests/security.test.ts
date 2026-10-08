@@ -36,6 +36,12 @@ describe('Request and environment safety', () => {
     ).toBe(false);
     expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', null, approvedDomains)).toBe(false);
     expect(isVerifiedCollegeEmail('student@lnmiit.ac.in', confirmedAt, [])).toBe(false);
+    expect(isVerifiedCollegeEmail('student@sub.lnmiit.ac.in', confirmedAt, approvedDomains)).toBe(
+      false,
+    );
+    expect(isVerifiedCollegeEmail('student name@lnmiit.ac.in', confirmedAt, approvedDomains)).toBe(
+      false,
+    );
     expect(isVerifiedCollegeEmail('student@@lnmiit.ac.in', confirmedAt, approvedDomains)).toBe(
       false,
     );
