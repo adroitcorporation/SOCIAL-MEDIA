@@ -13,16 +13,27 @@ Origin: local Windows client, not the Render host. Ten sequential HTTPS requests
 
 Earlier single checks were 2743 ms for Render health, 910 ms for Vercel health and 590 ms for frontend /api/config. Separate samples are not mixed into percentiles. The health route executes SELECT 1 and reports status=ok; config was demo=false/configured=true.
 
-## Unmeasured requirements
+## Paired local Prisma observation
+
+At 2026-10-08T10:51:33Z, `scripts/migration-latency.mjs` measured SELECT 1 through Prisma 6.19.3 from this local Windows machine. Both projects used session pooling on port 5432, TLS required, connection_limit=1; each had three warm-ups followed by 30 samples. Order alternated between projects with 100 ms pauses between pairs; both pools stayed warm. All 60 timed queries succeeded. Nearest-rank percentiles:
+
+| Project   | Samples | p50 ms | p95 ms |
+| --------- | ------: | -----: | -----: |
+| Seoul     |      30 | 161.97 | 202.49 |
+| Singapore |      30 | 125.84 | 139.00 |
+
+Singapore was 22.3% lower at p50 and 31.4% lower at p95 in this small local-client observation. This does not establish Render-origin improvement, application responsiveness or capacity. The earlier HTTP baseline measures a different workload and is not a before/after comparator. Raw samples are in `supabase-migration-follow-up-evidence.json`; no credentials or user records are included.
+
+## Still unmeasured
 
 | Metric                                         | Status / blocker                                                                                                       |
 | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Render-to-Seoul SELECT 1 round-trip            | No authorized Render execution/SSH tool or environment-read access; local/MCP SQL timing would have a different origin |
-| Discover authenticated profile loading p50/p95 | No approved live benchmark account/session; destination app unavailable                                                |
-| Auth and profile loading                       | Existing-password login/refresh not exercised; no account credentials requested in chat                                |
-| Connection create/cancel                       | No isolated Singapore staging/test users; production mutations avoided                                                 |
+| Discover authenticated profile loading p50/p95 | Staging read returned 200; repeated timing samples were not measured                                                   |
+| Auth and profile loading                       | Operator login/profile/logout passed; agent refresh and resumed session passed; no latency series                      |
+| Connection create/cancel                       | Staging read passed; two authorized mutation test accounts are still needed; production mutations avoided              |
 | Messaging/SSE latency                          | No end-to-end authorized messaging fixtures; Socket.IO is absent, so Socket.IO benchmark is not applicable             |
-| Singapore comparison                           | Database/Auth restored in Singapore; no isolated app deployment or Render-origin access                                |
+| Singapore comparison                           | Paired local-client query samples measured above; Render-origin execution remains unavailable                          |
 | 1,000–10,000-user capacity                     | Registered users do not define concurrency; workload and staging restoration required                                  |
 
 ## Repeatable rehearsal protocol
@@ -33,4 +44,4 @@ Measure paired Seoul/Singapore staging runs with identical application build, fi
 
 Increase concurrent-active-user load gradually with explicit request-rate limits and abort thresholds on staging only. Record p50/p95/p99, error rate, query counts, pool waits, memory/CPU and recommendation backlog. Maintain idempotency/cleanup fixtures; never send synthetic load or mutations to real accounts.
 
-No latency improvement or user capacity is claimed.
+Only the measured local-client query difference above is claimed. Render-origin latency improvement and user capacity remain unverified.

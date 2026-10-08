@@ -1,0 +1,129 @@
+{
+  "observed_date": "2026-10-08",
+  "source_project": "rznbuzkgzsryadokvcfh",
+  "destination_project": "lxofcmzgzbgqvlmwizgm",
+  "production_changes": false,
+  "storage_transfer": "not executed: policy rejection and unavailable server-only credentials",
+  "source_storage_metadata": {
+    "objects": 11,
+    "declared_bytes": 23078406,
+    "objects_without_owner_id": 0,
+    "unmatched_auth_owner_ids": 0,
+    "folder_owner_mismatches": 0,
+    "objects_with_custom_metadata": 0,
+    "disallowed_mime_metadata": 0,
+    "original_file_bytes_hashed": false
+  },
+  "staging_storage_buckets": 0,
+  "staging_storage_objects": 0,
+  "staging_auth_users": 25,
+  "staging_auth_identities": 25,
+  "identity_orphans": 0,
+  "operator_reported": {
+    "existing_password_login": "passed",
+    "page_refresh": "passed",
+    "profile_loading": "passed",
+    "logout": "passed"
+  },
+  "runtime_isolation": {
+    "health_http": 200,
+    "config_http": 200,
+    "database_and_direct_url_singapore": true,
+    "auth_url_singapore": true,
+    "api_proxy_disabled": true,
+    "demo_worker_external_ai_disabled": true,
+    "backend_storage_key_absent": true,
+    "stored_photo_urls_still_source": true,
+    "complete_application_singapore_only": false
+  },
+  "public_auth_configuration": {
+    "settings_http": 200,
+    "email_provider_enabled": true,
+    "phone_provider_enabled": false,
+    "source_jwks_http": 200,
+    "destination_jwks_http": 200,
+    "source_algorithms": ["ES256"],
+    "destination_algorithms": ["ES256"],
+    "shared_published_signing_key": false,
+    "old_access_refresh_tokens": "not tested",
+    "legacy_hs256_configuration": "not inspected",
+    "redirect_allowlist": "verified empty in Singapore dashboard",
+    "staging_site_url": "http://localhost:3000",
+    "staging_redirect_configuration_matches_app": false,
+    "source_site_url": "https://newagesocial.vercel.app",
+    "source_redirect_urls": [
+      "https://newagesocial.vercel.app",
+      "https://newagesocial.vercel.app/reset-password",
+      "https://newagesocial.vercel.app/"
+    ],
+    "redirect_flow": "not tested; operator configuration correction required",
+    "token_refresh": "passed: destination refresh endpoint HTTP 200",
+    "refreshed_get_user_http": 200,
+    "refreshed_api_http": 200,
+    "refreshed_identity_linkage": true,
+    "refreshed_session_survived_reload": true,
+    "issuer": "https://lxofcmzgzbgqvlmwizgm.supabase.co/auth/v1",
+    "audience": "authenticated",
+    "anonymous_app_http": 401,
+    "malformed_jwt_auth_http": 403,
+    "sdk_refresh_method_forced": false
+  },
+  "authenticated_read_flows": {
+    "profile_http": 200,
+    "discover_http": 200,
+    "connections_http": 200,
+    "messages_http": 200,
+    "idea_board_http": 200,
+    "expected_response_shapes": true,
+    "two_account_mutations": "not tested",
+    "private_file_authorization": "not tested"
+  },
+  "transactional_recovery": {
+    "measured_at": "2026-10-08T10:53:47.956Z",
+    "target": "Singapore staging only",
+    "tables_checked": 5,
+    "deliberate_uncommitted_mutations": 4,
+    "restored_content_matches": true,
+    "persistent_data_changes": false,
+    "full_service_rollback": "not verified"
+  },
+  "benchmark": {
+    "measured_at": "2026-10-08T10:51:33.217Z",
+    "origin": "local Windows client, not Render",
+    "query": "SELECT 1",
+    "warmups_per_project": 3,
+    "samples_per_project": 30,
+    "pooling": "session pooler, port 5432, TLS required, connection_limit=1",
+    "errors": 0,
+    "seoul": {
+      "p50_ms": 161.97,
+      "p95_ms": 202.49,
+      "samples_ms": [
+        165.68, 159.1, 163.41, 151.55, 199.88, 155.28, 170.18, 152.61, 186.71, 161.97, 168.2,
+        160.99, 296.38, 163.67, 169.29, 161.39, 165.9, 158.77, 202.49, 170.55, 167.62, 146.78,
+        157.46, 168.21, 161.7, 160.59, 157.52, 162.28, 157.4, 148.07
+      ]
+    },
+    "singapore": {
+      "p50_ms": 125.84,
+      "p95_ms": 139,
+      "samples_ms": [
+        119.61, 139.47, 117.09, 125.84, 125.7, 138.3, 115.15, 126.91, 134.9, 138.06, 127.68, 125.19,
+        126.54, 129.64, 125.01, 125.6, 114.97, 123.59, 135.86, 131.21, 139, 136.28, 122.38, 131.12,
+        134.71, 122.11, 128.04, 125.03, 119.17, 118.29
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": "passed",
+    "unit_integration_security_tests": "359 passed in 31 files",
+    "production_frontend_node_build": "passed after stopping identified staging process holding Prisma DLL",
+    "architecture_boundaries": "passed",
+    "render_blueprint_schema": "passed",
+    "powershell_launcher_parser": "passed",
+    "node_utility_syntax": "passed",
+    "eslint": "not installed/configured",
+    "production_deployment_or_cutover": "not performed"
+  },
+  "decision": "NO-GO"
+}

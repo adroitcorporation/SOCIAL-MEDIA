@@ -1,8 +1,12 @@
 # Supabase migration rollback
 
-**Plan only; not rehearsed. Production cutover is NO-GO until tested.**
+**Full-service plan remains unverified; database transactional recovery is rehearsed. Production cutover is NO-GO.**
 
 An encrypted source database archive restored application/Auth data to Singapore staging, with matching canonical contents across all 54 tables. This tests the database restore portion only. Storage file bytes have not been backed up; login/session behavior, reverse synchronization and DPAPI recovery on another account/machine remain unverified. These limitations prevent a tested full rollback claim.
+
+On 2026-10-08 at 10:53:47 UTC, `scripts/migration-rollback-probe.mjs` successfully recovered four deliberate, uncommitted changes in Singapore only: application profile name, Auth sign-in timestamp, event attachment bytes and private verification document bytes. A savepoint rollback restored exact canonical whole-table digests across User, auth.users, EventAttachment, CollegeVerificationRequest and RecommendationJob. Constraints/triggers stayed enabled; no persistent changes, production writes or credential changes occurred. This is transaction rollback evidence, not backup disaster recovery or service/configuration recovery. The initial failed probe transaction also aborted without persisting changes.
+
+The user subsequently reported existing staging login, page refresh, profile loading and logout success. The agent verified destination refresh endpoint, refreshed session persistence and matching Auth/application identity. Auth-service recovery after a replacement restore remains unverified. Storage recovery is blocked by missing file backup/transfer. Follow [the manual procedure](supabase-migration-manual-blockers.md) for an approved full-service rehearsal; do not repeat the already verified original database/Auth restoration merely to relabel it as rollback.
 
 ## Preserved recovery materials
 
