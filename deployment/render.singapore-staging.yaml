@@ -1,0 +1,79 @@
+# Prepared only. Do not sync/apply without separate deployment approval.
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+services:
+  - type: web
+    name: founder-circle-singapore-staging-backend
+    runtime: node
+    region: singapore
+    plan: free
+    branch: audit/supabase-singapore-migration-2026-10-08
+    autoDeployTrigger: off
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.20.0
+      - key: NODE_ENV
+        value: production
+      - key: LOCAL_DEMO
+        value: 'false'
+      - key: RECOMMENDATION_WORKER_ENABLED
+        value: 'false'
+      - key: MIGRATION_MAINTENANCE
+        value: 'false'
+      - key: FILE_STORAGE_MODE
+        value: supabase
+      - key: SUPABASE_EXPECTED_PROJECT_REF
+        value: lxofcmzgzbgqvlmwizgm
+      - key: NEXT_PUBLIC_SUPABASE_EXPECTED_PROJECT_REF
+        value: lxofcmzgzbgqvlmwizgm
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: https://lxofcmzgzbgqvlmwizgm.supabase.co
+      - key: SUPABASE_STORAGE_URL
+        value: https://lxofcmzgzbgqvlmwizgm.supabase.co
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+  # Equivalent frontend when a separate Vercel project is unavailable.
+  - type: web
+    name: founder-circle-singapore-staging-frontend
+    runtime: node
+    region: singapore
+    plan: free
+    branch: audit/supabase-singapore-migration-2026-10-08
+    autoDeployTrigger: off
+    buildCommand: npm ci --include=dev && npm run build
+    # Frontend does not own a database or run migrations. Render supplies PORT.
+    startCommand: node node_modules/next/dist/bin/next start --hostname 0.0.0.0 --port $PORT
+    healthCheckPath: /api/config
+    envVars:
+      - key: NODE_VERSION
+        value: 24.20.0
+      - key: NODE_ENV
+        value: production
+      - key: LOCAL_DEMO
+        value: 'false'
+      - key: RECOMMENDATION_WORKER_ENABLED
+        value: 'false'
+      - key: NEXT_PUBLIC_SUPABASE_EXPECTED_PROJECT_REF
+        value: lxofcmzgzbgqvlmwizgm
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: https://lxofcmzgzbgqvlmwizgm.supabase.co
+      - key: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: REQUIRE_EXPLICIT_BACKEND_URL
+        value: 'true'
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false

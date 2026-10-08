@@ -1,5 +1,7 @@
 # New Singapore Storage readiness — 2026-10-08
 
+See [the latest final gates](supabase-final-migration-gates.md) for portable backup and maintenance rehearsal results. Singapore's current backup contains zero files after synthetic cleanup; full populated Storage service restoration remains unverified. Deployment is prepared, not executed.
+
 **Production decision: NO-GO pending the documented manual gates.** Historical Seoul Storage transfer is intentionally waived. Seoul files and production configuration remain unchanged.
 
 ## Implementation and inventory

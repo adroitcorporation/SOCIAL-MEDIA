@@ -1,0 +1,194 @@
+diff --git a/src/backend/auth/session.ts b/src/backend/auth/session.ts
+index b8431ae..0a3e171 100644
+--- a/src/backend/auth/session.ts
++++ b/src/backend/auth/session.ts
+@@ -1,5 +1,6 @@
+ import { requireActiveActor } from '@/backend/services/permissions';
+ import 'server-only';
++import { requireApplicationOpen } from '@/backend/utils/maintenance';
+ import { createClient } from '@supabase/supabase-js';
+ import { db } from '@/backend/database/client';
+ import { transaction } from '@/backend/database/transaction';
+@@ -12,10 +13,8 @@ import {
+ export const isLocalDemo = () =>
+   process.env.NODE_ENV !== 'production' && process.env.LOCAL_DEMO === 'true';
+ const isEmailConfirmed = (confirmedAt: string | null | undefined) => Boolean(confirmedAt);
+-const isConfirmedLoginEmail = (
+-  email: string | undefined,
+-  confirmedAt: string | null | undefined,
+-) => Boolean(email && isEmailConfirmed(confirmedAt));
++const isConfirmedLoginEmail = (email: string | undefined, confirmedAt: string | null | undefined) =>
++  Boolean(email && isEmailConfirmed(confirmedAt));
+
+ export const isVerifiedCollegeEmail = (
+   email: string | undefined,
+@@ -30,6 +29,7 @@ export const isVerifiedCollegeEmail = (
+ };
+
+ export async function authenticate(request: Request) {
++  requireApplicationOpen();
+   if (isLocalDemo()) {
+     const user = await db.user.findUnique({ where: { id: 'demo-aarav' } });
+     requireThat(user, 503, 'Run npm run db:seed first.');
+diff --git a/src/backend/http/api-handler.ts b/src/backend/http/api-handler.ts
+index a7ae3f8..c834c37 100644
+--- a/src/backend/http/api-handler.ts
++++ b/src/backend/http/api-handler.ts
+@@ -1,4 +1,5 @@
+ import 'server-only';
++import { migrationMaintenance, maintenanceResponse } from '@/backend/utils/maintenance';
+ import { errorResponse } from './error-response';
+ import { z } from 'zod';
+ import { authenticate } from '@/backend/auth/session';
+@@ -34,6 +35,12 @@ export async function handleApiRequest(request: Request, path: string[]) {
+   try {
+     const [resource, id, action, detail] = path;
+     const method = request.method;
++    // Reads may write identity, rate-limit and recommendation state. Freeze all data routes.
++    if (
++      migrationMaintenance() &&
++      !(method === 'GET' && path.length === 1 && ['health', 'config'].includes(resource))
++    )
++      return maintenanceResponse();
+     const isProfilePhotoUpload =
+       resource === 'profile' && id === 'photo' && !action && method === 'POST';
+     const isEventAttachmentUpload =
+diff --git a/src/backend/http/live-handler.ts b/src/backend/http/live-handler.ts
+index efcba47..d0f99c5 100644
+--- a/src/backend/http/live-handler.ts
++++ b/src/backend/http/live-handler.ts
+@@ -1,10 +1,12 @@
+ import 'server-only';
++import { migrationMaintenance, maintenanceResponse } from '@/backend/utils/maintenance';
+ import { authenticate } from '@/backend/auth/session';
+ import { notificationSnapshot } from '@/backend/services/notifications';
+ import { enforceLiveRateLimit } from './middleware';
+ import { errorResponse } from './error-response';
+
+ export async function handleLiveRequest(request: Request) {
++  if (migrationMaintenance()) return maintenanceResponse();
+   let userId: string;
+   try {
+     userId = (await authenticate(request)).id;
+diff --git a/src/backend/recommendations/worker.ts b/src/backend/recommendations/worker.ts
+index 97be6b8..2806258 100644
+--- a/src/backend/recommendations/worker.ts
++++ b/src/backend/recommendations/worker.ts
+@@ -1,4 +1,5 @@
+ import 'server-only';
++import { migrationMaintenance } from '@/backend/utils/maintenance';
+ import { createHash, randomUUID } from 'node:crypto';
+ import { db } from '@/backend/database/client';
+ import { normalizeList } from '@/shared/recommendations/taxonomy';
+@@ -72,6 +73,7 @@ export async function processRecommendationJobs(
+   limit = ranking.workerBatch,
+   provider: AIProvider = getProvider(),
+ ) {
++  if (migrationMaintenance()) return 0;
+   let processed = 0;
+   for (let i = 0; i < Math.min(100, Math.max(0, limit)); i++) {
+     const token = randomUUID();
+diff --git a/src/backend/utils/maintenance.ts b/src/backend/utils/maintenance.ts
+new file mode 100644
+index 0000000..f806604
+--- /dev/null
++++ b/src/backend/utils/maintenance.ts
+@@ -0,0 +1,20 @@
++import 'server-only';
++import { AppError } from './errors';
++
++// Server-side operational switch. Leave unset during normal operation.
++export const migrationMaintenance = () => process.env.MIGRATION_MAINTENANCE === 'true';
++
++export function requireApplicationOpen() {
++  if (migrationMaintenance())
++    throw new AppError(503, 'Founder Circle is temporarily unavailable for maintenance.');
++}
++
++export function maintenanceResponse() {
++  return Response.json(
++    {
++      error: 'Founder Circle is temporarily unavailable for maintenance.',
++      code: 'MIGRATION_MAINTENANCE',
++    },
++    { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '60' } },
++  );
++}
+diff --git a/tests/migration-maintenance.test.ts b/tests/migration-maintenance.test.ts
+new file mode 100644
+index 0000000..7008efd
+--- /dev/null
++++ b/tests/migration-maintenance.test.ts
+@@ -0,0 +1,72 @@
++import { afterEach, expect, it, vi } from 'vitest';
++const doubles = vi.hoisted(() => ({ query: vi.fn(), getUser: vi.fn() }));
++vi.mock('@/backend/database/client', () => ({ db: { $queryRaw: doubles.query } }));
++vi.mock('@supabase/supabase-js', () => ({
++  createClient: () => ({ auth: { getUser: doubles.getUser } }),
++}));
++import { handleApiRequest } from '@/backend/http/api-handler';
++import { handleLiveRequest } from '@/backend/http/live-handler';
++import { authenticate } from '@/backend/auth/session';
++import { processRecommendationJobs } from '@/backend/recommendations/worker';
++afterEach(() => {
++  vi.unstubAllEnvs();
++  vi.clearAllMocks();
++});
++
++it('blocks mutations and side-effecting reads before authentication, parsing or database access', async () => {
++  vi.stubEnv('MIGRATION_MAINTENANCE', 'true');
++  for (const [path, method] of [
++    ['connections', 'POST'],
++    ['conversations/a/messages', 'POST'],
++    ['profile/photo', 'POST'],
++    ['events/a/attachments', 'POST'],
++    ['ideas', 'POST'],
++    ['state', 'GET'],
++    ['session', 'GET'],
++    ['health', 'POST'],
++    ['health/extra', 'GET'],
++  ]) {
++    const response = await handleApiRequest(
++      new Request(`https://staging.invalid/api/${path}`, { method }),
++      path.split('/'),
++    );
++    expect(response.status).toBe(503);
++    expect(response.headers.get('retry-after')).toBe('60');
++    expect((await response.json()).code).toBe('MIGRATION_MAINTENANCE');
++  }
++  expect(doubles.getUser).not.toHaveBeenCalled();
++  expect(doubles.query).not.toHaveBeenCalled();
++});
++
++it('keeps only health/config available and stops Auth synchronization, SSE and jobs', async () => {
++  vi.stubEnv('MIGRATION_MAINTENANCE', 'true');
++  doubles.query.mockResolvedValue([{ value: 1 }]);
++  expect(
++    (await handleApiRequest(new Request('https://staging.invalid/api/health'), ['health'])).status,
++  ).toBe(200);
++  expect(
++    (await handleApiRequest(new Request('https://staging.invalid/api/config'), ['config'])).status,
++  ).toBe(200);
++  expect((await handleLiveRequest(new Request('https://staging.invalid/api/live'))).status).toBe(
++    503,
++  );
++  await expect(authenticate(new Request('https://staging.invalid/session'))).rejects.toMatchObject({
++    status: 503,
++  });
++  expect(await processRecommendationJobs()).toBe(0);
++  expect(doubles.getUser).not.toHaveBeenCalled();
++  expect(doubles.query).toHaveBeenCalledTimes(1);
++});
++
++it('resumes the normal authentication boundary when maintenance is removed', async () => {
++  vi.stubEnv('MIGRATION_MAINTENANCE', 'true');
++  await expect(authenticate(new Request('https://staging.invalid/session'))).rejects.toMatchObject({
++    status: 503,
++  });
++  vi.stubEnv('MIGRATION_MAINTENANCE', 'false');
++  vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://staging.invalid');
++  vi.stubEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'public-fixture');
++  await expect(authenticate(new Request('https://staging.invalid/session'))).rejects.toMatchObject({
++    status: 401,
++  });
++});

@@ -1,5 +1,7 @@
 # Supabase Singapore migration runbook
 
+Use [the final-gate deployment/recovery/cutover procedure](supabase-final-migration-gates.md) for the current ordered plan. It is prepared only: no push, merge, deployment or production freeze/cutover is authorized in this turn. Portable local database recovery and application maintenance tests now pass; full platform/deployed rehearsals remain mandatory before GO.
+
 **Current policy:** historical Seoul Storage migration is waived. Earlier transfer/export instructions below are superseded and must not be executed. Use [current readiness](supabase-new-storage-readiness.md) and [manual configuration](supabase-migration-manual-blockers.md). New Singapore buckets and private-file authorization are tested; production cutover is still NO-GO pending deployment, full recovery and all-writer freeze/reconciliation. No live configuration change is authorized.
 
 **Partially executed on Singapore staging only.** Source stays active in Seoul. Production cutover requires explicit approval after a successful full rehearsal. Never use production as a restore target or run database reset/db push.

@@ -7,9 +7,11 @@ if (!response.ok) throw new Error(`Cannot fetch Render schema: ${response.status
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
 const validate = ajv.compile(await response.json());
-const valid = validate(YAML.parse(await readFile('render.yaml', 'utf8')));
-if (!valid) {
-  console.error(validate.errors);
-  process.exit(1);
+for (const filename of ['render.yaml', 'deployment/render.singapore-staging.yaml']) {
+  const valid = validate(YAML.parse(await readFile(filename, 'utf8')));
+  if (!valid) {
+    console.error(validate.errors);
+    process.exit(1);
+  }
+  console.log(`${filename} matches the official Render Blueprint JSON schema.`);
 }
-console.log('render.yaml matches the official Render Blueprint JSON schema.');

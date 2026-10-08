@@ -1,4 +1,5 @@
 import 'server-only';
+import { migrationMaintenance, maintenanceResponse } from '@/backend/utils/maintenance';
 import { errorResponse } from './error-response';
 import { z } from 'zod';
 import { authenticate } from '@/backend/auth/session';
@@ -34,6 +35,12 @@ export async function handleApiRequest(request: Request, path: string[]) {
   try {
     const [resource, id, action, detail] = path;
     const method = request.method;
+    // Reads may write identity, rate-limit and recommendation state. Freeze all data routes.
+    if (
+      migrationMaintenance() &&
+      !(method === 'GET' && path.length === 1 && ['health', 'config'].includes(resource))
+    )
+      return maintenanceResponse();
     const isProfilePhotoUpload =
       resource === 'profile' && id === 'photo' && !action && method === 'POST';
     const isEventAttachmentUpload =

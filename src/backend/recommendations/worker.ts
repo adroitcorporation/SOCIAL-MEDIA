@@ -1,4 +1,5 @@
 import 'server-only';
+import { migrationMaintenance } from '@/backend/utils/maintenance';
 import { createHash, randomUUID } from 'node:crypto';
 import { db } from '@/backend/database/client';
 import { normalizeList } from '@/shared/recommendations/taxonomy';
@@ -72,6 +73,7 @@ export async function processRecommendationJobs(
   limit = ranking.workerBatch,
   provider: AIProvider = getProvider(),
 ) {
+  if (migrationMaintenance()) return 0;
   let processed = 0;
   for (let i = 0; i < Math.min(100, Math.max(0, limit)); i++) {
     const token = randomUUID();

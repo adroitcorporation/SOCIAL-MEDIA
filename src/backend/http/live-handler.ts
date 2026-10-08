@@ -1,10 +1,12 @@
 import 'server-only';
+import { migrationMaintenance, maintenanceResponse } from '@/backend/utils/maintenance';
 import { authenticate } from '@/backend/auth/session';
 import { notificationSnapshot } from '@/backend/services/notifications';
 import { enforceLiveRateLimit } from './middleware';
 import { errorResponse } from './error-response';
 
 export async function handleLiveRequest(request: Request) {
+  if (migrationMaintenance()) return maintenanceResponse();
   let userId: string;
   try {
     userId = (await authenticate(request)).id;

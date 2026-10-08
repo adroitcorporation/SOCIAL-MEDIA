@@ -1,0 +1,18 @@
+{
+  "observed_at": "2026-10-08T12:16:46.323Z",
+  "project": "lxofcmzgzbgqvlmwizgm",
+  "production_operations": 0,
+  "historical_storage_operations": 0,
+  "portable_encryption_verified": true,
+  "database_restore_verified": true,
+  "supabase_service_recovery_verified": false,
+  "cross_service_consistency_verified": false,
+  "backup_created_at": "2026-10-08T12:12:54.826Z",
+  "tables": 55,
+  "storage_objects": 0,
+  "constraints_verified": 188,
+  "identity_relationships_verified": true,
+  "public_tables_with_rls": 28,
+  "local_freeze_resume_probe_verified": true,
+  "restore_seconds": 3.49
+}

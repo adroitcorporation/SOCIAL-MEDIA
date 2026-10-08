@@ -1,5 +1,6 @@
 import { requireActiveActor } from '@/backend/services/permissions';
 import 'server-only';
+import { requireApplicationOpen } from '@/backend/utils/maintenance';
 import { createClient } from '@supabase/supabase-js';
 import { db } from '@/backend/database/client';
 import { transaction } from '@/backend/database/transaction';
@@ -12,10 +13,8 @@ import {
 export const isLocalDemo = () =>
   process.env.NODE_ENV !== 'production' && process.env.LOCAL_DEMO === 'true';
 const isEmailConfirmed = (confirmedAt: string | null | undefined) => Boolean(confirmedAt);
-const isConfirmedLoginEmail = (
-  email: string | undefined,
-  confirmedAt: string | null | undefined,
-) => Boolean(email && isEmailConfirmed(confirmedAt));
+const isConfirmedLoginEmail = (email: string | undefined, confirmedAt: string | null | undefined) =>
+  Boolean(email && isEmailConfirmed(confirmedAt));
 
 export const isVerifiedCollegeEmail = (
   email: string | undefined,
@@ -30,6 +29,7 @@ export const isVerifiedCollegeEmail = (
 };
 
 export async function authenticate(request: Request) {
+  requireApplicationOpen();
   if (isLocalDemo()) {
     const user = await db.user.findUnique({ where: { id: 'demo-aarav' } });
     requireThat(user, 503, 'Run npm run db:seed first.');

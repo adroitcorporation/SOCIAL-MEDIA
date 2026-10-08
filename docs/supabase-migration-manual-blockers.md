@@ -1,5 +1,7 @@
 # Singapore manual configuration and remaining gates
 
+The [final-gate report](supabase-final-migration-gates.md) contains the latest validated staging Blueprint, portable backup/key layout, local recovery results and exact ordered production procedure. Local portable DB/Auth recovery is complete; **deployed integration, off-machine key escrow, Supabase service recovery and provider-wide writer freeze/synchronization remain blocked**. Do not execute deployment instructions until separately approved.
+
 Historical Seoul Storage migration is intentionally waived. Do not export, copy, rewrite or delete Seoul objects. The earlier blocked export is no longer required; no execution restriction was bypassed. Historical database-backed private documents remain preserved.
 
 ## Staging configuration
