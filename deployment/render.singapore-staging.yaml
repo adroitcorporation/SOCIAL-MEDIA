@@ -1,4 +1,6 @@
-# Prepared only. Do not sync/apply without separate deployment approval.
+# Staging deployment authorized; access/isolation gates must pass before apply.
+# Use a separate staging workspace: shared free quotas can suspend production.
+# See docs/supabase-staging-access-2026-10-09.md. No production resources.
 # yaml-language-server: $schema=https://render.com/schema/render.yaml.json
 services:
   - type: web

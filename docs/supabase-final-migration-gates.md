@@ -1,5 +1,7 @@
 # Final migration gates — 8 October 2026
 
+**9 October superseding staging update:** Staging creation/deployment is authorized, but access/isolation prerequisites remain blocked. Follow [current access evidence and manual steps](supabase-staging-access-2026-10-09.md), including a separate Render workspace. Earlier statements below that staging is prohibited describe the previous turn; production restrictions and unresolved verification gates still apply.
+
 **Decision: NO-GO for production.** Commit `aea961c` component evidence remains valid. This follow-up prepares isolated deployment configuration, verifies portable database recovery and tests an application maintenance switch. It does not deploy staging, freeze production or establish Supabase service disaster recovery.
 
 ## Verified now
