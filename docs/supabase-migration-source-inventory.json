@@ -1,0 +1,5984 @@
+{
+  "preparation": {
+    "destination_project": "lxofcmzgzbgqvlmwizgm",
+    "destination_region": "ap-southeast-1",
+    "destination_status": "ACTIVE_HEALTHY",
+    "destination_postgres": "17.11.0.003",
+    "destination_application_tables": 0,
+    "destination_auth_users": 0,
+    "destination_storage_objects": 0,
+    "destination_auth_schema_migrations": 82,
+    "destination_storage_schema_migrations": 73,
+    "required_extensions_match": true,
+    "destination_restore_tested": false,
+    "destination_direct_connection": "Local DNS lookup failed; session pooler URL requested",
+    "backup": {
+      "kind": "read-only pg_dump custom archive",
+      "archive_bytes": 6299729,
+      "encrypted_bytes": 6299958,
+      "protection": "Windows DPAPI CurrentUser and owner-only directory ACL",
+      "encrypted_round_trip_verified": true,
+      "required_archive_entries_verified": true,
+      "restore_tested": false,
+      "global_role_passwords_included": false,
+      "storage_bytes_included": false,
+      "storage_export": "Automatic approval review rejected command: blocked by policy"
+    }
+  },
+  "observed_date": "2026-10-08",
+  "source_project": "rznbuzkgzsryadokvcfh",
+  "source_region": "ap-northeast-2",
+  "notice": "Read-only observations across separate queries with live writes continuing. Not a backup or restored destination validation. No user rows or credentials.",
+  "inventory": [
+    {
+      "section": "database",
+      "inventory": {
+        "version": "PostgreSQL 17.6 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 15.2.0, 64-bit",
+        "size_bytes": 19401875
+      }
+    },
+    {
+      "section": "tables",
+      "inventory": [
+        {
+          "schema": "auth",
+          "name": "saml_relay_states",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "flow_state",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "saml_providers",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "instances",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "schema_migrations",
+          "rls": true,
+          "estimated_rows": 82
+        },
+        {
+          "schema": "auth",
+          "name": "refresh_tokens",
+          "rls": true,
+          "estimated_rows": 43
+        },
+        {
+          "schema": "auth",
+          "name": "users",
+          "rls": true,
+          "estimated_rows": 24
+        },
+        {
+          "schema": "auth",
+          "name": "audit_log_entries",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "sso_domains",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "mfa_amr_claims",
+          "rls": true,
+          "estimated_rows": 22
+        },
+        {
+          "schema": "auth",
+          "name": "identities",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "sessions",
+          "rls": true,
+          "estimated_rows": 27
+        },
+        {
+          "schema": "auth",
+          "name": "mfa_challenges",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "sso_providers",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "mfa_factors",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "one_time_tokens",
+          "rls": true,
+          "estimated_rows": 5
+        },
+        {
+          "schema": "auth",
+          "name": "oauth_consents",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "oauth_authorizations",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "oauth_client_states",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "oauth_clients",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "custom_oauth_providers",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "webauthn_credentials",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "webauthn_challenges",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "scim_users",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "scim_tokens",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "mfa_recovery_code_sets",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "auth",
+          "name": "mfa_recovery_codes",
+          "rls": false,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "storage",
+          "name": "migrations",
+          "rls": true,
+          "estimated_rows": 73
+        },
+        {
+          "schema": "storage",
+          "name": "s3_multipart_uploads",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "storage",
+          "name": "s3_multipart_uploads_parts",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "storage",
+          "name": "buckets_vectors",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "storage",
+          "name": "vector_indexes",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "storage",
+          "name": "buckets",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "storage",
+          "name": "buckets_analytics",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "storage",
+          "name": "objects",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "_prisma_migrations",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "RateLimit",
+          "rls": true,
+          "estimated_rows": 2
+        },
+        {
+          "schema": "public",
+          "name": "User",
+          "rls": true,
+          "estimated_rows": 18
+        },
+        {
+          "schema": "public",
+          "name": "Skip",
+          "rls": true,
+          "estimated_rows": 4
+        },
+        {
+          "schema": "public",
+          "name": "Message",
+          "rls": true,
+          "estimated_rows": 5
+        },
+        {
+          "schema": "public",
+          "name": "Idea",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "IdeaResonance",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "SavedEvent",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "Event",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "ConversationMember",
+          "rls": true,
+          "estimated_rows": 9
+        },
+        {
+          "schema": "public",
+          "name": "Notification",
+          "rls": true,
+          "estimated_rows": 40
+        },
+        {
+          "schema": "public",
+          "name": "Connection",
+          "rls": true,
+          "estimated_rows": 27
+        },
+        {
+          "schema": "public",
+          "name": "Block",
+          "rls": true,
+          "estimated_rows": 2
+        },
+        {
+          "schema": "public",
+          "name": "Conversation",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "ModerationAction",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "CollegeVerificationRequest",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "Report",
+          "rls": true,
+          "estimated_rows": 1
+        },
+        {
+          "schema": "public",
+          "name": "College",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "TaxonomyAlias",
+          "rls": true,
+          "estimated_rows": 232
+        },
+        {
+          "schema": "public",
+          "name": "RecommendationSkillLink",
+          "rls": true,
+          "estimated_rows": 62
+        },
+        {
+          "schema": "public",
+          "name": "RecommendationInteraction",
+          "rls": true,
+          "estimated_rows": 52
+        },
+        {
+          "schema": "public",
+          "name": "EventAttachment",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "Post",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "PostLike",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "PostComment",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "RecommendationDocument",
+          "rls": true,
+          "estimated_rows": -1
+        },
+        {
+          "schema": "public",
+          "name": "RecommendationJob",
+          "rls": true,
+          "estimated_rows": 0
+        },
+        {
+          "schema": "public",
+          "name": "ApprovedCollegeDomain",
+          "rls": true,
+          "estimated_rows": 1
+        }
+      ]
+    },
+    {
+      "section": "extensions",
+      "inventory": [
+        {
+          "name": "plpgsql",
+          "version": "1.0"
+        },
+        {
+          "name": "pg_stat_statements",
+          "version": "1.11"
+        },
+        {
+          "name": "uuid-ossp",
+          "version": "1.1"
+        },
+        {
+          "name": "pgcrypto",
+          "version": "1.3"
+        },
+        {
+          "name": "supabase_vault",
+          "version": "0.3.1"
+        }
+      ]
+    },
+    {
+      "section": "policies",
+      "inventory": [
+        {
+          "schema": "storage",
+          "table": "objects",
+          "name": "Users upload own profile photos",
+          "roles": ["authenticated"],
+          "command": "INSERT",
+          "permissive": "PERMISSIVE"
+        }
+      ]
+    },
+    {
+      "section": "counts",
+      "inventory": {
+        "auth_users": 25,
+        "identities": 25,
+        "sessions": 27,
+        "storage_objects": 11,
+        "storage_buckets": 1,
+        "app_users": 19
+      }
+    },
+    {
+      "section": "migrations",
+      "inventory": [
+        {
+          "name": "202609200001_initial",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202609200002_integrity",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202609230001_college_verification",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202609230002_private_verification_documents",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202609230003_rbac",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202609270001_performance_indexes",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202610030001_clear_chat",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202610050001_recommendations",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202610050002_recommendation_queue_locking",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202610060001_profile_posts",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202610060002_event_attachments",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202610070001_approved_college_domains",
+          "finished": true,
+          "rolled_back": false
+        },
+        {
+          "name": "202610070002_domain_college_association",
+          "finished": true,
+          "rolled_back": false
+        }
+      ]
+    },
+    {
+      "section": "storage_buckets",
+      "inventory": [
+        {
+          "id": "profile-photos",
+          "public": true,
+          "file_size_limit": 4000000,
+          "allowed_mime_types": ["image/jpeg", "image/png", "image/webp"]
+        }
+      ]
+    },
+    {
+      "section": "auth_user_links",
+      "inventory": {
+        "app_users_without_auth": 0,
+        "auth_without_app": 6
+      }
+    }
+  ],
+  "public_table_counts": [
+    {
+      "table_name": "_prisma_migrations",
+      "rows": 13
+    },
+    {
+      "table_name": "RateLimit",
+      "rows": 2
+    },
+    {
+      "table_name": "User",
+      "rows": 19
+    },
+    {
+      "table_name": "Skip",
+      "rows": 5
+    },
+    {
+      "table_name": "Message",
+      "rows": 13
+    },
+    {
+      "table_name": "Idea",
+      "rows": 1
+    },
+    {
+      "table_name": "IdeaResonance",
+      "rows": 4
+    },
+    {
+      "table_name": "SavedEvent",
+      "rows": 1
+    },
+    {
+      "table_name": "Event",
+      "rows": 1
+    },
+    {
+      "table_name": "ConversationMember",
+      "rows": 9
+    },
+    {
+      "table_name": "Notification",
+      "rows": 67
+    },
+    {
+      "table_name": "Connection",
+      "rows": 27
+    },
+    {
+      "table_name": "Block",
+      "rows": 2
+    },
+    {
+      "table_name": "Conversation",
+      "rows": 3
+    },
+    {
+      "table_name": "ModerationAction",
+      "rows": 20
+    },
+    {
+      "table_name": "CollegeVerificationRequest",
+      "rows": 8
+    },
+    {
+      "table_name": "Report",
+      "rows": 1
+    },
+    {
+      "table_name": "College",
+      "rows": 24
+    },
+    {
+      "table_name": "TaxonomyAlias",
+      "rows": 232
+    },
+    {
+      "table_name": "RecommendationSkillLink",
+      "rows": 62
+    },
+    {
+      "table_name": "RecommendationInteraction",
+      "rows": 85
+    },
+    {
+      "table_name": "EventAttachment",
+      "rows": 1
+    },
+    {
+      "table_name": "Post",
+      "rows": 1
+    },
+    {
+      "table_name": "PostLike",
+      "rows": 2
+    },
+    {
+      "table_name": "PostComment",
+      "rows": 0
+    },
+    {
+      "table_name": "RecommendationDocument",
+      "rows": 22
+    },
+    {
+      "table_name": "RecommendationJob",
+      "rows": 0
+    },
+    {
+      "table_name": "ApprovedCollegeDomain",
+      "rows": 2
+    }
+  ],
+  "catalog": [
+    {
+      "section": "indexes",
+      "inventory": [
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "name": "_prisma_migrations_pkey",
+          "definition": "CREATE UNIQUE INDEX _prisma_migrations_pkey ON public._prisma_migrations USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "name": "RateLimit_pkey",
+          "definition": "CREATE UNIQUE INDEX \"RateLimit_pkey\" ON public.\"RateLimit\" USING btree (key)"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "name": "RateLimit_expiresAt_idx",
+          "definition": "CREATE INDEX \"RateLimit_expiresAt_idx\" ON public.\"RateLimit\" USING btree (\"expiresAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "name": "User_pkey",
+          "definition": "CREATE UNIQUE INDEX \"User_pkey\" ON public.\"User\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "name": "User_college_city_idx",
+          "definition": "CREATE INDEX \"User_college_city_idx\" ON public.\"User\" USING btree (college, city)"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "name": "User_accountStatus_onboarded_createdAt_id_idx",
+          "definition": "CREATE INDEX \"User_accountStatus_onboarded_createdAt_id_idx\" ON public.\"User\" USING btree (\"accountStatus\", onboarded, \"createdAt\" DESC, id)"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "name": "Skip_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Skip_pkey\" ON public.\"Skip\" USING btree (\"userId\", \"targetId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "name": "Message_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Message_pkey\" ON public.\"Message\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "name": "Message_senderId_clientId_key",
+          "definition": "CREATE UNIQUE INDEX \"Message_senderId_clientId_key\" ON public.\"Message\" USING btree (\"senderId\", \"clientId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "name": "Message_conversationId_createdAt_id_idx",
+          "definition": "CREATE INDEX \"Message_conversationId_createdAt_id_idx\" ON public.\"Message\" USING btree (\"conversationId\", \"createdAt\", id)"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "name": "Idea_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Idea_pkey\" ON public.\"Idea\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "name": "Idea_createdAt_id_idx",
+          "definition": "CREATE INDEX \"Idea_createdAt_id_idx\" ON public.\"Idea\" USING btree (\"createdAt\" DESC, id DESC)"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "name": "IdeaResonance_pkey",
+          "definition": "CREATE UNIQUE INDEX \"IdeaResonance_pkey\" ON public.\"IdeaResonance\" USING btree (\"ideaId\", \"userId\")"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "name": "SavedEvent_pkey",
+          "definition": "CREATE UNIQUE INDEX \"SavedEvent_pkey\" ON public.\"SavedEvent\" USING btree (\"userId\", \"eventId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "name": "Event_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Event_pkey\" ON public.\"Event\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "name": "Event_ownerId_idx",
+          "definition": "CREATE INDEX \"Event_ownerId_idx\" ON public.\"Event\" USING btree (\"ownerId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "name": "Event_startsAt_id_idx",
+          "definition": "CREATE INDEX \"Event_startsAt_id_idx\" ON public.\"Event\" USING btree (\"startsAt\", id)"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "name": "ConversationMember_pkey",
+          "definition": "CREATE UNIQUE INDEX \"ConversationMember_pkey\" ON public.\"ConversationMember\" USING btree (\"conversationId\", \"userId\")"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "name": "ConversationMember_userId_idx",
+          "definition": "CREATE INDEX \"ConversationMember_userId_idx\" ON public.\"ConversationMember\" USING btree (\"userId\")"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "name": "one_owner_per_conversation",
+          "definition": "CREATE UNIQUE INDEX one_owner_per_conversation ON public.\"ConversationMember\" USING btree (\"conversationId\") WHERE (role = 'OWNER'::\"MemberRole\")"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "name": "Notification_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Notification_pkey\" ON public.\"Notification\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "name": "Notification_userId_createdAt_idx",
+          "definition": "CREATE INDEX \"Notification_userId_createdAt_idx\" ON public.\"Notification\" USING btree (\"userId\", \"createdAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "name": "Connection_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Connection_pkey\" ON public.\"Connection\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "name": "Connection_pairKey_key",
+          "definition": "CREATE UNIQUE INDEX \"Connection_pairKey_key\" ON public.\"Connection\" USING btree (\"pairKey\")"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "name": "Connection_requesterId_status_idx",
+          "definition": "CREATE INDEX \"Connection_requesterId_status_idx\" ON public.\"Connection\" USING btree (\"requesterId\", status)"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "name": "Connection_receiverId_status_idx",
+          "definition": "CREATE INDEX \"Connection_receiverId_status_idx\" ON public.\"Connection\" USING btree (\"receiverId\", status)"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "name": "Block_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Block_pkey\" ON public.\"Block\" USING btree (\"blockerId\", \"blockedId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "name": "Block_blockedId_idx",
+          "definition": "CREATE INDEX \"Block_blockedId_idx\" ON public.\"Block\" USING btree (\"blockedId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "name": "Conversation_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Conversation_pkey\" ON public.\"Conversation\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "name": "Conversation_directKey_key",
+          "definition": "CREATE UNIQUE INDEX \"Conversation_directKey_key\" ON public.\"Conversation\" USING btree (\"directKey\")"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "name": "Conversation_ideaId_key",
+          "definition": "CREATE UNIQUE INDEX \"Conversation_ideaId_key\" ON public.\"Conversation\" USING btree (\"ideaId\")"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "name": "ModerationAction_pkey",
+          "definition": "CREATE UNIQUE INDEX \"ModerationAction_pkey\" ON public.\"ModerationAction\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "name": "ModerationAction_createdAt_idx",
+          "definition": "CREATE INDEX \"ModerationAction_createdAt_idx\" ON public.\"ModerationAction\" USING btree (\"createdAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "name": "CollegeVerificationRequest_pkey",
+          "definition": "CREATE UNIQUE INDEX \"CollegeVerificationRequest_pkey\" ON public.\"CollegeVerificationRequest\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "name": "CollegeVerificationRequest_status_createdAt_idx",
+          "definition": "CREATE INDEX \"CollegeVerificationRequest_status_createdAt_idx\" ON public.\"CollegeVerificationRequest\" USING btree (status, \"createdAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "name": "CollegeVerificationRequest_userId_createdAt_idx",
+          "definition": "CREATE INDEX \"CollegeVerificationRequest_userId_createdAt_idx\" ON public.\"CollegeVerificationRequest\" USING btree (\"userId\", \"createdAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "name": "CollegeVerificationRequest_one_pending_per_user",
+          "definition": "CREATE UNIQUE INDEX \"CollegeVerificationRequest_one_pending_per_user\" ON public.\"CollegeVerificationRequest\" USING btree (\"userId\") WHERE (status = 'PENDING'::\"VerificationStatus\")"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "name": "Report_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Report_pkey\" ON public.\"Report\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "name": "Report_status_createdAt_idx",
+          "definition": "CREATE INDEX \"Report_status_createdAt_idx\" ON public.\"Report\" USING btree (status, \"createdAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "name": "Report_targetId_idx",
+          "definition": "CREATE INDEX \"Report_targetId_idx\" ON public.\"Report\" USING btree (\"targetId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "name": "Report_postId_idx",
+          "definition": "CREATE INDEX \"Report_postId_idx\" ON public.\"Report\" USING btree (\"postId\")"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "name": "College_pkey",
+          "definition": "CREATE UNIQUE INDEX \"College_pkey\" ON public.\"College\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "name": "College_country_state_city_idx",
+          "definition": "CREATE INDEX \"College_country_state_city_idx\" ON public.\"College\" USING btree (country, state, city)"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "name": "College_aliases_idx",
+          "definition": "CREATE INDEX \"College_aliases_idx\" ON public.\"College\" USING gin (aliases)"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "name": "TaxonomyAlias_pkey",
+          "definition": "CREATE UNIQUE INDEX \"TaxonomyAlias_pkey\" ON public.\"TaxonomyAlias\" USING btree (field, alias)"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "name": "RecommendationSkillLink_pkey",
+          "definition": "CREATE UNIQUE INDEX \"RecommendationSkillLink_pkey\" ON public.\"RecommendationSkillLink\" USING btree (kind, source, target)"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "name": "RecommendationInteraction_pkey",
+          "definition": "CREATE UNIQUE INDEX \"RecommendationInteraction_pkey\" ON public.\"RecommendationInteraction\" USING btree (\"userId\", \"targetType\", \"targetId\", action, day)"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "name": "RecommendationInteraction_userId_targetType_createdAt_idx",
+          "definition": "CREATE INDEX \"RecommendationInteraction_userId_targetType_createdAt_idx\" ON public.\"RecommendationInteraction\" USING btree (\"userId\", \"targetType\", \"createdAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "name": "RecommendationInteraction_createdAt_idx",
+          "definition": "CREATE INDEX \"RecommendationInteraction_createdAt_idx\" ON public.\"RecommendationInteraction\" USING btree (\"createdAt\")"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "name": "EventAttachment_pkey",
+          "definition": "CREATE UNIQUE INDEX \"EventAttachment_pkey\" ON public.\"EventAttachment\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "name": "EventAttachment_eventId_createdAt_id_idx",
+          "definition": "CREATE INDEX \"EventAttachment_eventId_createdAt_id_idx\" ON public.\"EventAttachment\" USING btree (\"eventId\", \"createdAt\", id)"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "name": "EventAttachment_ownerId_idx",
+          "definition": "CREATE INDEX \"EventAttachment_ownerId_idx\" ON public.\"EventAttachment\" USING btree (\"ownerId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "name": "Post_visibility_createdAt_idx",
+          "definition": "CREATE INDEX \"Post_visibility_createdAt_idx\" ON public.\"Post\" USING btree (visibility, \"createdAt\" DESC)"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "name": "Post_pkey",
+          "definition": "CREATE UNIQUE INDEX \"Post_pkey\" ON public.\"Post\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "name": "Post_authorId_clientId_key",
+          "definition": "CREATE UNIQUE INDEX \"Post_authorId_clientId_key\" ON public.\"Post\" USING btree (\"authorId\", \"clientId\")"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "name": "Post_authorId_createdAt_id_idx",
+          "definition": "CREATE INDEX \"Post_authorId_createdAt_id_idx\" ON public.\"Post\" USING btree (\"authorId\", \"createdAt\" DESC, id DESC)"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "name": "PostLike_pkey",
+          "definition": "CREATE UNIQUE INDEX \"PostLike_pkey\" ON public.\"PostLike\" USING btree (\"postId\", \"userId\")"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "name": "PostLike_userId_idx",
+          "definition": "CREATE INDEX \"PostLike_userId_idx\" ON public.\"PostLike\" USING btree (\"userId\")"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "name": "PostComment_pkey",
+          "definition": "CREATE UNIQUE INDEX \"PostComment_pkey\" ON public.\"PostComment\" USING btree (id)"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "name": "PostComment_authorId_clientId_key",
+          "definition": "CREATE UNIQUE INDEX \"PostComment_authorId_clientId_key\" ON public.\"PostComment\" USING btree (\"authorId\", \"clientId\")"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "name": "PostComment_postId_createdAt_id_idx",
+          "definition": "CREATE INDEX \"PostComment_postId_createdAt_id_idx\" ON public.\"PostComment\" USING btree (\"postId\", \"createdAt\" DESC, id DESC)"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "name": "RecommendationDocument_pkey",
+          "definition": "CREATE UNIQUE INDEX \"RecommendationDocument_pkey\" ON public.\"RecommendationDocument\" USING btree (kind, \"targetId\")"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "name": "RecommendationDocument_skills_idx",
+          "definition": "CREATE INDEX \"RecommendationDocument_skills_idx\" ON public.\"RecommendationDocument\" USING gin (skills)"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "name": "RecommendationDocument_interests_idx",
+          "definition": "CREATE INDEX \"RecommendationDocument_interests_idx\" ON public.\"RecommendationDocument\" USING gin (interests)"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "name": "RecommendationDocument_lookingFor_idx",
+          "definition": "CREATE INDEX \"RecommendationDocument_lookingFor_idx\" ON public.\"RecommendationDocument\" USING gin (\"lookingFor\")"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "name": "RecommendationJob_pkey",
+          "definition": "CREATE UNIQUE INDEX \"RecommendationJob_pkey\" ON public.\"RecommendationJob\" USING btree (kind, \"targetId\")"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "name": "RecommendationJob_availableAt_lockedUntil_idx",
+          "definition": "CREATE INDEX \"RecommendationJob_availableAt_lockedUntil_idx\" ON public.\"RecommendationJob\" USING btree (\"availableAt\", \"lockedUntil\")"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "name": "ApprovedCollegeDomain_pkey",
+          "definition": "CREATE UNIQUE INDEX \"ApprovedCollegeDomain_pkey\" ON public.\"ApprovedCollegeDomain\" USING btree (domain)"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "name": "ApprovedCollegeDomain_collegeId_idx",
+          "definition": "CREATE INDEX \"ApprovedCollegeDomain_collegeId_idx\" ON public.\"ApprovedCollegeDomain\" USING btree (\"collegeId\")"
+        }
+      ]
+    },
+    {
+      "section": "constraints",
+      "inventory": [
+        {
+          "table": "\"IdeaResonance\"",
+          "name": "IdeaResonance_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (\"ideaId\", \"userId\")"
+        },
+        {
+          "table": "\"Event\"",
+          "name": "Event_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"SavedEvent\"",
+          "name": "SavedEvent_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (\"userId\", \"eventId\")"
+        },
+        {
+          "table": "\"Notification\"",
+          "name": "Notification_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"RateLimit\"",
+          "name": "RateLimit_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (key)"
+        },
+        {
+          "table": "_prisma_migrations",
+          "name": "_prisma_migrations_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"User\"",
+          "name": "User_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"Connection\"",
+          "name": "Connection_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"Block\"",
+          "name": "Block_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (\"blockerId\", \"blockedId\")"
+        },
+        {
+          "table": "\"Skip\"",
+          "name": "Skip_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (\"userId\", \"targetId\")"
+        },
+        {
+          "table": "\"Conversation\"",
+          "name": "Conversation_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"ConversationMember\"",
+          "name": "ConversationMember_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (\"conversationId\", \"userId\")"
+        },
+        {
+          "table": "\"Message\"",
+          "name": "Message_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"Idea\"",
+          "name": "Idea_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"Connection\"",
+          "name": "Connection_requesterId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"requesterId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Connection\"",
+          "name": "Connection_receiverId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"receiverId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Block\"",
+          "name": "Block_blockerId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"blockerId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Block\"",
+          "name": "Block_blockedId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"blockedId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Skip\"",
+          "name": "Skip_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Skip\"",
+          "name": "Skip_targetId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"targetId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Conversation\"",
+          "name": "Conversation_ownerId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"ownerId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "table": "\"Conversation\"",
+          "name": "Conversation_ideaId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"ideaId\") REFERENCES \"Idea\"(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "table": "\"ConversationMember\"",
+          "name": "ConversationMember_conversationId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"conversationId\") REFERENCES \"Conversation\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"ConversationMember\"",
+          "name": "ConversationMember_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Message\"",
+          "name": "Message_conversationId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"conversationId\") REFERENCES \"Conversation\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Message\"",
+          "name": "Message_senderId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"senderId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+        },
+        {
+          "table": "\"Idea\"",
+          "name": "Idea_authorId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"authorId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"IdeaResonance\"",
+          "name": "IdeaResonance_ideaId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"ideaId\") REFERENCES \"Idea\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"IdeaResonance\"",
+          "name": "IdeaResonance_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"SavedEvent\"",
+          "name": "SavedEvent_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"SavedEvent\"",
+          "name": "SavedEvent_eventId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"eventId\") REFERENCES \"Event\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Notification\"",
+          "name": "Notification_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Connection\"",
+          "name": "different_students",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((\"requesterId\" <> \"receiverId\"))"
+        },
+        {
+          "table": "\"Connection\"",
+          "name": "canonical_pair",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((\"pairKey\" = ((LEAST(\"requesterId\", \"receiverId\") || ':'::text) || GREATEST(\"requesterId\", \"receiverId\"))))"
+        },
+        {
+          "table": "\"Block\"",
+          "name": "no_self_block",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((\"blockerId\" <> \"blockedId\"))"
+        },
+        {
+          "table": "\"Conversation\"",
+          "name": "conversation_shape",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((((type = 'GROUP'::\"ConversationType\") AND (\"ownerId\" IS NOT NULL) AND (\"directKey\" IS NULL)) OR ((type = 'DIRECT'::\"ConversationType\") AND (\"ownerId\" IS NULL) AND (\"directKey\" IS NOT NULL) AND (\"ideaId\" IS NULL))))"
+        },
+        {
+          "table": "\"ConversationMember\"",
+          "name": "conversation_members_integrity",
+          "type": "t",
+          "validated": true,
+          "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+        },
+        {
+          "table": "\"Conversation\"",
+          "name": "conversation_owner_integrity",
+          "type": "t",
+          "validated": true,
+          "definition": "TRIGGER DEFERRABLE INITIALLY DEFERRED"
+        },
+        {
+          "table": "\"CollegeVerificationRequest\"",
+          "name": "CollegeVerificationRequest_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"CollegeVerificationRequest\"",
+          "name": "CollegeVerificationRequest_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"CollegeVerificationRequest\"",
+          "name": "CollegeVerificationRequest_reviewerId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"reviewerId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "table": "\"CollegeVerificationRequest\"",
+          "name": "CollegeVerificationRequest_document_shape",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((((\"documentBytes\" IS NULL) AND (\"documentMime\" IS NULL)) OR ((\"documentBytes\" IS NOT NULL) AND (\"documentMime\" IS NOT NULL) AND (method = 'COLLEGE_ID'::\"VerificationMethod\") AND ((octet_length(\"documentBytes\") >= 1) AND (octet_length(\"documentBytes\") <= 4000000)) AND (\"documentMime\" = ANY (ARRAY['image/jpeg'::text, 'image/png'::text, 'image/webp'::text])))))"
+        },
+        {
+          "table": "\"Report\"",
+          "name": "Report_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"ModerationAction\"",
+          "name": "ModerationAction_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"Event\"",
+          "name": "Event_ownerId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"ownerId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "table": "\"Report\"",
+          "name": "Report_reporterId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"reporterId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+        },
+        {
+          "table": "\"Report\"",
+          "name": "Report_targetId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"targetId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+        },
+        {
+          "table": "\"Report\"",
+          "name": "Report_reviewerId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"reviewerId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "table": "\"ModerationAction\"",
+          "name": "ModerationAction_actorId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"actorId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE RESTRICT"
+        },
+        {
+          "table": "\"College\"",
+          "name": "College_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"TaxonomyAlias\"",
+          "name": "TaxonomyAlias_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (field, alias)"
+        },
+        {
+          "table": "\"RecommendationSkillLink\"",
+          "name": "RecommendationSkillLink_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (kind, source, target)"
+        },
+        {
+          "table": "\"RecommendationDocument\"",
+          "name": "RecommendationDocument_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (kind, \"targetId\")"
+        },
+        {
+          "table": "\"RecommendationJob\"",
+          "name": "RecommendationJob_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (kind, \"targetId\")"
+        },
+        {
+          "table": "\"RecommendationInteraction\"",
+          "name": "RecommendationInteraction_targetType_check",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((\"targetType\" = ANY (ARRAY['PROFILE'::text, 'IDEA'::text, 'EVENT'::text])))"
+        },
+        {
+          "table": "\"RecommendationInteraction\"",
+          "name": "RecommendationInteraction_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (\"userId\", \"targetType\", \"targetId\", action, day)"
+        },
+        {
+          "table": "\"RecommendationInteraction\"",
+          "name": "RecommendationInteraction_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Post\"",
+          "name": "Post_content_check",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK (((length(TRIM(BOTH FROM content)) >= 1) AND (length(TRIM(BOTH FROM content)) <= 10000)))"
+        },
+        {
+          "table": "\"Post\"",
+          "name": "Post_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"Post\"",
+          "name": "Post_authorId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"authorId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"PostLike\"",
+          "name": "PostLike_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (\"postId\", \"userId\")"
+        },
+        {
+          "table": "\"PostLike\"",
+          "name": "PostLike_postId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"postId\") REFERENCES \"Post\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"PostLike\"",
+          "name": "PostLike_userId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"userId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"PostComment\"",
+          "name": "PostComment_content_check",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK (((length(TRIM(BOTH FROM content)) >= 1) AND (length(TRIM(BOTH FROM content)) <= 2000)))"
+        },
+        {
+          "table": "\"PostComment\"",
+          "name": "PostComment_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"PostComment\"",
+          "name": "PostComment_postId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"postId\") REFERENCES \"Post\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"PostComment\"",
+          "name": "PostComment_authorId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"authorId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"Report\"",
+          "name": "Report_postId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"postId\") REFERENCES \"Post\"(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        },
+        {
+          "table": "\"RecommendationDocument\"",
+          "name": "RecommendationDocument_kind_check",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((kind = ANY (ARRAY['PROFILE'::text, 'IDEA'::text, 'EVENT'::text, 'POST'::text])))"
+        },
+        {
+          "table": "\"RecommendationJob\"",
+          "name": "RecommendationJob_kind_check",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((kind = ANY (ARRAY['PROFILE'::text, 'IDEA'::text, 'EVENT'::text, 'POST'::text])))"
+        },
+        {
+          "table": "\"EventAttachment\"",
+          "name": "EventAttachment_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "table": "\"EventAttachment\"",
+          "name": "EventAttachment_eventId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"eventId\") REFERENCES \"Event\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"EventAttachment\"",
+          "name": "EventAttachment_ownerId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"ownerId\") REFERENCES \"User\"(id) ON UPDATE CASCADE ON DELETE CASCADE"
+        },
+        {
+          "table": "\"EventAttachment\"",
+          "name": "EventAttachment_size_check",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK (((size > 0) AND (size <= 8000000)))"
+        },
+        {
+          "table": "\"EventAttachment\"",
+          "name": "EventAttachment_mimeType_check",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK ((\"mimeType\" = ANY (ARRAY['application/pdf'::text, 'image/jpeg'::text, 'image/png'::text, 'image/webp'::text])))"
+        },
+        {
+          "table": "\"ApprovedCollegeDomain\"",
+          "name": "ApprovedCollegeDomain_normalized",
+          "type": "c",
+          "validated": true,
+          "definition": "CHECK (((domain = lower(btrim(domain))) AND (length(domain) <= 253) AND (domain ~ '^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$'::text)))"
+        },
+        {
+          "table": "\"ApprovedCollegeDomain\"",
+          "name": "ApprovedCollegeDomain_pkey",
+          "type": "p",
+          "validated": true,
+          "definition": "PRIMARY KEY (domain)"
+        },
+        {
+          "table": "\"ApprovedCollegeDomain\"",
+          "name": "ApprovedCollegeDomain_collegeId_fkey",
+          "type": "f",
+          "validated": true,
+          "definition": "FOREIGN KEY (\"collegeId\") REFERENCES \"College\"(id) ON UPDATE CASCADE ON DELETE SET NULL"
+        }
+      ]
+    },
+    {
+      "section": "functions",
+      "inventory": [
+        {
+          "schema": "public",
+          "name": "fc_college",
+          "signature": "value text",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "check_conversation_membership",
+          "signature": "",
+          "security_definer": false,
+          "acl": [
+            "=X/postgres",
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "fc_overlap",
+          "signature": "a text[], b text[]",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "fc_cosine",
+          "signature": "a double precision[], b double precision[]",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "fc_normalize",
+          "signature": "field_name text, vals text[]",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "fc_link",
+          "signature": "link_kind text, vals text[]",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "fc_enqueue",
+          "signature": "",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "fc_key",
+          "signature": "value text",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "fc_post_changed",
+          "signature": "",
+          "security_definer": false,
+          "acl": [
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": null
+        },
+        {
+          "schema": "public",
+          "name": "rls_auto_enable",
+          "signature": "",
+          "security_definer": true,
+          "acl": [
+            "=X/postgres",
+            "postgres=X/postgres",
+            "anon=X/postgres",
+            "authenticated=X/postgres",
+            "service_role=X/postgres"
+          ],
+          "config": ["search_path=pg_catalog"]
+        }
+      ]
+    },
+    {
+      "section": "triggers",
+      "inventory": [
+        {
+          "table": "\"ConversationMember\"",
+          "name": "conversation_members_integrity",
+          "enabled": "O",
+          "definition": "CREATE CONSTRAINT TRIGGER conversation_members_integrity AFTER INSERT OR DELETE OR UPDATE ON public.\"ConversationMember\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION check_conversation_membership()"
+        },
+        {
+          "table": "\"Conversation\"",
+          "name": "conversation_owner_integrity",
+          "enabled": "O",
+          "definition": "CREATE CONSTRAINT TRIGGER conversation_owner_integrity AFTER INSERT OR UPDATE ON public.\"Conversation\" DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION check_conversation_membership()"
+        },
+        {
+          "table": "\"User\"",
+          "name": "fc_profile_changed",
+          "enabled": "O",
+          "definition": "CREATE TRIGGER fc_profile_changed AFTER INSERT OR DELETE OR UPDATE ON public.\"User\" FOR EACH ROW EXECUTE FUNCTION fc_enqueue()"
+        },
+        {
+          "table": "\"Idea\"",
+          "name": "fc_idea_changed",
+          "enabled": "O",
+          "definition": "CREATE TRIGGER fc_idea_changed AFTER INSERT OR DELETE OR UPDATE ON public.\"Idea\" FOR EACH ROW EXECUTE FUNCTION fc_enqueue()"
+        },
+        {
+          "table": "\"Event\"",
+          "name": "fc_event_changed",
+          "enabled": "O",
+          "definition": "CREATE TRIGGER fc_event_changed AFTER INSERT OR DELETE OR UPDATE ON public.\"Event\" FOR EACH ROW EXECUTE FUNCTION fc_enqueue()"
+        },
+        {
+          "table": "\"Post\"",
+          "name": "fc_post_changed",
+          "enabled": "O",
+          "definition": "CREATE TRIGGER fc_post_changed AFTER INSERT OR DELETE OR UPDATE ON public.\"Post\" FOR EACH ROW EXECUTE FUNCTION fc_post_changed()"
+        }
+      ]
+    },
+    {
+      "section": "roles",
+      "inventory": [
+        {
+          "name": "pg_database_owner",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_read_all_data",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_write_all_data",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_monitor",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_read_all_settings",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_read_all_stats",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_stat_scan_tables",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_read_server_files",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_write_server_files",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_execute_server_program",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_signal_backend",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_checkpoint",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_maintain",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_use_reserved_connections",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "pg_create_subscription",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "dashboard_user",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "postgres",
+          "superuser": false,
+          "bypassrls": true,
+          "login": true
+        },
+        {
+          "name": "authenticated",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "anon",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "service_role",
+          "superuser": false,
+          "bypassrls": true,
+          "login": false
+        },
+        {
+          "name": "supabase_privileged_role",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        },
+        {
+          "name": "supabase_admin",
+          "superuser": true,
+          "bypassrls": true,
+          "login": true
+        },
+        {
+          "name": "authenticator",
+          "superuser": false,
+          "bypassrls": false,
+          "login": true
+        },
+        {
+          "name": "supabase_auth_admin",
+          "superuser": false,
+          "bypassrls": false,
+          "login": true
+        },
+        {
+          "name": "supabase_storage_admin",
+          "superuser": false,
+          "bypassrls": false,
+          "login": true
+        },
+        {
+          "name": "supabase_replication_admin",
+          "superuser": false,
+          "bypassrls": false,
+          "login": true
+        },
+        {
+          "name": "supabase_read_only_user",
+          "superuser": false,
+          "bypassrls": true,
+          "login": true
+        },
+        {
+          "name": "supabase_etl_admin",
+          "superuser": false,
+          "bypassrls": true,
+          "login": true
+        },
+        {
+          "name": "pgbouncer",
+          "superuser": false,
+          "bypassrls": false,
+          "login": true
+        },
+        {
+          "name": "supabase_realtime_admin",
+          "superuser": false,
+          "bypassrls": false,
+          "login": false
+        }
+      ]
+    },
+    {
+      "section": "publications",
+      "inventory": [
+        {
+          "publication": "supabase_realtime",
+          "all_tables": false
+        }
+      ]
+    },
+    {
+      "section": "foreign_tables",
+      "inventory": null
+    },
+    {
+      "section": "vault",
+      "inventory": {
+        "secret_count": 0
+      }
+    }
+  ],
+  "additional_inventory": [
+    {
+      "section": "schemas",
+      "inventory": [
+        "extensions",
+        "vault",
+        "graphql_public",
+        "graphql",
+        "auth",
+        "storage",
+        "public",
+        "realtime",
+        "supabase_migrations"
+      ]
+    },
+    {
+      "section": "role_membership",
+      "inventory": [
+        {
+          "role": "pg_monitor",
+          "member": "supabase_read_only_user",
+          "admin_option": false
+        },
+        {
+          "role": "pg_monitor",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "pg_monitor",
+          "member": "supabase_etl_admin",
+          "admin_option": false
+        },
+        {
+          "role": "pg_read_all_settings",
+          "member": "pg_monitor",
+          "admin_option": false
+        },
+        {
+          "role": "pg_read_all_stats",
+          "member": "pg_monitor",
+          "admin_option": false
+        },
+        {
+          "role": "pg_stat_scan_tables",
+          "member": "pg_monitor",
+          "admin_option": false
+        },
+        {
+          "role": "pg_signal_backend",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "pg_read_all_data",
+          "member": "supabase_etl_admin",
+          "admin_option": false
+        },
+        {
+          "role": "pg_read_all_data",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "pg_read_all_data",
+          "member": "supabase_read_only_user",
+          "admin_option": false
+        },
+        {
+          "role": "pg_create_subscription",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "anon",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "anon",
+          "member": "supabase_realtime_admin",
+          "admin_option": false
+        },
+        {
+          "role": "anon",
+          "member": "authenticator",
+          "admin_option": false
+        },
+        {
+          "role": "authenticated",
+          "member": "authenticator",
+          "admin_option": false
+        },
+        {
+          "role": "authenticated",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "authenticated",
+          "member": "supabase_realtime_admin",
+          "admin_option": false
+        },
+        {
+          "role": "service_role",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "service_role",
+          "member": "supabase_realtime_admin",
+          "admin_option": false
+        },
+        {
+          "role": "service_role",
+          "member": "authenticator",
+          "admin_option": false
+        },
+        {
+          "role": "authenticator",
+          "member": "supabase_storage_admin",
+          "admin_option": false
+        },
+        {
+          "role": "authenticator",
+          "member": "postgres",
+          "admin_option": true
+        },
+        {
+          "role": "supabase_privileged_role",
+          "member": "postgres",
+          "admin_option": false
+        },
+        {
+          "role": "supabase_privileged_role",
+          "member": "supabase_etl_admin",
+          "admin_option": false
+        }
+      ]
+    },
+    {
+      "section": "table_grants",
+      "inventory": [
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "s3_multipart_uploads_parts",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_vectors",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_vectors",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_vectors",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "vector_indexes",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "vector_indexes",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "vector_indexes",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "buckets_analytics",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "storage",
+          "table": "objects",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "_prisma_migrations",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RateLimit",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "User",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Skip",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Message",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Idea",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "IdeaResonance",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "SavedEvent",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Event",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ConversationMember",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Notification",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Connection",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Block",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Conversation",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ModerationAction",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "CollegeVerificationRequest",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Report",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "College",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "TaxonomyAlias",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationSkillLink",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationInteraction",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "EventAttachment",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "Post",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "PostLike",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "PostComment",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationDocument",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "RecommendationJob",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "anon",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "anon",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "anon",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "anon",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "anon",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "anon",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "anon",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "authenticated",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "authenticated",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "authenticated",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "authenticated",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "authenticated",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "authenticated",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "authenticated",
+          "privilege": "TRIGGER"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "service_role",
+          "privilege": "INSERT"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "service_role",
+          "privilege": "SELECT"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "service_role",
+          "privilege": "UPDATE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "service_role",
+          "privilege": "DELETE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "service_role",
+          "privilege": "TRUNCATE"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "service_role",
+          "privilege": "REFERENCES"
+        },
+        {
+          "schema": "public",
+          "table": "ApprovedCollegeDomain",
+          "role": "service_role",
+          "privilege": "TRIGGER"
+        }
+      ]
+    },
+    {
+      "section": "storage_sizes",
+      "inventory": {
+        "max_object_bytes": 3044149,
+        "over_current_bucket_limit": 0
+      }
+    },
+    {
+      "section": "auth_storage_custom_triggers",
+      "inventory": null
+    }
+  ]
+}
