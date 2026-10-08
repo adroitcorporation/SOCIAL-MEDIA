@@ -1,0 +1,22 @@
+{
+  "observed_at": "2026-10-08T11:51:47.470Z",
+  "destination_project": "lxofcmzgzbgqvlmwizgm",
+  "historical_storage_waived": true,
+  "historical_storage_operations": 0,
+  "synthetic_accounts_created": 2,
+  "checks": {
+    "profile_upload_download_integrity": true,
+    "private_document_authorization_and_integrity": true,
+    "signed_url_expiry": true,
+    "synthetic_storage_recovery": true,
+    "attachment_upload_download_delete_authorization": true,
+    "two_account_connections_and_messaging": true,
+    "synthetic_auth_recovery": true,
+    "recovery_redirect_configuration": true
+  },
+  "successful": true,
+  "cleanup_passed": true,
+  "historical_verification_count_preserved": true,
+  "full_service_disaster_recovery": "not verified",
+  "production_cutover": false
+}

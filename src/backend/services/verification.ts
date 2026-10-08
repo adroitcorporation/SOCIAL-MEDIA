@@ -6,6 +6,13 @@ import { transaction } from '@/backend/database/transaction';
 import { requireThat } from '@/backend/utils/errors';
 import { verificationRequestSchema, verificationReviewSchema } from '@/shared/contracts/schemas';
 import { decodeVerificationImage } from './verification-image';
+import { randomUUID } from 'node:crypto';
+import {
+  privateFilesUseStorage,
+  storePrivateFile,
+  readPrivateFile,
+  removePrivateFile,
+} from './file-storage';
 
 const summary = {
   id: true,
@@ -30,26 +37,59 @@ export async function latestVerification(userId: string) {
 
 export async function submitVerification(userId: string, input: unknown) {
   const data = verificationRequestSchema.parse(input);
-  const document =
+  const document: Partial<Awaited<ReturnType<typeof decodeVerificationImage>>> =
     data.method === 'COLLEGE_ID' ? await decodeVerificationImage(data.documentUrl!) : {};
-  return transaction(async (tx) => {
-    const user = await requireActiveActor(userId, tx);
-    requireThat(user, 404, 'Student not found.');
-    requireThat(!user.collegeVerified, 409, 'Your college verification is already approved.');
-    const pending = await tx.collegeVerificationRequest.findFirst({
-      where: { userId, status: 'PENDING' },
+  let storedPath: string | undefined;
+  if (data.method === 'COLLEGE_ID' && privateFilesUseStorage()) {
+    await requireActiveActor(userId);
+    const applicant = await db.user.findUniqueOrThrow({ where: { id: userId } });
+    requireThat(!applicant.collegeVerified, 409, 'Your college verification is already approved.');
+    requireThat(
+      !(await db.collegeVerificationRequest.findFirst({ where: { userId, status: 'PENDING' } })),
+      409,
+      'You already have a verification under review.',
+    );
+    storedPath = `${userId}/${randomUUID()}`;
+    await storePrivateFile(
+      'college-ids',
+      storedPath,
+      document.documentBytes!,
+      document.documentMime!,
+    );
+  }
+  try {
+    return await transaction(async (tx) => {
+      const user = await requireActiveActor(userId, tx);
+      requireThat(user, 404, 'Student not found.');
+      requireThat(!user.collegeVerified, 409, 'Your college verification is already approved.');
+      const pending = await tx.collegeVerificationRequest.findFirst({
+        where: { userId, status: 'PENDING' },
+      });
+      requireThat(!pending, 409, 'You already have a verification under review.');
+      return tx.collegeVerificationRequest.create({
+        data: {
+          userId,
+          method: data.method,
+          collegeEmail: data.method === 'EMAIL' ? data.collegeEmail : null,
+          ...(storedPath
+            ? {
+                documentUrl: `storage://college-ids/${storedPath}`,
+                documentMime: document.documentMime,
+              }
+            : document),
+        },
+        select: summary,
+      });
     });
-    requireThat(!pending, 409, 'You already have a verification under review.');
-    return tx.collegeVerificationRequest.create({
-      data: {
-        userId,
-        method: data.method,
-        collegeEmail: data.method === 'EMAIL' ? data.collegeEmail : null,
-        ...document,
-      },
-      select: summary,
-    });
-  });
+  } catch (error) {
+    if (storedPath)
+      await removePrivateFile('college-ids', storedPath).catch(() => {
+        console.error(
+          'Private verification upload cleanup failed; Storage reconciliation required.',
+        );
+      });
+    throw error;
+  }
 }
 
 export async function listVerificationRequests(actor: string) {
@@ -69,6 +109,16 @@ export async function verificationDocument(actor: string, id: string) {
     select: { documentBytes: true, documentMime: true, documentUrl: true },
   });
   requireThat(request, 404, 'Verification request not found.');
+  if (request.documentUrl?.startsWith('storage://college-ids/')) {
+    requireThat(request.documentMime, 404, 'Image unavailable. Ask the student to submit again.');
+    return {
+      documentBytes: await readPrivateFile(
+        'college-ids',
+        request.documentUrl.slice('storage://college-ids/'.length),
+      ),
+      documentMime: request.documentMime,
+    };
+  }
   if (request.documentBytes && request.documentMime)
     return { documentBytes: request.documentBytes, documentMime: request.documentMime };
   // Read legacy inline submissions privately; never fetch arbitrary remote URLs.

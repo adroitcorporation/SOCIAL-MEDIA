@@ -1,5 +1,11 @@
 # Supabase migration rollback
 
+**Current update:** historical Seoul Storage migration is intentionally waived. New Singapore Storage recovery (delete/reupload a synthetic college-ID file with matching integrity), synthetic Auth ban/unban recovery and two-account application checks passed; see [evidence](supabase-new-storage-evidence.json). These are component tests, not a full backup restore or deployed environment rollback. Full-service recovery, portable backups, environment recovery and post-write reconciliation remain unverified. RPO/RTO remain unmeasured and production cutover is NO-GO.
+
+Do not restore Seoul historical objects as part of readiness. Preserve historical database-backed private documents and college verification statuses. Back up and rehearse recovery of new Singapore files before accepting production writes. Maintain the source-compatible deployment/schema for a pre-write abort: the new private-Storage build requires additive columns absent from Seoul, so simply repointing that build at Seoul is unsafe. Rollback must restore the earlier compatible build and matching public Auth configuration; no source migrations are authorized.
+
+The following earlier observations are historical; Storage-transfer blocker statements are superseded by the waiver above.
+
 **Full-service plan remains unverified; database transactional recovery is rehearsed. Production cutover is NO-GO.**
 
 An encrypted source database archive restored application/Auth data to Singapore staging, with matching canonical contents across all 54 tables. This tests the database restore portion only. Storage file bytes have not been backed up; login/session behavior, reverse synchronization and DPAPI recovery on another account/machine remain unverified. These limitations prevent a tested full rollback claim.

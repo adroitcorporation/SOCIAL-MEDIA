@@ -1,4 +1,22 @@
 import { spawnSync, spawn } from 'node:child_process';
+import {
+  matchesProjectUrl,
+  matchesProjectDatabase,
+} from '../src/shared/config/supabase-project.mjs';
+const expected = process.env.SUPABASE_EXPECTED_PROJECT_REF;
+if (
+  expected &&
+  (!matchesProjectDatabase(process.env.DATABASE_URL, expected) ||
+    !matchesProjectDatabase(process.env.DIRECT_URL, expected) ||
+    !matchesProjectUrl(process.env.NEXT_PUBLIC_SUPABASE_URL, expected) ||
+    !matchesProjectUrl(
+      process.env.SUPABASE_STORAGE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
+      expected,
+    ))
+) {
+  console.error('Database/Auth/Storage project mismatch. Refusing startup and migrations.');
+  process.exit(1);
+}
 const required = [
   'DATABASE_URL',
   'DIRECT_URL',

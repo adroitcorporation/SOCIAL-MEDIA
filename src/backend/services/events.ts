@@ -6,6 +6,7 @@ import { eventSchema } from '@/shared/contracts/moderation';
 import { requireThat } from '@/backend/utils/errors';
 import { z } from 'zod';
 import { listEventAttachments } from './event-attachments';
+import { deleteEventAttachment } from './event-attachments';
 
 export async function managedEvents(actor: string, query = new URLSearchParams()) {
   const user = await requirePermission(actor, canCreateEvent);
@@ -63,6 +64,13 @@ export async function editEvent(actor: string, id: string, input: unknown) {
   });
 }
 export async function deleteEvent(actor: string, id: string) {
+  // Delete private objects through the authorized, retryable attachment path before cascade.
+  const principal = await requirePermission(actor, canCreateEvent);
+  const candidate = await db.event.findUnique({ where: { id } });
+  requireThat(candidate, 404, 'Event not found.');
+  requireThat(canDeleteEvent(principal, candidate), 403, 'You can only delete events you created.');
+  const files = await db.eventAttachment.findMany({ where: { eventId: id }, select: { id: true } });
+  for (const file of files) await deleteEventAttachment(actor, id, file.id);
   return transaction(async (tx) => {
     const user = await requirePermission(actor, canCreateEvent, tx);
     const event = await tx.event.findUnique({ where: { id } });

@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { X, BadgeCheck, ArrowUpRight, Circle } from 'lucide-react';
 import type { Student } from '@/shared/contracts/responses';
+import { historicalStoragePhoto } from '@/shared/config/supabase-project.mjs';
 export function Avatar({
   user,
   size = 'normal',
@@ -14,7 +15,7 @@ export function Avatar({
   const color = [...user.name].reduce((s, c) => s + c.charCodeAt(0), 0) % 5;
   return (
     <span className={`avatar ${size} tone-${color}`} aria-label={user.name}>
-      {user.photo ? (
+      {user.photo && !historicalStoragePhoto(user.photo, process.env.NEXT_PUBLIC_SUPABASE_URL) ? (
         <img
           src={user.photo}
           alt=""

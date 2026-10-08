@@ -1,5 +1,9 @@
 # Supabase migration readiness — 2026-10-08
 
+**Current update supersedes the historical observations below:** historical Seoul Storage migration is intentionally waived. New Singapore Storage, private-file access, two-account connections/messaging, synthetic component recovery and exact local Auth recovery redirects have passed. See [current readiness](supabase-new-storage-readiness.md), [aggregate evidence](supabase-new-storage-evidence.json) and [manual gates](supabase-migration-manual-blockers.md). Production remains **NO-GO** until deployed integration, durable full-service recovery and writer-freeze/reconciliation gates pass. Later fixture tests preserved 25 Auth users, 12 verified users and zero historical Storage operations; two additive Prisma migrations were applied only to Singapore.
+
+The remainder records earlier audit snapshots. Statements about missing buckets, blocked historical transfer or untested two-account/private-file checks are historical, superseded by the linked current report.
+
 **Recommendation: NO-GO for production cutover.** Source audit, database/Auth restoration, existing-account login, destination session refresh and authenticated read flows are verified. Storage-file transfer, redirect configuration/testing, old production-session continuity, full-service rollback and two-account mutation/authorization rehearsal remain incomplete.
 
 ## Production stability gate

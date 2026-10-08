@@ -40,6 +40,10 @@ $overrides = @{
   NEXT_PUBLIC_SUPABASE_URL = $publicConfig.url
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = $publicConfig.key
   SUPABASE_SERVICE_ROLE_KEY = ''
+  SUPABASE_STORAGE_URL = 'https://lxofcmzgzbgqvlmwizgm.supabase.co'
+  SUPABASE_EXPECTED_PROJECT_REF = 'lxofcmzgzbgqvlmwizgm'
+  NEXT_PUBLIC_SUPABASE_EXPECTED_PROJECT_REF = 'lxofcmzgzbgqvlmwizgm'
+  FILE_STORAGE_MODE = 'supabase'
   APP_URL = 'http://localhost:3001'
   NEXT_PUBLIC_APP_URL = 'http://localhost:3001'
   LOCAL_DEMO = 'false'
@@ -51,6 +55,10 @@ $overrides = @{
   NODE_ENV = 'development'
 }
 $previous = @{}
+$storageLine = Get-Content -LiteralPath $envFile | Where-Object { $_ -match '^MIGRATION_DESTINATION_STORAGE_KEY=' } | Select-Object -First 1
+if ($storageLine) {
+  $overrides.SUPABASE_SERVICE_ROLE_KEY = ($storageLine -split '=', 2)[1].Trim().Trim('"').Trim("'")
+}
 try {
   foreach ($name in $overrides.Keys) {
     $previous[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
@@ -59,7 +67,7 @@ try {
   Push-Location -LiteralPath $stageRoot
   try {
     Write-Host 'Singapore staging only: http://localhost:3001/login — stop with Ctrl+C.'
-    Write-Host 'Storage uploads are deliberately unavailable until a staging-only backend key is supplied.'
+    Write-Host 'New private uploads use Singapore Storage. The backend credential stays server-side.'
     & $nodePath 'node_modules/next/dist/bin/next' dev --webpack --hostname 127.0.0.1 --port 3001
   } finally { Pop-Location }
 } finally {

@@ -1,5 +1,7 @@
 # Supabase Singapore migration runbook
 
+**Current policy:** historical Seoul Storage migration is waived. Earlier transfer/export instructions below are superseded and must not be executed. Use [current readiness](supabase-new-storage-readiness.md) and [manual configuration](supabase-migration-manual-blockers.md). New Singapore buckets and private-file authorization are tested; production cutover is still NO-GO pending deployment, full recovery and all-writer freeze/reconciliation. No live configuration change is authorized.
+
 **Partially executed on Singapore staging only.** Source stays active in Seoul. Production cutover requires explicit approval after a successful full rehearsal. Never use production as a restore target or run database reset/db push.
 
 Performed: destination `lxofcmzgzbgqvlmwizgm` is healthy on PostgreSQL 17.11 with matching extensions and a working session-pooler connection. The encrypted source archive restored application/Auth data, and all 54 table-content comparisons pass. Prisma status is up to date. Provider-owned default grants/helper were excluded; Auth COPY blocks were ordered by foreign keys in memory, with constraints/triggers enabled. Storage-file backup remains rejected by automatic approval review. Full application/Auth behavior and rollback remain untested; see readiness for evidence and blockers.
@@ -24,7 +26,7 @@ Use the current [Supabase logical backup/restore guide](https://supabase.com/doc
 
 Separate CLI exports taken during live writes are not automatically mutually consistent. For rehearsal use a consistent database snapshot/export supported by the tools; label the snapshot time and keep Storage reconciliation manifests. Final cutover requires a write freeze covering application, Auth and Storage writers or another tested cross-service consistency mechanism.
 
-A database backup does not contain Storage file bytes. Export every object via supported Storage/S3 API to encrypted staging storage, preserving bucket/path, content type, size, ownership and a cryptographic hash. Compare 11 source objects only as today's baseline; recount at each snapshot. Copy any required encryption root key via supported secure provider procedure if Vault/encrypted columns use it; do not put it in reports. Current Vault count is zero, not proof that every encrypted column is absent.
+A database backup does not contain Storage file bytes. Historical Seoul objects are intentionally excluded: do not export or copy them. Prepare durable encrypted backup/recovery for new Singapore files. Current Vault count is zero; review any required platform encryption material through supported procedures without reporting keys.
 
 ## 3. Restore exclusively into Singapore staging
 
@@ -32,9 +34,9 @@ Review role/schema restore for provider-managed conflicts; recreate destination 
 
 Restore Auth records with original UUIDs and supported hashed-password data; verify password hashes by private comparisons, not reports. Preserve approved domains, verification source/status, account roles/status, completion fields, connections, membership constraints, messages/idempotency keys, ideas/posts and private image/attachment bytes. Keep application _prisma_migrations history intact; run Prisma migrate status against staging, not migrate reset or schema recreation.
 
-Copy all Storage bytes and reconcile bucket/object metadata using the supported API path without duplicate/orphan records. Verify hashes, names, MIME types, ownership, public/private access and byte sizes. Apply reviewed destination policy intent in a separate reviewed step; source legacy upload policies differ from current backend gateway design. Verify browser direct writes are denied under the intended destination policy and validated backend uploads still work.
+Provision new Singapore buckets with `supabase/file-storage.sql`; do not populate them with historical Seoul files or metadata. Verify new synthetic uploads, integrity, ownership authorization, private access, deletion and recovery. These checks now pass in the recorded direct API-handler rehearsal; a deployed staging integration test remains required.
 
-Stored project-host URLs require an explicit staging-only rewrite plan. Rewrite only URLs belonging to the source Supabase bucket/path and only after the matching copied object hash is verified. Inventory User.photo, Conversation.image, post/media/text links and any other URL-bearing fields; keep external image URLs untouched. Record reversible old/new mappings. Never run broad string replacement or re-encode source photos.
+Keep historical photo URLs unchanged in the database. The existing Avatar fallback displays initials when a Storage photo belongs to a different project than the active Auth/Storage project. Offer optional reupload through the existing profile flow. Preserve external images, historical verification status and database-backed private documents. Review any newly discovered historical private Storage references for retention requirements before cutover.
 
 ## 4. Configure and verify isolated application
 

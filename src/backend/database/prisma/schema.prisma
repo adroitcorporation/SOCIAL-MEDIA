@@ -286,6 +286,9 @@ model EventAttachment {
   mimeType  String
   size      Int
   bytes     Bytes    @db.ByteA
+  // New Storage files keep an empty legacy bytes value and a private object path.
+  storagePath String?
+  deletedAt DateTime?
   createdAt DateTime @default(now())
 
   @@index([eventId, createdAt, id])
