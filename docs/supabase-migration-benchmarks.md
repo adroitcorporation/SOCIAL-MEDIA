@@ -22,7 +22,7 @@ Earlier single checks were 2743 ms for Render health, 910 ms for Vercel health a
 | Auth and profile loading                       | Existing-password login/refresh not exercised; no account credentials requested in chat                                |
 | Connection create/cancel                       | No isolated Singapore staging/test users; production mutations avoided                                                 |
 | Messaging/SSE latency                          | No end-to-end authorized messaging fixtures; Socket.IO is absent, so Socket.IO benchmark is not applicable             |
-| Singapore comparison                           | Singapore project exists, but no restored database/application or Render-origin access                                 |
+| Singapore comparison                           | Database/Auth restored in Singapore; no isolated app deployment or Render-origin access                                |
 | 1,000–10,000-user capacity                     | Registered users do not define concurrency; workload and staging restoration required                                  |
 
 ## Repeatable rehearsal protocol

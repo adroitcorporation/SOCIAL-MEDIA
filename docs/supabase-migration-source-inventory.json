@@ -4,14 +4,14 @@
     "destination_region": "ap-southeast-1",
     "destination_status": "ACTIVE_HEALTHY",
     "destination_postgres": "17.11.0.003",
-    "destination_application_tables": 0,
-    "destination_auth_users": 0,
+    "destination_application_tables": 28,
+    "destination_auth_users": 25,
     "destination_storage_objects": 0,
     "destination_auth_schema_migrations": 82,
     "destination_storage_schema_migrations": 73,
     "required_extensions_match": true,
-    "destination_restore_tested": false,
-    "destination_direct_connection": "Local DNS lookup failed; session pooler URL requested",
+    "destination_restore_tested": true,
+    "destination_direct_connection": "Direct host failed initially; supplied Singapore session-pooler connection now verified",
     "backup": {
       "kind": "read-only pg_dump custom archive",
       "archive_bytes": 6299729,
@@ -19,7 +19,7 @@
       "protection": "Windows DPAPI CurrentUser and owner-only directory ACL",
       "encrypted_round_trip_verified": true,
       "required_archive_entries_verified": true,
-      "restore_tested": false,
+      "restore_tested": true,
       "global_role_passwords_included": false,
       "storage_bytes_included": false,
       "storage_export": "Automatic approval review rejected command: blocked by policy"
@@ -5980,5 +5980,24 @@
       "section": "auth_storage_custom_triggers",
       "inventory": null
     }
-  ]
+  ],
+  "latest_staging_verification": {
+    "destination": "lxofcmzgzbgqvlmwizgm",
+    "source_snapshot_tables": 54,
+    "destination_tables": 54,
+    "canonical_row_content_matches": true,
+    "mismatched_tables": [],
+    "individual_hashes_exposed": false,
+    "password_hash_fields_included": true,
+    "private_bytea_fields_included": true,
+    "storage_file_bytes_verified": false,
+    "observed_utc": "2026-10-08T10:37:15.498381Z",
+    "prisma_migration_status": "up to date; status only, no deploy",
+    "public_indexes": 69,
+    "public_constraints": 78,
+    "application_triggers": 6,
+    "public_tables_without_rls": 0,
+    "auth_login_verified": false,
+    "full_service_rehearsal_complete": false
+  }
 }

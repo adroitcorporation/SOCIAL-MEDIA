@@ -1,8 +1,8 @@
 # Supabase Singapore migration runbook
 
-**Prepared, not executed.** Source stays active in Seoul. Production cutover requires explicit approval after a successful rehearsal. Never use production as a restore target or run database reset/db push.
+**Partially executed on Singapore staging only.** Source stays active in Seoul. Production cutover requires explicit approval after a successful full rehearsal. Never use production as a restore target or run database reset/db push.
 
-Preparation performed: approved Singapore project `lxofcmzgzbgqvlmwizgm` is healthy on PostgreSQL 17.11 with matching required extensions; a DPAPI-encrypted read-only source database archive was captured and its checksum/catalog verified. No destination restore has run. The direct destination URL could not resolve locally; use its verified session-pooler connection. Storage-byte backup was rejected by automatic approval review. See readiness for exact blockers.
+Performed: destination `lxofcmzgzbgqvlmwizgm` is healthy on PostgreSQL 17.11 with matching extensions and a working session-pooler connection. The encrypted source archive restored application/Auth data, and all 54 table-content comparisons pass. Prisma status is up to date. Provider-owned default grants/helper were excluded; Auth COPY blocks were ordered by foreign keys in memory, with constraints/triggers enabled. Storage-file backup remains rejected by automatic approval review. Full application/Auth behavior and rollback remain untested; see readiness for evidence and blockers.
 
 ## 1. Establish prerequisites
 

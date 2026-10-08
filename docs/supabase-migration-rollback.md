@@ -2,7 +2,7 @@
 
 **Plan only; not rehearsed. Production cutover is NO-GO until tested.**
 
-An encrypted source database archive exists locally and passes decryption/checksum/catalog checks. It has not been restored. Storage file bytes have not been backed up, and DPAPI recovery on a different account/machine is unverified. These limitations prevent a tested rollback claim.
+An encrypted source database archive restored application/Auth data to Singapore staging, with matching canonical contents across all 54 tables. This tests the database restore portion only. Storage file bytes have not been backed up; login/session behavior, reverse synchronization and DPAPI recovery on another account/machine remain unverified. These limitations prevent a tested full rollback claim.
 
 ## Preserved recovery materials
 

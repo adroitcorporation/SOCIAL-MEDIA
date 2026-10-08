@@ -1,6 +1,6 @@
 # Supabase migration readiness — 2026-10-08
 
-**Recommendation: NO-GO for production cutover.** Source audit and local checks are complete within available read-only access. Backup restoration, Singapore rehearsal, destination Auth continuity and rollback rehearsal have not been performed.
+**Recommendation: NO-GO for production cutover.** Source audit and database/Auth restoration to Singapore staging are verified. Full service rehearsal, existing-login/session continuity, Storage-file transfer and rollback rehearsal remain incomplete.
 
 ## Production stability gate
 
@@ -40,19 +40,29 @@ Inventory queries were SELECT-only. Counts are observation-time baselines, **not
 
 A PostgreSQL 18.3 pg_dump read-only session-pooler export succeeded using the existing local source connection, with no source writes. The custom archive is 6,299,729 bytes. It is stored only as Windows DPAPI CurrentUser ciphertext (6,299,958 bytes) at `.local/migration-backups/20261008-seoul/source-database.dump.dpapi`, inside a Git-ignored directory restricted by an owner-only ACL. Credentials were passed only through the child process environment, never command arguments or reports.
 
-Full-archive encryption/decryption SHA-256 equality passed. pg_restore catalog inspection found required Auth users/identities/sessions, application users/messages/connections/private verification/event attachments, Prisma history and Storage metadata entries. No plaintext archive was written to disk. These checks establish decryptability/catalog coverage, **not a successful restore or login continuity**. Global role passwords and Storage file bytes are not included. The existing catalog inventory records role/grant metadata. The database export has its own consistent snapshot, but live Auth/Storage writes were not frozen, so cross-service consistency is not established.
+Full-archive encryption/decryption SHA-256 equality passed. pg_restore catalog inspection found required Auth users/identities/sessions, application users/messages/connections/private verification/event attachments, Prisma history and Storage metadata entries. No plaintext archive was written to disk. Database/Auth restoration is verified below; login continuity is not. Global role passwords and Storage file bytes are not included. The existing catalog inventory records role/grant metadata. The database export has its own consistent snapshot, but live Auth/Storage writes were not frozen, so cross-service consistency is not established.
 
 DPAPI ties recovery to this Windows account/profile; a durable portable encrypted copy/recovery-key procedure is still required. No backup or sensitive export is committed. The attempted encrypted Storage-file backup command was rejected by automatic approval review as “blocked by policy”; no Storage-file export occurred, and no alternative export was attempted.
 
+## Verified Singapore database/Auth rehearsal
+
+The saved destination session-pooler connection now succeeds. Restore operations targeted only `lxofcmzgzbgqvlmwizgm`; production source and application settings remained unchanged. The initial whole-public restore failed with a permission error and rolled back; a read confirmed zero application tables afterward. The application-only restore excluded Supabase-owned default privileges and the platform `rls_auto_enable` helper, without escalating privileges. All application data, RLS, constraints, indexes and six application triggers restored successfully.
+
+Auth schema compatibility checks matched all 271 source/destination column definitions. Staging has no custom Auth triggers. Its database role cannot disable `session_replication_role`; instead, Auth records were restored in foreign-key dependency order with constraints/triggers enabled and a single transaction. Managed Auth migration records were not overwritten. Reordering a custom archive over non-seekable stdin initially failed and rolled back; the corrected procedure extracted COPY blocks in memory, reordered those blocks, and streamed transactional SQL to staging without plaintext files.
+
+Canonical row-content checks across **all 54 application/Auth tables** match the encrypted source snapshot, including UUIDs, password-hash fields and private bytea fields. Only aggregate match results are reported; no private rows or individual password hashes were displayed or committed. Staging has 25 Auth users with password hashes, 25 identities, 27 session records, 19 application users, 13 messages and 27 connections. No application-to-Auth, identity or session orphans were found. All 28 public tables have RLS; all 78 public constraints are validated; 69 indexes and six application triggers are present. Prisma `migrate status` returned success and “Database schema is up to date”; no migrations were applied.
+
+Storage buckets/objects remain zero on staging because file transfer is blocked. Restored profile URLs still reference source photos; no URL rewrites were performed. Restored session rows **do not prove sessions will authenticate** under new project keys/issuer. Existing-password login, providers/MFA, recovery, redirects, uploads, full app flows and reverse migration remain untested. This is a verified database/Auth data rehearsal, not a complete Supabase migration.
+
 ## Access and readiness blockers
 
-1. Singapore project/version/extensions are verified, but destination restore access is blocked. The local destination URL points to its direct database host, which PostgreSQL could not resolve. A valid session-pooler connection on port 5432 has been requested; no destination writes/restores occurred.
-2. PostgreSQL 18.3 tools are installed outside PATH and the encrypted database archive is verified as above. Storage-file export was blocked by policy. No restored database, full service backup, global-role password recovery, or durable portable backup procedure has been verified. SQL MCP is not used to export password/token data.
+1. Singapore database/Auth data restoration and compatibility are verified. Destination Auth configuration, keys, isolated application deployment and end-to-end login/session flows still need verification.
+2. PostgreSQL 18.3 tools and the encrypted database restore are verified. Storage-file export was blocked by policy. A full service backup, global-role password recovery and durable portable backup procedure remain unverified. SQL MCP was not used to export password/token data.
 3. Vercel project socialmedia was discovered, but scoped project/environment inspection returned 403 for the owning scope. Vercel CLI fallback is not installed. Build-time configuration/deployment commit remains unverified.
 4. Render exposes service/deploy/log reads, but no read-environment or execution capability is available here. Pool parameters and Render-origin benchmark need authorized operator access.
 5. Supabase Auth provider, SMTP, callback URLs, signing keys, key rotation, project plan/backup capability and quotas are not available through the current inventory tools. No credentials or keys were retrieved.
-6. No authorized migration test accounts/session fixtures or isolated app deployment. Password preservation, MFA/provider sign-in, old refresh/access tokens and upload behavior cannot be claimed.
-7. No tested backup restore or post-write rollback. No cutover downtime commitment is possible.
+6. No authorized migration test accounts/session fixtures or isolated app deployment. Password-hash preservation is verified; actual existing-password login, MFA/provider sign-in, old refresh/access tokens and uploads remain unverified.
+7. Database/Auth backup restoration is verified, but full-service recovery and post-write rollback are untested. No cutover downtime commitment is possible.
 
 ## Validation and capacity planning
 
