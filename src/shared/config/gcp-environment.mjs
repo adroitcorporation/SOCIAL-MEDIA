@@ -35,7 +35,16 @@ export function validateGcpEnvironment(env, { migration = false } = {}) {
     env.SUPABASE_EXPECTED_PROJECT_REF
   )
     throw new Error('Legacy/emulator credentials are forbidden in GCP deployment.');
-  const instance = project + ':' + GCP_PRIMARY_REGION + ':cynk-' + stage + '-db';
+  const recovery = env.GCP_RECOVERY_INSTANCE;
+  if (
+    recovery &&
+    (project !== 'cynk-staging' ||
+      stage !== 'staging' ||
+      authProject !== 'cynk-staging-e9c53' ||
+      recovery !== 'cynk-staging-recovery-20261010')
+  )
+    throw new Error('Unapproved recovery destination.');
+  const instance = project + ':' + GCP_PRIMARY_REGION + ':' + (recovery || 'cynk-' + stage + '-db');
   if (env.CLOUD_SQL_CONNECTION_NAME !== instance)
     throw new Error('Cloud SQL project/region/environment mismatch.');
   let url;

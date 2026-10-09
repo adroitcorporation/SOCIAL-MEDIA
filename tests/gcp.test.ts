@@ -87,6 +87,28 @@ describe('Explicit GCP environment isolation', () => {
   it('accepts only the dedicated staging socket and bounded pool', () => {
     expect(validateGcpEnvironment(environment()).stage).toBe('staging');
   });
+  it('bounds recovery to the explicitly approved staging instance', () => {
+    const old = environment();
+    const instance = 'cynk-staging:asia-south2:cynk-staging-recovery-20261010';
+    const env = {
+      ...old,
+      GCP_PROJECT_ID: 'cynk-staging',
+      FIREBASE_AUTH_PROJECT_ID: 'cynk-staging-e9c53',
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'cynk-staging-e9c53',
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'cynk-staging-e9c53.firebaseapp.com',
+      GCP_RECOVERY_INSTANCE: 'cynk-staging-recovery-20261010',
+      CLOUD_SQL_CONNECTION_NAME: instance,
+      DATABASE_URL: old.DATABASE_URL.replace(old.CLOUD_SQL_CONNECTION_NAME, instance),
+    };
+    expect(validateGcpEnvironment(env).instance).toBe(instance);
+    for (const patch of [
+      { APP_ENV: 'production' },
+      { GCP_PROJECT_ID: 'other-project' },
+      { GCP_RECOVERY_INSTANCE: 'cynk-staging-db' },
+      { GCP_RECOVERY_INSTANCE: undefined },
+    ])
+      expect(() => validateGcpEnvironment({ ...env, ...patch })).toThrow();
+  });
   it('distinguishes the Firebase audience from the infrastructure project', () => {
     const env = environment();
     expect(env.FIREBASE_AUTH_PROJECT_ID).not.toBe(env.GCP_PROJECT_ID);
