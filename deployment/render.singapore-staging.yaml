@@ -1,4 +1,4 @@
-# Staging deployment authorized; access/isolation gates must pass before apply.
+# Preparation only. A new approval is required before staging deployment.
 # Use a separate staging workspace: shared free quotas can suspend production.
 # See docs/supabase-staging-access-2026-10-09.md. No production resources.
 # yaml-language-server: $schema=https://render.com/schema/render.yaml.json
@@ -8,7 +8,7 @@ services:
     runtime: node
     region: singapore
     plan: free
-    branch: audit/supabase-singapore-migration-2026-10-08
+    branch: audit/singapore-staging-readiness-2026-10-09
     autoDeployTrigger: off
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
@@ -23,7 +23,7 @@ services:
       - key: RECOMMENDATION_WORKER_ENABLED
         value: 'false'
       - key: MIGRATION_MAINTENANCE
-        value: 'false'
+        value: 'true'
       - key: FILE_STORAGE_MODE
         value: supabase
       - key: SUPABASE_EXPECTED_PROJECT_REF
@@ -52,7 +52,7 @@ services:
     runtime: node
     region: singapore
     plan: free
-    branch: audit/supabase-singapore-migration-2026-10-08
+    branch: audit/singapore-staging-readiness-2026-10-09
     autoDeployTrigger: off
     buildCommand: npm ci --include=dev && npm run build
     # Frontend does not own a database or run migrations. Render supplies PORT.

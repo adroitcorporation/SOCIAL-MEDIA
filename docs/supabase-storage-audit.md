@@ -1,5 +1,21 @@
 # Seoul → Singapore Storage audit — 9 October 2026
 
+## Approved snapshot transfer completed
+
+Following explicit destination-only approval, all **11 approved profile images / 23,078,406 bytes** were copied to Singapore without overwrites. Completed at **2026-10-08 23:26:40 UTC / 9 October 04:56:40 IST**. All 11 source/destination SHA-256 pairs matched during transfer and again during independent, sequential authorized SDK downloads. The final inventory shows source 1 bucket / 11 objects and destination 3 buckets / 11 objects; zero missing, conflicting or extra objects. Paths, sizes, MIME and custom metadata match. Anonymous HEAD checks for all 11 destination profile images returned 200 with the expected MIME type. Both private buckets remain empty and private. Read-only SQL confirmed RLS enabled and policy definitions unchanged.
+
+See [aggregate transfer evidence](supabase-storage-transfer-result.json). Exact file paths, byte counts and matched SHA-256 values are in the protected ignored `.local/storage-sync/completed-snapshot.json`; per-object resumable receipts remain in `.local/storage-sync/receipts.json`. Skipped: zero; failed: zero. The utility now requires the approved manifest and rejects changed source inventories/configuration or unapproved destination paths before writes.
+
+**Storage synchronization is complete for this approved snapshot only.** This is not completion of the database/Auth migration or a production cutover. No source objects, database records, Auth, RLS, Render or Vercel settings were changed. No branch was merged or pushed and no deployment was triggered. Existing absolute Seoul photo URLs remain unchanged; reference mapping and future production-write deltas still require separate work/approval. Earlier no-transfer and missing-credential statements below are historical and superseded by this completion evidence.
+
+## Fresh credential-backed dry run
+
+The later read-only API inventory at **2026-10-08 23:12:27 UTC / 9 October 04:42:27 IST** confirmed the same counts: Seoul one bucket / 11 objects / 23,078,406 bytes; Singapore three buckets / zero objects. Both credential pairs were accepted by the appropriate project APIs. All 11 source object-info reads and all 11 authenticated HEAD requests succeeded; no file bodies were downloaded. Source custom metadata is empty for all current objects. Source/destination profile bucket privacy, MIME allowlist and size limit match. There are 11 missing paths, zero overlapping paths, zero conflicts and zero destination-only files.
+
+`.env.storage-migration` is ignored and untracked. Its four values were parsed in memory without printing them or changing the root production environment. The URLs include the known REST suffix; the utility normalizes that suffix to the validated project origin and rejects other paths, swapped project refs, URL credentials/query strings and inappropriate legacy key roles. The user's existing `.gitignore` change was preserved.
+
+Exact object paths, sizes, MIME/cache/custom metadata and versions are in the owner-only, Git-ignored report `.local/storage-sync/report-1791501147082.json`. HEAD evidence is `.local/storage-sync/read-permissions.json`. The older source-credential blocker below is resolved; transfer and upload authorization tests still require separate explicit write approval. Successful inventory reads do not prove destination upload permission or byte integrity. No cloud writes, file transfers, deployments or configuration changes occurred.
+
 Branch: `audit/supabase-storage-singapore`. This new request supersedes the previous historical-Storage waiver for planning only. No Storage objects were transferred, changed or deleted. Production configuration and Auth are unchanged.
 
 ## Current read-only inventory
@@ -39,10 +55,12 @@ Copying files with identical paths does **not** change existing absolute Seoul U
 
 ## Credential evidence and blockers
 
+The following describes the earlier metadata audit; the fresh credential-backed update above supersedes its missing-source-key status.
+
 The local public Auth URL identifies Seoul. `MIGRATION_DESTINATION_STORAGE_KEY` was accepted by Singapore's read-only `listBuckets` API, returning its three expected buckets. No secret was logged or sent to the frontend. A backend-only Seoul Storage credential is absent locally (`SUPABASE_SERVICE_ROLE_KEY` and `STORAGE_SYNC_SOURCE_KEY` are not configured). Management SQL permission does not substitute for Storage API authorization. The source API listing/download and destination upload adapter have not been validated with live authorized credentials/fixtures in this turn.
 
 **Execution remains NO-GO:** obtain the source credential securely, run a fresh API dry-run, validate an independently approved fixture transfer, review costs and manifests, then obtain explicit approval for Singapore writes. No production cutover is authorized.
 
 ## Validation
 
-TypeScript and production build passed. The full Vitest suite passed **393 tests across 38 files**, including **20 migration safety tests**. Architecture boundaries, changed-file Prettier and Git whitespace checks passed. No ESLint configuration or lint script exists, so ESLint was not run. The metadata-only dry-run reported 11 missing objects and zero transfers. Stream/API adapter behavior has code review and mock coordination coverage, but no authorized live upload test was performed; it remains a readiness gate.
+TypeScript and production build passed. The latest full Vitest suite passed **398 tests across 39 files**, including **20 migration safety tests and five isolated credential-loading tests**. Architecture boundaries, changed-file Prettier and Git whitespace checks passed. No ESLint configuration or lint script exists, so ESLint was not run. The fresh API dry-run reported 11 missing objects and zero transfers. Stream/upload adapter behavior has code review and mock coordination coverage, but no authorized live upload test was performed; it remains a readiness gate.

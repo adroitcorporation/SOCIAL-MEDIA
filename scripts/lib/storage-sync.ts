@@ -145,15 +145,61 @@ export type SyncPorts = {
   upload(object: ObjectRecord): Promise<void>;
   save(receipts: Record<string, Receipt>): Promise<void>;
 };
+export function validateApprovedManifest(
+  source: Inventory,
+  destination: Inventory,
+  approved: { source: Inventory; destination: Inventory },
+) {
+  const planned = indexObjects(approved.source.objects),
+    current = indexObjects(source.objects);
+  if (
+    planned.size !== 11 ||
+    approved.source.objects.some((o) => o.bucket_id !== 'profile-photos') ||
+    approved.source.objects.reduce((n, o) => n + sizeOf(o), 0) !== 23078406
+  )
+    throw new Error('Approval manifest is not the authorized 11-image snapshot');
+  if (
+    current.size !== planned.size ||
+    [...planned].some(
+      ([k, o]) => !current.has(k) || fingerprint(current.get(k)!) !== fingerprint(o),
+    )
+  )
+    throw new Error('Source differs from approved manifest; no writes permitted');
+  const config = (i: Inventory) =>
+    JSON.stringify(
+      [...i.buckets]
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map((b) => ({
+          ...b,
+          allowed_mime_types: b.allowed_mime_types ? [...b.allowed_mime_types].sort() : null,
+        })),
+    );
+  if (
+    config(source) !== config(approved.source) ||
+    config(destination) !== config(approved.destination)
+  )
+    throw new Error('Bucket configuration differs from approval');
+  if (destination.objects.some((o) => !planned.has(objectKey(o))))
+    throw new Error('Unexpected destination object; no writes permitted');
+}
 export async function synchronize(
   ports: SyncPorts,
   receipts: Record<string, Receipt> = {},
   execute = false,
+  approved?: { source: Inventory; destination: Inventory },
 ) {
   const source = structuredClone(await ports.inventory('source')),
     destination = structuredClone(await ports.inventory('destination'));
   const plan = compare(source, destination);
-  if (!execute) return { plan, transferred: 0, verified: 0, sourceChanged: false };
+  if (!execute)
+    return {
+      plan,
+      inventories: { source, destination },
+      transferred: 0,
+      verified: 0,
+      sourceChanged: false,
+    };
+  if (approved) validateApprovedManifest(source, destination, approved);
   if (plan.bucketConflicts.length || plan.conflicts.length)
     throw new Error('Reconciliation requires separate approval; no writes performed');
   const initial = indexObjects(source.objects);
@@ -162,7 +208,10 @@ export async function synchronize(
     verified = 0;
   for (const object of source.objects) {
     const key = objectKey(object);
-    const before = indexObjects((await ports.inventory('source')).objects).get(key);
+    const beforeInventory = await ports.inventory('source');
+    if (approved)
+      validateApprovedManifest(beforeInventory, await ports.inventory('destination'), approved);
+    const before = indexObjects(beforeInventory.objects).get(key);
     if (!before || fingerprint(before) !== fingerprint(object))
       throw new Error('Source changed; stop synchronization');
     const src = await ports.download('source', object);

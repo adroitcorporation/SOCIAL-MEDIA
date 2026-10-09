@@ -8,6 +8,7 @@ import {
   objectKey,
   retry,
   retryAfterMilliseconds,
+  validateApprovedManifest,
   synchronize,
   type Bucket,
   type Inventory,
@@ -46,6 +47,51 @@ function fixture() {
   return { ports, source, destination, receipts, checksum };
 }
 describe('Storage migration safety', () => {
+  it('locks execution to the authorized snapshot and permits only verified-path resume candidates', () => {
+    const b: Bucket = {
+      id: 'profile-photos',
+      public: true,
+      file_size_limit: 4000000,
+      allowed_mime_types: ['image/png'],
+    };
+    const source: Inventory = {
+      buckets: [b],
+      objects: Array.from({ length: 11 }, (_, i) => ({
+        ...object(`user/${i}.png`),
+        bucket_id: b.id,
+        metadata: { size: i === 10 ? 3078406 : 2000000, mimetype: 'image/png' },
+      })),
+    };
+    const destination: Inventory = { buckets: [b], objects: [] };
+    const approved = structuredClone({ source, destination });
+    expect(() => validateApprovedManifest(source, destination, approved)).not.toThrow();
+    expect(() =>
+      validateApprovedManifest(source, { ...destination, objects: [source.objects[0]] }, approved),
+    ).not.toThrow();
+    const replaced = structuredClone(source);
+    replaced.objects[0].name = 'user/unapproved.png';
+    expect(() => validateApprovedManifest(replaced, destination, approved)).toThrow(
+      'Source differs',
+    );
+    const changed = structuredClone(source);
+    changed.objects[0].version = 'replacement';
+    expect(() => validateApprovedManifest(changed, destination, approved)).toThrow(
+      'Source differs',
+    );
+    expect(() =>
+      validateApprovedManifest(
+        source,
+        { buckets: [{ ...b, public: false }], objects: [] },
+        approved,
+      ),
+    ).toThrow('Bucket configuration');
+    expect(() =>
+      validateApprovedManifest(source, { ...destination, objects: [object()] }, approved),
+    ).toThrow('Unexpected destination');
+    expect(() =>
+      validateApprovedManifest(source, destination, { ...approved, source: inventory() }),
+    ).toThrow('authorized 11-image');
+  });
   it('honors seconds and HTTP-date Retry-After hints without accepting invalid delays', () => {
     expect(retryAfterMilliseconds('3')).toBe(3000);
     expect(

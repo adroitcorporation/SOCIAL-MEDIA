@@ -1,5 +1,15 @@
 # Storage synchronization plan and final checklist
 
+The approved 11-image transfer is now complete; see [snapshot result](supabase-storage-transfer-result.json). Future writes outside this exact manifest are not authorized. Execution requires the approved manifest, and the utility rejects changed source paths/versions/metadata, bucket settings or unexpected destination paths. Per-object checkpoints and independent final downloads verified all 11 SHA-256 pairs. Production remains on Seoul and its absolute database photo URLs are unchanged.
+
+The latest read-only API dry run uses the ignored `.env.storage-migration` file with `SOURCE_SUPABASE_URL`, `SOURCE_SUPABASE_SERVICE_ROLE_KEY`, `DEST_SUPABASE_URL`, and `DEST_SUPABASE_SERVICE_ROLE_KEY`. Both project credentials and source HEAD reads passed. These values are loaded into an isolated credential object rather than exported to application environment variables:
+
+```powershell
+& .\node_modules\.bin\tsx.cmd scripts/supabase-storage-sync.ts --dry-run --env-file .env.storage-migration
+```
+
+The loader refuses a tracked or non-ignored credential file. Fresh reports include both complete inventories and the exact copy plan in the protected ignored report directory. No execution was approved in this follow-up. A future approved execution using this credential file must also pass `--env-file .env.storage-migration`; do not silently fall back to the root production `.env`. Earlier root `.env` instructions below remain an alternative, not a prerequisite for this file-based workflow.
+
 The utility is `scripts/supabase-storage-sync.ts`, with safety logic in `scripts/lib/storage-sync.ts`. It defaults to read-only and hard-codes the approved Seoul source and Singapore rehearsal destination. It never deletes files, edits buckets/policies, rewrites database references, modifies Auth, or deploys the app. Source credentials are used only for read requests. Transfers use destination SDK upload with `upsert:false`; conflicts require a separately approved reconciliation, which this utility intentionally cannot perform.
 
 ## Preparation and exact commands
@@ -27,7 +37,7 @@ This fresh dry-run does not download bytes, so hash verification is still pendin
 **Only after explicit approval of Singapore writes**, the operator command is:
 
 ```powershell
-& .\node_modules\.bin\tsx.cmd scripts/supabase-storage-sync.ts --execute --approved-destination=lxofcmzgzbgqvlmwizgm
+& .\node_modules\.bin\tsx.cmd scripts/supabase-storage-sync.ts --execute --approved-destination=lxofcmzgzbgqvlmwizgm --approved-manifest .local/storage-sync/report-1791501147082.json --env-file .env.storage-migration
 ```
 
 Re-run the identical command after an interruption. Atomic receipts record source fingerprint, SHA-256 and byte count only after verification. Every run re-inventories and re-hashes existing objects; receipts never bypass integrity checks. An upload that succeeds but loses its response can end the run with a conflict; the next run finds and verifies that path, without overwriting it. Destination-only files are retained.

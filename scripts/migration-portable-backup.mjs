@@ -8,7 +8,7 @@ import { PrismaClient } from '@prisma/client';
 import { createClient } from '@supabase/supabase-js';
 import { PGlite } from '@electric-sql/pglite';
 import { matchesProjectDatabase } from '../src/shared/config/supabase-project.mjs';
-import { sealBackup, openBackup } from './lib/portable-backup.mjs';
+import { sealBackup, openBackup, verifyBackupFiles } from './lib/portable-backup.mjs';
 import { restoreCopySection } from './lib/restore-copy.mjs';
 
 try {
@@ -191,6 +191,9 @@ try {
   report.backup_created_at = recovered.created_at;
   report.tables = recovered.manifest.length;
   report.storage_objects = recovered.files.length;
+  const verifiedFiles = verifyBackupFiles(recovered.files);
+  report.storage_payload_sha256_verified = true;
+  report.storage_payload_bytes_verified = verifiedFiles.bytes;
   phase = 'local database restoration';
   const restoreStarted = performance.now();
   memory = await PGlite.create();

@@ -23,7 +23,7 @@ it('isolates staging service names, disables automatic deployment and scopes sec
   for (const service of config.services) {
     expect(service.name).toMatch(/^founder-circle-singapore-staging-/);
     expect(service.autoDeployTrigger).toBe('off');
-    expect(service.branch).toBe('audit/supabase-singapore-migration-2026-10-08');
+    expect(service.branch).toBe('audit/singapore-staging-readiness-2026-10-09');
     const env = Object.fromEntries(
       service.envVars.map((item: { key: string; value?: string }) => [item.key, item.value]),
     );
@@ -36,6 +36,7 @@ it('isolates staging service names, disables automatic deployment and scopes sec
       expect(service.startCommand).not.toBe('npm start');
     } else {
       expect(env.FILE_STORAGE_MODE).toBe('supabase');
+      expect(env.MIGRATION_MAINTENANCE).toBe('true');
       expect(env.SUPABASE_EXPECTED_PROJECT_REF).toBe('lxofcmzgzbgqvlmwizgm');
       expect(
         service.envVars.find((item: { key: string }) => item.key === 'SUPABASE_SERVICE_ROLE_KEY')

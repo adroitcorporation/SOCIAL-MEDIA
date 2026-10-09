@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 
 /** @param {Uint8Array} bytes @param {Uint8Array} key */
 export function sealBackup(bytes, key) {
@@ -19,4 +19,29 @@ export function openBackup(bytes, key) {
   decipher.setAAD(Buffer.from('founder-circle-backup-v1'));
   decipher.setAuthTag(value.subarray(20, 36));
   return Buffer.concat([decipher.update(value.subarray(36)), decipher.final()]);
+}
+
+/** Verify decrypted object payloads offline; this does not restore the Storage service.
+ * @param {{bucket_id: string, name: string, bytes: string, sha256: string, metadata: {size: number}}[]} files
+ */
+export function verifyBackupFiles(files) {
+  const seen = new Set();
+  let totalBytes = 0;
+  for (const file of files) {
+    const identity = JSON.stringify([file.bucket_id, file.name]);
+    const bytes = Buffer.from(file.bytes, 'base64');
+    if (
+      seen.has(identity) ||
+      !file.bucket_id ||
+      !file.name ||
+      !/^[a-f0-9]{64}$/.test(file.sha256) ||
+      bytes.toString('base64') !== file.bytes ||
+      bytes.length !== Number(file.metadata.size) ||
+      createHash('sha256').update(bytes).digest('hex') !== file.sha256
+    )
+      throw new Error('Recovered Storage payload integrity mismatch');
+    seen.add(identity);
+    totalBytes += bytes.length;
+  }
+  return { objects: seen.size, bytes: totalBytes };
 }

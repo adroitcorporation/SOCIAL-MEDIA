@@ -7,6 +7,8 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import { spawnSync } from 'node:child_process';
+import { parseStorageCredentials } from './lib/storage-sync-env';
 import {
   ApiFailure,
   fingerprint,
@@ -19,16 +21,29 @@ import {
   type Receipt,
 } from './lib/storage-sync';
 
-try {
-  loadEnvFile();
-} catch (e) {
-  if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
-}
 const args = process.argv.slice(2);
 const execute = args.includes('--execute');
 if (execute && args.includes('--dry-run'))
   throw new Error('Dry-run and execute are mutually exclusive');
 const value = (name: string) => args[args.indexOf(name) + 1];
+for (const name of ['--env-file', '--inventory', '--approved-manifest'])
+  if (args.includes(name) && (!value(name) || value(name).startsWith('--')))
+    throw new Error(`Missing ${name} argument`);
+let suppliedCredentials: ReturnType<typeof parseStorageCredentials> | undefined;
+if (args.includes('--env-file')) {
+  const file = value('--env-file');
+  const ignored = spawnSync('git', ['check-ignore', '--quiet', '--', file]);
+  const tracked = spawnSync('git', ['ls-files', '--error-unmatch', '--', file]);
+  if (ignored.status !== 0 || tracked.status !== 1)
+    throw new Error('Credential file must be ignored and untracked');
+  suppliedCredentials = parseStorageCredentials(await readFile(file, 'utf8'));
+} else {
+  try {
+    loadEnvFile();
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e;
+  }
+}
 const root = resolve('.local/storage-sync');
 await mkdir(root, { recursive: true, mode: 0o700 });
 // Operator must validate restrictive ACLs, including on Windows; mode is insufficient there.
@@ -42,6 +57,10 @@ if (
         '--approved-destination=lxofcmzgzbgqvlmwizgm',
         '--inventory',
         value('--inventory'),
+        '--env-file',
+        value('--env-file'),
+        '--approved-manifest',
+        value('--approved-manifest'),
       ].includes(a),
   )
 )
@@ -50,10 +69,25 @@ if (execute && !args.includes('--approved-destination=lxofcmzgzbgqvlmwizgm'))
   throw new Error('Explicit destination approval argument required');
 if (execute && args.includes('--inventory'))
   throw new Error('Execution requires fresh API inventories');
+if (execute && !args.includes('--approved-manifest'))
+  throw new Error('Execution requires the approved dry-run manifest');
+let approved: { source: Inventory; destination: Inventory } | undefined;
+if (args.includes('--approved-manifest')) {
+  const manifest = JSON.parse(await readFile(value('--approved-manifest'), 'utf8'));
+  if (
+    manifest.mode !== 'dry-run' ||
+    manifest.source !== 'rznbuzkgzsryadokvcfh' ||
+    manifest.destination !== 'lxofcmzgzbgqvlmwizgm' ||
+    !manifest.inventories
+  )
+    throw new Error('Invalid approved manifest identity');
+  approved = manifest.inventories;
+}
 const refs = { source: 'rznbuzkgzsryadokvcfh', destination: 'lxofcmzgzbgqvlmwizgm' };
 const keys = {
-  source: process.env.STORAGE_SYNC_SOURCE_KEY,
-  destination: process.env.MIGRATION_DESTINATION_STORAGE_KEY,
+  source: suppliedCredentials?.source.key ?? process.env.STORAGE_SYNC_SOURCE_KEY,
+  destination:
+    suppliedCredentials?.destination.key ?? process.env.MIGRATION_DESTINATION_STORAGE_KEY,
 };
 const pause = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 let deferredUntil = 0;
@@ -264,6 +298,7 @@ try {
     },
     receipts,
     execute,
+    approved,
   );
   await writeFile(
     `${root}/report-${Date.now()}.json`,

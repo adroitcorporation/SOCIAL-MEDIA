@@ -1,0 +1,621 @@
+{
+  "observed_at": "2026-10-09T05:03:20.816737+05:30",
+  "source_project": "rznbuzkgzsryadokvcfh",
+  "destination_project": "lxofcmzgzbgqvlmwizgm",
+  "cloud_mutations": 0,
+  "counts": [
+    {
+      "table": "auth.audit_log_entries",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.custom_oauth_providers",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.flow_state",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.identities",
+      "source": 25,
+      "destination": 25,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.instances",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.mfa_amr_claims",
+      "source": 27,
+      "destination": 29,
+      "source_only": 1,
+      "destination_only": 3,
+      "changed": 0
+    },
+    {
+      "table": "auth.mfa_challenges",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.mfa_factors",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.mfa_recovery_code_sets",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.mfa_recovery_codes",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.oauth_authorizations",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.oauth_client_states",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.oauth_clients",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.oauth_consents",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.one_time_tokens",
+      "source": 6,
+      "destination": 6,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.refresh_tokens",
+      "source": 48,
+      "destination": 47,
+      "source_only": 4,
+      "destination_only": 3,
+      "changed": 6
+    },
+    {
+      "table": "auth.saml_providers",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.saml_relay_states",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.schema_migrations",
+      "source": 82,
+      "destination": 82,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.scim_tokens",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.scim_users",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.sessions",
+      "source": 27,
+      "destination": 29,
+      "source_only": 1,
+      "destination_only": 3,
+      "changed": 4
+    },
+    {
+      "table": "auth.sso_domains",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.sso_providers",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.users",
+      "source": 25,
+      "destination": 25,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 5
+    },
+    {
+      "table": "auth.webauthn_challenges",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "auth.webauthn_credentials",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.ApprovedCollegeDomain",
+      "source": 2,
+      "destination": 2,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.Block",
+      "source": 2,
+      "destination": 2,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.College",
+      "source": 24,
+      "destination": 24,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.CollegeVerificationRequest",
+      "source": 8,
+      "destination": 8,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.Connection",
+      "source": 27,
+      "destination": 28,
+      "source_only": 0,
+      "destination_only": 1,
+      "changed": 0
+    },
+    {
+      "table": "public.Conversation",
+      "source": 3,
+      "destination": 3,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.ConversationMember",
+      "source": 9,
+      "destination": 9,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 1
+    },
+    {
+      "table": "public.Event",
+      "source": 1,
+      "destination": 1,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.EventAttachment",
+      "source": 1,
+      "destination": 1,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.Idea",
+      "source": 1,
+      "destination": 1,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.IdeaResonance",
+      "source": 5,
+      "destination": 4,
+      "source_only": 1,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.Message",
+      "source": 13,
+      "destination": 13,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.ModerationAction",
+      "source": 20,
+      "destination": 20,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.Notification",
+      "source": 68,
+      "destination": 68,
+      "source_only": 1,
+      "destination_only": 1,
+      "changed": 0
+    },
+    {
+      "table": "public.Post",
+      "source": 1,
+      "destination": 1,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.PostComment",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.PostLike",
+      "source": 2,
+      "destination": 2,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.RateLimit",
+      "source": 3,
+      "destination": 9,
+      "source_only": 3,
+      "destination_only": 9,
+      "changed": 0
+    },
+    {
+      "table": "public.RecommendationDocument",
+      "source": 22,
+      "destination": 22,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.RecommendationInteraction",
+      "source": 92,
+      "destination": 87,
+      "source_only": 7,
+      "destination_only": 2,
+      "changed": 0
+    },
+    {
+      "table": "public.RecommendationJob",
+      "source": 0,
+      "destination": 0,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.RecommendationSkillLink",
+      "source": 62,
+      "destination": 62,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.Report",
+      "source": 1,
+      "destination": 1,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.SavedEvent",
+      "source": 1,
+      "destination": 1,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.Skip",
+      "source": 11,
+      "destination": 6,
+      "source_only": 6,
+      "destination_only": 1,
+      "changed": 0
+    },
+    {
+      "table": "public.TaxonomyAlias",
+      "source": 232,
+      "destination": 232,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 0
+    },
+    {
+      "table": "public.User",
+      "source": 19,
+      "destination": 19,
+      "source_only": 0,
+      "destination_only": 0,
+      "changed": 1
+    }
+  ],
+  "catalog": {
+    "tables": {
+      "source_only": 3,
+      "destination_only": 3
+    },
+    "columns": {
+      "source_only": 0,
+      "destination_only": 2
+    },
+    "constraints": {
+      "source_only": 1,
+      "destination_only": 1
+    },
+    "indexes": {
+      "source_only": 0,
+      "destination_only": 0
+    },
+    "policies": {
+      "source_only": 1,
+      "destination_only": 4
+    },
+    "functions": {
+      "source_only": 1,
+      "destination_only": 0
+    },
+    "triggers": {
+      "source_only": 0,
+      "destination_only": 0
+    },
+    "grants": {
+      "source_only": 0,
+      "destination_only": 42
+    },
+    "schemas": {
+      "source_only": 0,
+      "destination_only": 0
+    },
+    "extensions": {
+      "source_only": 0,
+      "destination_only": 0
+    },
+    "migrations": {
+      "source_only": 0,
+      "destination_only": 2
+    }
+  },
+  "relationships": {
+    "source": {
+      "auth_users": 25,
+      "identities": 25,
+      "profile_orphans": 0,
+      "confirmed_emails": 19,
+      "identity_orphans": 0,
+      "password_accounts": 25,
+      "auth_without_profile": 6
+    },
+    "destination": {
+      "auth_users": 25,
+      "identities": 25,
+      "profile_orphans": 0,
+      "confirmed_emails": 19,
+      "identity_orphans": 0,
+      "password_accounts": 25,
+      "auth_without_profile": 6
+    }
+  },
+  "auth": {
+    "passwordHashMatches": 25,
+    "differingFields": [
+      ["updated_at"],
+      ["updated_at", "last_sign_in_at"],
+      ["updated_at"],
+      ["updated_at"],
+      ["updated_at"]
+    ]
+  },
+  "private_data": {
+    "source": [
+      {
+        "inventory": {
+          "event_bytes": 37987,
+          "fk_constraints": 64,
+          "event_documents": 1,
+          "seoul_photo_refs": 5,
+          "college_documents": 4,
+          "verified_profiles": 13,
+          "college_document_bytes": 5189494,
+          "unvalidated_constraints": 0
+        }
+      }
+    ],
+    "destination": [
+      {
+        "inventory": {
+          "event_bytes": 37987,
+          "fk_constraints": 64,
+          "event_documents": 1,
+          "seoul_photo_refs": 5,
+          "college_documents": 4,
+          "verified_profiles": 12,
+          "college_document_bytes": 5189494,
+          "unvalidated_constraints": 0
+        }
+      }
+    ]
+  },
+  "pool": {
+    "source": {
+      "db_size": 19442835,
+      "max_connections": "60",
+      "active_connections": 1,
+      "current_connections": 14
+    },
+    "destination": {
+      "db_size": 19216051,
+      "max_connections": "60",
+      "active_connections": 1,
+      "current_connections": 15
+    }
+  },
+  "benchmark": {
+    "measured_at": "2026-10-08T23:35:41.795Z",
+    "origin": "local Windows client, not Render",
+    "query": "SELECT 1",
+    "warmups_per_project": 3,
+    "samples_per_project": 30,
+    "pooling": "session pooler, port 5432, TLS required, connection_limit=1",
+    "errors": 0,
+    "results": {
+      "seoul": {
+        "p50_ms": 169.8,
+        "p95_ms": 263.58,
+        "samples_ms": [
+          160.24, 169.81, 164.27, 159.83, 164.37, 175.13, 174.38, 160.04, 171.59, 179.12, 186.45,
+          165.79, 303.53, 169.89, 164.21, 154.93, 177.82, 162.29, 163.31, 161.51, 172.49, 154.91,
+          172.65, 162.99, 263.58, 160.73, 190.11, 169.8, 212.35, 184.43
+        ]
+      },
+      "singapore": {
+        "p50_ms": 105.77,
+        "p95_ms": 122.64,
+        "samples_ms": [
+          94.67, 128.04, 104.29, 111.22, 93.87, 100.83, 100.25, 106.94, 101.84, 117.98, 99.1, 103.4,
+          103.79, 111.19, 104.84, 107, 114.52, 109.44, 112.49, 105.77, 111.33, 110.27, 105.37,
+          99.54, 103.97, 96.54, 122.64, 119.2, 114.01, 105.96
+        ]
+      }
+    }
+  },
+  "local_recovery": {
+    "observed_at": "2026-10-08T23:42:51.719Z",
+    "project": "lxofcmzgzbgqvlmwizgm",
+    "production_operations": 0,
+    "historical_storage_operations": 0,
+    "portable_encryption_verified": true,
+    "database_restore_verified": true,
+    "supabase_service_recovery_verified": false,
+    "cross_service_consistency_verified": false,
+    "backup_created_at": "2026-10-08T23:37:27.384Z",
+    "tables": 55,
+    "storage_objects": 11,
+    "storage_payload_sha256_verified": true,
+    "storage_payload_bytes_verified": 23078406,
+    "constraints_verified": 188,
+    "identity_relationships_verified": true,
+    "public_tables_with_rls": 28,
+    "local_freeze_resume_probe_verified": true,
+    "restore_seconds": 3.7
+  },
+  "validation": {
+    "production_build": "passed",
+    "typecheck": "passed",
+    "changed_file_formatting": "passed",
+    "eslint": "not configured",
+    "tests": 410,
+    "decision": "NO-GO",
+    "test_files": 40,
+    "render_schema": "passed",
+    "deployed_browser_tests": "not run; pending approval",
+    "architecture": "passed"
+  }
+}
