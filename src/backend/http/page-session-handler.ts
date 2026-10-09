@@ -7,7 +7,10 @@ function validatePageSessionRequest(request: Request) {
   // This adapter also runs on the frontend-only deployment without APP_URL.
   // It accepts bearer authentication, never cookie authentication.
   const origin = request.headers.get('origin');
-  requireThat(!origin || origin === new URL(request.url).origin, 403, 'Invalid request origin.');
+  // Cloud Run terminates HTTPS before Next.js, so request.url may use the
+  // container's HTTP origin. Prefer the explicitly configured public origin.
+  const expected = new URL(process.env.APP_URL || request.url).origin;
+  requireThat(!origin || origin === expected, 403, 'Invalid request origin.');
   requireThat(request.headers.get('content-type')?.includes('application/json'), 415, 'Send JSON.');
 }
 

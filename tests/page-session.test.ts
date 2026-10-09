@@ -41,6 +41,20 @@ describe('page session bridge', () => {
     expect(response.status).toBe(403);
     expect(response.headers.get('set-cookie')).toBeNull();
   });
+  it('uses the configured HTTPS origin behind a TLS-terminating proxy', async () => {
+    vi.stubEnv('APP_URL', 'https://circle.example');
+    vi.mocked(pageIdentity).mockResolvedValue({
+      id: 'actor', role: 'STUDENT', accountStatus: 'ACTIVE',
+    });
+    const proxied = (origin: string) => new Request('http://localhost:8080/session', {
+      method: 'POST',
+      headers: { origin, 'content-type': 'application/json', authorization: 'Bearer trusted-token' },
+      body: '{}',
+    });
+    expect((await POST(proxied('https://circle.example'))).status).toBe(200);
+    expect((await POST(proxied('http://localhost:8080'))).status).toBe(403);
+    expect((await DELETE(proxied('https://other.example'))).status).toBe(403);
+  });
   it('rejects cross-origin session mutations and clears the cookie on logout', async () => {
     expect((await POST(request('https://other.example'))).status).toBe(403);
     expect((await DELETE(request('https://other.example'))).status).toBe(403);
