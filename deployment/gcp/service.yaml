@@ -1,0 +1,41 @@
+# Review and replace placeholders. This file is NEVER applied automatically.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: cynk-staging-backend
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: '0'
+        autoscaling.knative.dev/maxScale: '2'
+        run.googleapis.com/cloudsql-instances: PROJECT_ID:asia-south1:cynk-staging-db
+    spec:
+      serviceAccountName: cynk-runtime@PROJECT_ID.iam.gserviceaccount.com
+      timeoutSeconds: 300
+      containerConcurrency: 20
+      containers:
+        - image: asia-south1-docker.pkg.dev/PROJECT_ID/cynk/backend:REVIEWED_COMMIT
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: '1'
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 12
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: cynk-runtime-database-url
+                  key: '1'
+            # Expand every nonsecret variable from backend.env.example here.
+            # Do not include DIRECT_URL or credentials for the old providers.

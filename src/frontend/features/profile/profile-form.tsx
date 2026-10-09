@@ -5,7 +5,7 @@ import { Upload } from 'lucide-react';
 import type { Student } from '@/shared/contracts/responses';
 import type { ProfileUpdateRequest } from '@/shared/contracts/requests';
 import { Avatar, Verified, Tag, ExternalLink } from '@/frontend/components/ui';
-import { authClient } from '@/frontend/auth/supabase-browser';
+import { browserAuth } from '@/frontend/auth/browser-auth';
 import { useCircle } from '@/frontend/state/circle-context';
 import { profileSchemaForExisting, safeUrl } from '@/shared/contracts/schemas';
 import { MIN_CONNECTION_BIO_LENGTH } from '@/shared/contracts/profile-completion';
@@ -102,10 +102,8 @@ export function ProfileForm({ user, save }: { user: Student; save: Save }) {
     setPhotoUploading(true);
     setPhotoPreview(URL.createObjectURL(file));
     try {
-      const supabase = authClient();
-      const { data, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      if (!data.session || data.session.user.id !== user.id)
+      const session = await browserAuth.session();
+      if (!session.signedIn || session.userId !== user.id)
         throw new Error('Sign in to your account before uploading a profile photo.');
       const uploaded = await api.uploadProfilePhoto(file);
       const publicUrl = safeUrl.parse(uploaded.url);

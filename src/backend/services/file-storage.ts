@@ -1,11 +1,14 @@
 import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 import { requireThat } from '@/backend/utils/errors';
+import { gcsFileStorage } from './gcs-storage';
 
 export type FileBucket = 'profile-photos' | 'college-ids' | 'event-attachments';
-export const privateFilesUseStorage = () => process.env.FILE_STORAGE_MODE === 'supabase';
+export const privateFilesUseStorage = () =>
+  ['supabase', 'gcs'].includes(process.env.FILE_STORAGE_MODE || '');
 
 export function fileStorage(bucket: FileBucket) {
+  if (process.env.FILE_STORAGE_MODE === 'gcs') return gcsFileStorage(bucket);
   const url = process.env.SUPABASE_STORAGE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   requireThat(url && key, 503, 'File storage is not configured. Contact support.');

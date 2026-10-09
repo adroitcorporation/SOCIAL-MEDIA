@@ -11,6 +11,7 @@ import * as service from '@/backend/services/community';
 import * as events from '@/backend/services/events';
 import * as eventAttachments from '@/backend/services/event-attachments';
 import { uploadProfilePhoto } from '@/backend/services/profile-photos';
+import { publicProfilePhoto } from '@/backend/services/gcs-storage';
 import * as moderation from '@/backend/services/moderation';
 import * as posts from '@/backend/services/posts';
 import { requireActiveActor, requirePermission } from '@/backend/services/permissions';
@@ -54,6 +55,14 @@ export async function handleApiRequest(request: Request, path: string[]) {
       return Response.json({ status: 'ok' });
     }
     if (resource === 'config' && method === 'GET') return handleConfigRequest();
+    if (
+      process.env.FILE_STORAGE_MODE === 'gcs' &&
+      method === 'GET' &&
+      path.length === 4 &&
+      resource === 'public' &&
+      id === 'photos'
+    )
+      return publicProfilePhoto(action + '/' + detail);
     if (method !== 'GET')
       validateMutationRequest(request, isEventAttachmentUpload || isProfilePhotoUpload);
     const identity = await authenticate(request);

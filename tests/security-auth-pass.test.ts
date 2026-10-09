@@ -12,6 +12,10 @@ const doubles = vi.hoisted(() => ({
   signUp: vi.fn(),
   resetPasswordForEmail: vi.fn(),
   signOut: vi.fn(),
+  googleIdentity: vi.fn(),
+}));
+vi.mock('@/backend/auth/identity-platform', () => ({
+  verifyGoogleIdentity: doubles.googleIdentity,
 }));
 vi.mock('@supabase/supabase-js', () => ({
   createClient: () => ({ auth: { getUser: doubles.getUser } }),
@@ -55,6 +59,35 @@ beforeEach(() => {
 afterEach(() => {
   vi.resetAllMocks();
   vi.unstubAllEnvs();
+});
+describe('Google identity uses the existing college and role rules', () => {
+  it.each([
+    ['person@lnmiit.ac.in', true],
+    ['person@example.com', false],
+    ['person@lnmiit.ac.in.attacker.test', false],
+    ['person@sub.lnmiit.ac.in', false],
+  ])('preserves approved-domain matching for %s', async (email, collegeVerified) => {
+    vi.stubEnv('AUTH_PROVIDER', 'identity-platform');
+    doubles.googleIdentity.mockResolvedValue({ id: actor.id, email, confirmed: true });
+    doubles.findUnique.mockResolvedValueOnce(null).mockResolvedValue(actor);
+    expect(await authenticate(request())).toEqual(actor);
+    expect(doubles.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ id: actor.id, emailVerified: true, collegeVerified }),
+      }),
+    );
+    expect(doubles.upsert.mock.calls[0][0].create.role).toBeUndefined();
+    expect(doubles.getUser).not.toHaveBeenCalled();
+  });
+  it.each([
+    { email: 'person@@lnmiit.ac.in', confirmed: true },
+    { email: 'person@lnmiit.ac.in', confirmed: false },
+  ])('rejects malformed or unconfirmed Google identities before persistence', async (identity) => {
+    vi.stubEnv('AUTH_PROVIDER', 'identity-platform');
+    doubles.googleIdentity.mockResolvedValue({ id: actor.id, ...identity });
+    await expect(authenticate(request())).rejects.toMatchObject({ status: 403 });
+    expect(doubles.upsert).not.toHaveBeenCalled();
+  });
 });
 describe('real authentication function with mocked Supabase provider', () => {
   it('does not rewrite or reread an unchanged verified profile and still checks current account status', async () => {

@@ -91,6 +91,19 @@ export function useCircleController(
           unsubscribe = browserAuth.subscribe((session) => {
             if (!active) return;
             setSignedIn(session.signedIn);
+            // Google refreshes ID tokens while the user remains signed in.
+            // Keep the HTTP-only SSR cookie current even on an otherwise idle page.
+            if (session.accessToken && session.accessToken !== pageToken.current) {
+              const version = authVersion.current;
+              void syncPageSession(session.accessToken)
+                .then(() => {
+                  if (active && version === authVersion.current)
+                    pageToken.current = session.accessToken;
+                })
+                .catch(() => {
+                  if (active) setLoadError('Could not refresh your session. Please sign in again.');
+                });
+            }
             if (!session.signedIn) {
               authVersion.current++;
               refreshVersion.current++;

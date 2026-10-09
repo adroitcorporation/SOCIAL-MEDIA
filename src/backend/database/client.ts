@@ -1,6 +1,8 @@
 import 'server-only';
 import { PrismaClient } from '@prisma/client';
+import { validateGcpEnvironment } from '@/shared/config/gcp-environment.mjs';
 import { matchesProjectUrl, matchesProjectDatabase } from '@/shared/config/supabase-project.mjs';
+if (process.env.AUTH_PROVIDER === 'identity-platform') validateGcpEnvironment(process.env);
 const expected = process.env.SUPABASE_EXPECTED_PROJECT_REF;
 if (
   expected &&

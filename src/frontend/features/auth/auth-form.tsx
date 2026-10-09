@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, Circle, GitBranch, Globe, Mail, ShieldCheck } from 'lucide-react';
 import { browserAuth } from '@/frontend/auth/browser-auth';
 import { brand } from '@/shared/config/brand';
@@ -23,6 +23,28 @@ export function AuthForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  useEffect(() => {
+    let active = true;
+    void browserAuth
+      .completeEmailAction()
+      .then((result) => {
+        if (!active) return;
+        if (result === 'verified') {
+          setMode('login');
+          setNotice('Email verified. Sign in to continue.');
+        }
+        if (result === 'password-reset') setMode('reset');
+      })
+      .catch((error) => {
+        if (active)
+          setError(
+            error instanceof Error ? error.message : 'The email link is invalid or expired.',
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -38,7 +60,10 @@ export function AuthForm({
       } else if (mode === 'reset') {
         await browserAuth.updatePassword(password);
         setNotice('Password updated. You can continue to your circle.');
-        onAuthenticated();
+        if (process.env.NEXT_PUBLIC_AUTH_PROVIDER === 'identity-platform') {
+          setMode('login');
+          setNotice('Password updated. Sign in to continue.');
+        } else onAuthenticated();
       } else if (mode === 'signup') {
         const result = await browserAuth.signUp(email, password);
         if (result.signedIn) onAuthenticated();
@@ -108,8 +133,8 @@ export function AuthForm({
 
         {!configured && (
           <div className="notice">
-            Authentication needs configuration. Add your Supabase URL and publishable key to start,
-            or follow the local demo instructions in README.md.
+            Authentication needs configuration. Add the selected provider's public configuration to
+            start, or follow the local demo instructions in README.md.
           </div>
         )}
         {mode === 'login' && (

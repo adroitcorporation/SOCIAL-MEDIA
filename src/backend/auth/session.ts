@@ -2,6 +2,8 @@ import { requireActiveActor } from '@/backend/services/permissions';
 import 'server-only';
 import { requireApplicationOpen } from '@/backend/utils/maintenance';
 import { createClient } from '@supabase/supabase-js';
+import { authProvider } from '@/shared/config/auth-provider';
+import { verifyGoogleIdentity } from './identity-platform';
 import { db } from '@/backend/database/client';
 import { transaction } from '@/backend/database/transaction';
 import { requireThat } from '@/backend/utils/errors';
@@ -35,33 +37,43 @@ export async function authenticate(request: Request) {
     requireThat(user, 503, 'Run npm run db:seed first.');
     return requireActiveActor(user.id);
   }
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  requireThat(url && key, 503, 'Authentication is not configured.');
   const token = request.headers.get('authorization')?.replace(/^Bearer /, '');
   requireThat(token && token.length < 8192, 401, 'Please sign in to continue.');
-  const client = createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { data, error } = await client.auth.getUser(token);
-  requireThat(!error && data.user, 401, 'Your session has expired. Please sign in again.');
-  requireThat(data.user.email, 403, 'Your account must have an email address.');
-  const emailVerified = isConfirmedLoginEmail(data.user.email, data.user.email_confirmed_at);
+  let identity: { id: string; email: string | undefined; confirmed: boolean };
+  if (authProvider(process.env.AUTH_PROVIDER) === 'identity-platform') {
+    identity = await verifyGoogleIdentity(token);
+  } else {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    requireThat(url && key, 503, 'Authentication is not configured.');
+    const client = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await client.auth.getUser(token);
+    requireThat(!error && data.user, 401, 'Your session has expired. Please sign in again.');
+    identity = {
+      id: data.user.id,
+      email: data.user.email,
+      confirmed: isConfirmedLoginEmail(data.user.email, data.user.email_confirmed_at),
+    };
+  }
+  requireThat(identity.email, 403, 'Your account must have an email address.');
+  const emailVerified = identity.confirmed;
   requireThat(emailVerified, 403, 'Confirm your email using the link we sent before continuing.');
-  const domain = normalizeCollegeEmailDomain(data.user.email);
+  const domain = normalizeCollegeEmailDomain(identity.email);
   requireThat(domain, 403, 'Your account must have a valid email address.');
   return transaction(async (tx) => {
     const approved = domain
       ? await tx.approvedCollegeDomain.findUnique({ where: { domain } })
       : null;
-    const existing = await tx.user.findUnique({ where: { id: data.user.id } });
+    const existing = await tx.user.findUnique({ where: { id: identity.id } });
     const manualSource = existing?.collegeVerificationSource;
     const source =
       manualSource === 'COLLEGE_ID' || manualSource === 'EMAIL'
         ? manualSource
         : isVerifiedCollegeEmail(
-              data.user.email,
-              data.user.email_confirmed_at,
+              identity.email,
+              identity.confirmed ? 'confirmed' : null,
               approved ? [approved.domain] : [],
             )
           ? ('APPROVED_EMAIL_DOMAIN' as const)
@@ -75,10 +87,10 @@ export async function authenticate(request: Request) {
       existing.collegeVerificationSource === source
         ? existing
         : await tx.user.upsert({
-            where: { id: data.user.id },
+            where: { id: identity.id },
             update: { emailVerified, collegeVerified, collegeVerificationSource: source },
             create: {
-              id: data.user.id,
+              id: identity.id,
               name: 'New student',
               emailVerified,
               collegeVerified,
