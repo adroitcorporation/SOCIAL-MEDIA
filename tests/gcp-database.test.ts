@@ -25,6 +25,13 @@ it('initializes every existing migration without users and grants runtime DML wi
     expect((await pg.query('SELECT id FROM "User"')).rows).toEqual([
       { id: 'synthetic-google-uid' },
     ]);
+    await pg.exec(`INSERT INTO "User" (id,name,"updatedAt") VALUES
+      ('aSyntheticUid','Test A',CURRENT_TIMESTAMP),
+      ('ZSyntheticUid','Test Z',CURRENT_TIMESTAMP)`);
+    await pg.exec(`INSERT INTO "Connection" (id,"pairKey","requesterId","receiverId","updatedAt")
+      VALUES ('synthetic-connection','ZSyntheticUid:aSyntheticUid','aSyntheticUid','ZSyntheticUid',CURRENT_TIMESTAMP)`);
+    await expect(pg.exec(`INSERT INTO "Connection" (id,"pairKey","requesterId","receiverId","updatedAt")
+      VALUES ('invalid-connection','aSyntheticUid:ZSyntheticUid','aSyntheticUid','ZSyntheticUid',CURRENT_TIMESTAMP)`)).rejects.toThrow();
     await expect(pg.exec('CREATE TABLE public.forbidden(id text)')).rejects.toThrow();
     await expect(pg.exec('SELECT * FROM "_prisma_migrations"')).rejects.toThrow();
     await expect(pg.exec('TRUNCATE "User" CASCADE')).rejects.toThrow();
@@ -40,3 +47,4 @@ it('initializes every existing migration without users and grants runtime DML wi
     await pg.close();
   }
 }, 60000);
+

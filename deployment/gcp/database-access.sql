@@ -11,6 +11,14 @@ REVOKE cloudsqlsuperuser FROM cynk_runtime;
 ALTER ROLE cynk_runtime NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA public TO cynk_runtime;
+-- Firebase UIDs contain mixed-case ASCII. JavaScript sorts pair keys by code
+-- point, while Cloud SQL's locale can sort lowercase before uppercase.
+-- Keep the original integrity rule, with explicit deterministic ordering.
+ALTER TABLE "Connection" DROP CONSTRAINT "canonical_pair";
+ALTER TABLE "Connection" ADD CONSTRAINT "canonical_pair" CHECK (
+  "pairKey" = LEAST("requesterId" COLLATE "C", "receiverId" COLLATE "C")
+    || ':' || GREATEST("requesterId" COLLATE "C", "receiverId" COLLATE "C")
+);
 DO $$ DECLARE t record; BEGIN
   FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename<>'_prisma_migrations' LOOP
     EXECUTE format('REVOKE ALL ON TABLE public.%I FROM PUBLIC',t.tablename);
