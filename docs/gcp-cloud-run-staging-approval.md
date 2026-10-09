@@ -258,5 +258,8 @@ required. SQL deletion protection must stay on until retention approval. Nonempt
 deletion must fail; no recursive deletion, project deletion, billing unlink or Firebase
 project/user deletion is included. New Auth domain removal needs separate approval.
 
-**Decision:** ready for consolidated scope review, **NO-GO for execution until explicit
-approval and actual INR quote gate**. No deployed integration/performance/recovery claim.
+**Current decision (10 October 2026):** the user approved the scope and the additional
+Cloud SQL integration API; staging has been deployed and tested. See the authoritative
+[execution status and evidence](gcp-staging-execution-status.md): **GO for staging
+evaluation; NO-GO for production cutover pending its remaining checks and separate
+approval**. Historical preflight blockers above are retained for audit history.
