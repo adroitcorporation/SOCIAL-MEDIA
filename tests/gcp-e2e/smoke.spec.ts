@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 // Only synthetic accounts in a new, separately approved staging project.
 for (const suffix of ['A', 'B']) {
-  test(`synthetic account ${suffix}: Google login, API forwarding, refresh and navigation`, async ({
+  test(`synthetic account ${suffix}: Firebase password login, refresh, navigation and logout`, async ({
     page,
     context,
     request,
@@ -59,5 +59,10 @@ for (const suffix of ['A', 'B']) {
     await page.reload();
     await expect(page.locator('.auth-card')).toHaveCount(0);
     expect(forbiddenHosts.size).toBe(0);
+    await page.getByRole('button', { name: 'Log out', exact: true }).first().click();
+    await expect(page.locator('.auth-card')).toHaveCount(1);
+    expect((await context.cookies()).some((cookie) => cookie.name === 'circle-page-session')).toBe(
+      false,
+    );
   });
 }
