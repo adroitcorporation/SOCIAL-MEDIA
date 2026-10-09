@@ -1,5 +1,9 @@
 # CYNK staging execution status — 10 October 2026
 
+Subsequent recovery, moderator, load, SSE and billing evidence is recorded in
+[the production-readiness rehearsal report](gcp-production-readiness.md). Its results supersede
+the remaining-gates list below. The branch was subsequently pushed; no merge or production change occurred.
+
 **GO for staging evaluation. NO-GO for production cutover until the remaining production checks below are completed and separately approved.**
 
 Live frontend and backend: https://cynk-staging-backend-1002434130638.asia-south2.run.app

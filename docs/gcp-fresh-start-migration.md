@@ -1,5 +1,9 @@
 # Current staging decision: Cloud Run frontend + API
 
+For actual deployed staging and subsequent readiness evidence, read
+[staging execution status](gcp-staging-execution-status.md) and
+[the production-readiness rehearsal](gcp-production-readiness.md). Earlier unverified status below is historical.
+
 Use [the revised Cloud Run-only staging approval plan](gcp-cloud-run-staging-approval.md). Staging no longer uses Vercel; existing Vercel production remains unchanged. Firebase Auth stays in cynk-staging-e9c53 and infrastructure in cynk-staging. Earlier Vercel provisioning examples in this document are historical.
 
 # CYNK: GCP fresh start

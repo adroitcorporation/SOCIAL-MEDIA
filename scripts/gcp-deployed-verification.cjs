@@ -4,7 +4,18 @@ const { randomBytes } = require('node:crypto');
 loadEnvConfig(process.cwd());
 if (process.env.GCP_STAGING_ALLOW_SYNTHETIC_USERS !== 'true')
   throw Error('Explicit staging fixture creation acknowledgement required');
-const base = 'https://cynk-staging-backend-1002434130638.asia-south2.run.app';
+const base =
+  process.env.GCP_STAGING_RECOVERY_ORIGIN ||
+  'https://cynk-staging-backend-1002434130638.asia-south2.run.app';
+if (
+  ![
+    'https://cynk-staging-backend-1002434130638.asia-south2.run.app',
+    'https://cynk-staging-recovery-1002434130638.asia-south2.run.app',
+  ].includes(base)
+)
+  throw Error('Unapproved staging origin');
+if (process.env.GCP_STAGING_RECOVERY_ORIGIN && process.env.GCP_STAGING_READINESS === 'true')
+  throw Error('Role rehearsal must not target the recovery database');
 const project = 'cynk-staging-e9c53';
 if (process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== project) throw Error('Project mismatch');
 const key = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
@@ -93,10 +104,15 @@ async function identity(action, body) {
     const refreshState = await fetch(base + '/api/state', {
       headers: { Authorization: 'Bearer ' + refreshed.id_token },
     });
-    if (refreshState.status !== 200) throw Error('Refreshed session rejected');
+    if (refreshState.status !== 200)
+      throw Error('Refreshed session rejected HTTP ' + refreshState.status);
     accounts.push({ email, password, suffix, token: refreshed.id_token, id: login.localId });
   }
   await require('./gcp-deployed-business-check.cjs')(base, accounts);
+  if (process.env.GCP_STAGING_SSE_SOAK === 'true')
+    await require('./gcp-sse-soak.cjs')(base, accounts);
+  if (process.env.GCP_STAGING_READINESS === 'true')
+    await require('./gcp-readiness-check.cjs')(base, accounts);
   const invalid = await fetch(base + '/api/state', {
     headers: { Authorization: 'Bearer invalid-token' },
   });
