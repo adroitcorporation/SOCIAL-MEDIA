@@ -1,7 +1,12 @@
 // Deployment guards only. Errors never include environment values.
+export const GCP_PRIMARY_REGION = 'asia-south2';
+
 export function validateGcpEnvironment(env, { migration = false } = {}) {
   const project = env.GCP_PROJECT_ID;
   const stage = env.APP_ENV;
+  const authProject = env.FIREBASE_AUTH_PROJECT_ID;
+  if (env.BACKEND_URL || env.VERCEL_ENV)
+    throw new Error('External frontend/backend rewrites are forbidden in full-stack Cloud Run.');
   if (
     !/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(project || '') ||
     !['staging', 'production'].includes(stage)
@@ -14,8 +19,9 @@ export function validateGcpEnvironment(env, { migration = false } = {}) {
   )
     throw new Error('GCP providers must be explicitly selected.');
   if (
-    env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== project ||
-    env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN !== project + '.firebaseapp.com' ||
+    !/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(authProject || '') ||
+    env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== authProject ||
+    env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN !== authProject + '.firebaseapp.com' ||
     !env.NEXT_PUBLIC_FIREBASE_API_KEY ||
     !env.NEXT_PUBLIC_FIREBASE_APP_ID
   )
@@ -29,7 +35,7 @@ export function validateGcpEnvironment(env, { migration = false } = {}) {
     env.SUPABASE_EXPECTED_PROJECT_REF
   )
     throw new Error('Legacy/emulator credentials are forbidden in GCP deployment.');
-  const instance = project + ':asia-south1:cynk-' + stage + '-db';
+  const instance = project + ':' + GCP_PRIMARY_REGION + ':cynk-' + stage + '-db';
   if (env.CLOUD_SQL_CONNECTION_NAME !== instance)
     throw new Error('Cloud SQL project/region/environment mismatch.');
   let url;

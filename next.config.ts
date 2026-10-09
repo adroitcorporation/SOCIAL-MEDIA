@@ -1,4 +1,11 @@
 import type { NextConfig } from 'next';
+if (
+  process.env.DEPLOYMENT_TARGET === 'cloud-run' &&
+  (process.env.BACKEND_URL || process.env.VERCEL_ENV)
+)
+  throw new Error(
+    'Full-stack Cloud Run must serve its own APIs without external backend rewrites.',
+  );
 if (process.env.REQUIRE_EXPLICIT_BACKEND_URL === 'true' && !process.env.BACKEND_URL)
   throw new Error('This frontend requires an explicit isolated BACKEND_URL.');
 const googleAuth = process.env.NEXT_PUBLIC_AUTH_PROVIDER === 'identity-platform';

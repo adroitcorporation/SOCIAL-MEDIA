@@ -8,10 +8,12 @@ COPY . .
 ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID
 ARG NEXT_PUBLIC_FIREBASE_API_KEY
 ARG NEXT_PUBLIC_FIREBASE_APP_ID
+ARG NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS=""
 ARG NEXT_PUBLIC_APP_URL
 ENV DEPLOYMENT_TARGET=cloud-run NEXT_PUBLIC_AUTH_PROVIDER=identity-platform
 ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID=$NEXT_PUBLIC_FIREBASE_PROJECT_ID NEXT_PUBLIC_FIREBASE_API_KEY=$NEXT_PUBLIC_FIREBASE_API_KEY NEXT_PUBLIC_FIREBASE_APP_ID=$NEXT_PUBLIC_FIREBASE_APP_ID NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com
+ENV NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS=$NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS
 RUN npm run build
 
 FROM node:24-bookworm-slim AS runtime
@@ -30,3 +32,7 @@ CMD ["node", "scripts/gcp-start.mjs"]
 # A separate migration/job image includes CLI/dev tooling; never run it as the service.
 FROM build AS tooling
 CMD ["node", "scripts/gcp-migrate.mjs"]
+
+# Temporary capacity image only. Never deploy this synthetic workload helper.
+FROM runtime AS capacity
+COPY --chown=node:node scripts/gcp-capacity-workload.cjs ./.next/standalone/capacity-workload.cjs

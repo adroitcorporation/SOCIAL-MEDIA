@@ -11,11 +11,12 @@ const mocks = vi.hoisted(() => ({
   download: vi.fn(),
   remove: vi.fn(),
   bucket: vi.fn(),
+  initialize: vi.fn(),
 }));
 vi.mock('firebase-admin/app', () => ({
   getApps: () => [],
   applicationDefault: () => ({}),
-  initializeApp: () => ({}),
+  initializeApp: mocks.initialize,
 }));
 vi.mock('firebase-admin/auth', () => ({
   getAuth: () => ({ verifyIdToken: mocks.verify, getUser: mocks.user }),
@@ -37,15 +38,16 @@ vi.mock('@google-cloud/storage', () => ({
 }));
 function environment() {
   const project = 'cynk-unit-test';
-  const instance = project + ':asia-south1:cynk-staging-db';
+  const instance = project + ':asia-south2:cynk-staging-db';
   return {
     GCP_PROJECT_ID: project,
+    FIREBASE_AUTH_PROJECT_ID: 'cynk-auth-test',
     APP_ENV: 'staging',
     AUTH_PROVIDER: 'identity-platform',
     NEXT_PUBLIC_AUTH_PROVIDER: 'identity-platform',
     FILE_STORAGE_MODE: 'gcs',
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID: project,
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: project + '.firebaseapp.com',
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'cynk-auth-test',
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'cynk-auth-test.firebaseapp.com',
     NEXT_PUBLIC_FIREBASE_API_KEY: 'synthetic-public-key',
     NEXT_PUBLIC_FIREBASE_APP_ID: 'synthetic-app',
     CLOUD_SQL_CONNECTION_NAME: instance,
@@ -85,7 +87,15 @@ describe('Explicit GCP environment isolation', () => {
   it('accepts only the dedicated staging socket and bounded pool', () => {
     expect(validateGcpEnvironment(environment()).stage).toBe('staging');
   });
+  it('distinguishes the Firebase audience from the infrastructure project', () => {
+    const env = environment();
+    expect(env.FIREBASE_AUTH_PROJECT_ID).not.toBe(env.GCP_PROJECT_ID);
+    expect(validateGcpEnvironment(env).project).toBe(env.GCP_PROJECT_ID);
+    expect(() => validateGcpEnvironment({ ...env, FIREBASE_AUTH_PROJECT_ID: undefined })).toThrow();
+  });
   it.each([
+    ['BACKEND_URL', 'https://old-backend.onrender.com'],
+    ['VERCEL_ENV', 'production'],
     ['DATABASE_URL', 'postgresql://cynk_runtime:synthetic@db.example.test/cynk_staging'],
     ['DATABASE_URL', environment().DATABASE_URL.replace('cynk_runtime', 'cynk_migrator')],
     [
@@ -99,6 +109,11 @@ describe('Explicit GCP environment isolation', () => {
     ['SUPABASE_SERVICE_ROLE_KEY', 'synthetic'],
     ['LOCAL_DEMO', 'true'],
     ['FIREBASE_AUTH_EMULATOR_HOST', 'localhost:9099'],
+    [
+      'CLOUD_SQL_CONNECTION_NAME',
+      environment().CLOUD_SQL_CONNECTION_NAME.replace('asia-south2', 'asia-south1'),
+    ],
+    ['DATABASE_URL', environment().DATABASE_URL.replace('asia-south2', 'asia-south1')],
     ['APP_URL', 'https://user:password@staging.example.test'],
   ])('rejects unsafe %s configuration', (key, value) => {
     expect(() => validateGcpEnvironment({ ...environment(), [key]: value })).toThrow();
@@ -122,6 +137,7 @@ describe('Google server-side authentication adapter', () => {
       confirmed: true,
     });
     expect(mocks.verify).toHaveBeenCalledWith('synthetic-token', true);
+    expect(mocks.initialize.mock.calls[0][0].projectId).toBe('cynk-auth-test');
   });
   it.each(['disabled', 'email-change', 'untrusted-uid', 'revoked'])(
     'rejects %s accounts',

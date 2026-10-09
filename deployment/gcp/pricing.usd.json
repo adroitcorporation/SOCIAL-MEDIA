@@ -1,0 +1,80 @@
+{
+  "reviewedOn": "2026-10-09",
+  "currency": "USD",
+  "basis": "Public on-demand list prices, not authenticated account quotes; 730 hours/month. No commitments or tax included.",
+  "sources": {
+    "sql": "https://cloud.google.com/sql/pricing",
+    "run": "https://cloud.google.com/run/pricing",
+    "storage": "https://cloud.google.com/storage/pricing",
+    "secrets": "https://cloud.google.com/secret-manager/pricing",
+    "registry": "https://cloud.google.com/artifact-registry/pricing",
+    "build": "https://cloud.google.com/build/pricing",
+    "logging": "https://cloud.google.com/products/observability/pricing",
+    "auth": "https://cloud.google.com/identity-platform/pricing",
+    "network": "https://cloud.google.com/vpc/network-pricing"
+  },
+  "regionalPageSha256": {
+    "sql": "6182f50549d8573a3a376806313cba4b215d7739bd79fb71a1f5aa645342036d",
+    "run": "a01e5db14e8b5d194236062e0616e9022cacbf5380bdd466609263159c931269",
+    "storage": "13d4f093bf1d73de998013def5d4f794e6c8cde1b7575686e45c92f66bb9d7b2"
+  },
+  "extraction": "Region-labelled rows from official pages' embedded JSON; Delhi (asia-south2) and Mumbai (asia-south1), default/on-demand columns only, not default Iowa rows.",
+  "regions": {
+    "asia-south2": {
+      "sqlMicroHour": 0.0126,
+      "sqlSmallHour": 0.042,
+      "sqlEnterpriseCustomVcpuHour": 0.04956,
+      "sqlEnterpriseCustomMemoryGiBHour": 0.0084,
+      "sqlSsdGiBMonth": 0.204,
+      "sqlBackupUsedGiBMonth": 0.096,
+      "sqlIdleIpv4Hour": 0.012,
+      "runActiveCpuSecond": 0.0000336,
+      "runActiveMemoryGiBSecond": 0.0000035,
+      "runMinIdleCpuSecond": 0.0000035,
+      "runMinIdleMemoryGiBSecond": 0.0000035,
+      "runJobCpuSecond": 0.0000216,
+      "runJobMemoryGiBSecond": 0.0000024,
+      "gcsStandardGiBMonth": 0.023
+    },
+    "asia-south1": {
+      "sqlMicroHour": 0.0126,
+      "sqlSmallHour": 0.042,
+      "sqlEnterpriseCustomVcpuHour": 0.04956,
+      "sqlEnterpriseCustomMemoryGiBHour": 0.0084,
+      "sqlSsdGiBMonth": 0.204,
+      "sqlBackupUsedGiBMonth": 0.096,
+      "sqlIdleIpv4Hour": 0.012,
+      "runActiveCpuSecond": 0.000024,
+      "runActiveMemoryGiBSecond": 0.0000025,
+      "runMinIdleCpuSecond": 0.0000025,
+      "runMinIdleMemoryGiBSecond": 0.0000025,
+      "runJobCpuSecond": 0.000018,
+      "runJobMemoryGiBSecond": 0.000002,
+      "gcsStandardGiBMonth": 0.02
+    }
+  },
+  "common": {
+    "requestsMillion": 0.4,
+    "gcsClassAThousand": 0.005,
+    "gcsClassBThousand": 0.0004,
+    "artifactGiBMonth": 0.1,
+    "secretActiveVersionLocationMonth": 0.06,
+    "secretAccessTenThousand": 0.03,
+    "buildE2Standard2Minute": 0.006,
+    "loggingGiBAfterFree50": 0.5,
+    "loggingAdditionalRetentionGiBMonth": 0.01,
+    "internetEgressGiBFirstTierCommonDestinations": 0.12
+  },
+  "freeAllowances": {
+    "note": "Account shared except Logging per project. Run allowances are Tier-1 USD credits, not equal free seconds in Delhi. GCS always-free US locations do not cover India. No Cloud SQL ongoing free allowance assumed.",
+    "runRequestCpuCreditUSD": 4.32,
+    "runRequestMemoryCreditUSD": 0.9,
+    "requestsMillion": 2,
+    "artifactGiB": 0.5,
+    "secretActiveVersions": 6,
+    "secretAccesses": 10000,
+    "buildE2Standard2Minutes": 2500,
+    "loggingGiBPerProject": 50,
+    "identityEmailSocialMAU": 50000
+  }
+}

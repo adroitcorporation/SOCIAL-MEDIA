@@ -1,0 +1,8 @@
+# Temporary capacity preflight only; no registry push, SQL or Run deployment.
+timeout: 1800s
+options:
+  logging: CLOUD_LOGGING_ONLY
+steps:
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args: [scripts/gcp-capacity-preflight.sh]

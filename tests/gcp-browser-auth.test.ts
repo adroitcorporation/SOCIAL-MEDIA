@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   token: vi.fn(),
   persistence: vi.fn(),
   changed: vi.fn(),
+  popup: vi.fn(),
+  link: vi.fn(),
 }));
 vi.mock('firebase/app', () => ({ getApps: () => [], initializeApp: () => ({}) }));
 vi.mock('firebase/auth', () => ({
@@ -22,7 +24,8 @@ vi.mock('firebase/auth', () => ({
   sendPasswordResetEmail: vi.fn(),
   confirmPasswordReset: vi.fn(),
   updatePassword: vi.fn(),
-  signInWithPopup: vi.fn(),
+  signInWithPopup: mocks.popup,
+  linkWithPopup: mocks.link,
   GoogleAuthProvider: class {},
   GithubAuthProvider: class {},
   FacebookAuthProvider: class {},
@@ -39,8 +42,55 @@ beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_FIREBASE_API_KEY', 'synthetic');
   vi.stubEnv('NEXT_PUBLIC_FIREBASE_APP_ID', 'synthetic');
   vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://staging.example.test');
+  vi.stubEnv('NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS', 'google,github');
   mocks.auth.currentUser = null;
   vi.stubGlobal('window', { location: { search: '' } });
+});
+it('fails closed for unconfigured providers, including LinkedIn', async () => {
+  const { googleBrowserAuth, configuredOAuthProviders } =
+    await import('../src/frontend/auth/identity-platform-browser');
+  expect(configuredOAuthProviders()).toEqual(['google', 'github']);
+  await expect(googleBrowserAuth.signInWithOAuth('linkedin')).rejects.toThrow('not configured');
+  vi.stubEnv('NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS', '');
+  await expect(googleBrowserAuth.signInWithOAuth('google')).rejects.toThrow('not configured');
+  expect(mocks.popup).not.toHaveBeenCalled();
+});
+it('does not automatically link or reveal credentials on account collision', async () => {
+  mocks.popup.mockRejectedValue({
+    code: 'auth/account-exists-with-different-credential',
+    message: 'private-email and credential',
+  });
+  const { googleBrowserAuth } = await import('../src/frontend/auth/identity-platform-browser');
+  await expect(googleBrowserAuth.signInWithOAuth('github')).rejects.toThrow('existing method');
+  expect(mocks.link).not.toHaveBeenCalled();
+});
+it('links only an authenticated verified user and refreshes the same identity', async () => {
+  const { googleBrowserAuth } = await import('../src/frontend/auth/identity-platform-browser');
+  await expect(googleBrowserAuth.linkOAuthProvider('google')).rejects.toThrow('verified account');
+  expect(mocks.link).not.toHaveBeenCalled();
+  const user = { uid: 'stable-prisma-user-id', emailVerified: true, getIdToken: mocks.token };
+  mocks.auth.currentUser = user;
+  mocks.link.mockResolvedValue({ user });
+  await googleBrowserAuth.linkOAuthProvider('google');
+  expect(mocks.link.mock.calls[0][0]).toBe(user);
+  expect(mocks.token).toHaveBeenCalledWith(true);
+});
+it('rejects a different linked identity and signs out a changed session', async () => {
+  mocks.auth.currentUser = { uid: 'original-id', emailVerified: true };
+  mocks.link.mockResolvedValue({ user: { uid: 'different-id' } });
+  const { googleBrowserAuth } = await import('../src/frontend/auth/identity-platform-browser');
+  await expect(googleBrowserAuth.linkOAuthProvider('github')).rejects.toThrow('session changed');
+  expect(mocks.logout).toHaveBeenCalled();
+});
+it('rejects provider credentials belonging to another user without account merging', async () => {
+  mocks.auth.currentUser = { uid: 'original-id', emailVerified: true };
+  mocks.link.mockRejectedValue({
+    code: 'auth/credential-already-in-use',
+    message: 'sensitive provider response',
+  });
+  const { googleBrowserAuth } = await import('../src/frontend/auth/identity-platform-browser');
+  await expect(googleBrowserAuth.linkOAuthProvider('google')).rejects.toThrow('cannot be merged');
+  expect(mocks.token).not.toHaveBeenCalled();
 });
 afterEach(() => {
   vi.unstubAllEnvs();

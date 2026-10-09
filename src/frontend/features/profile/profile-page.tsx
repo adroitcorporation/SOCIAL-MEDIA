@@ -13,6 +13,7 @@ import { ProfileContent } from '@/frontend/features/profile/profile-content';
 
 import { PageHeading } from '@/frontend/components/page-heading';
 import { ThemeToggle } from '@/frontend/components/theme-toggle';
+import { LinkedAccounts } from '@/frontend/features/profile/linked-accounts';
 import {
   MAX_VERIFICATION_IMAGE_BYTES,
   VERIFICATION_IMAGE_TYPES,
@@ -116,6 +117,7 @@ export function ProfilePage() {
           )}
         </section>
         <aside>
+          <LinkedAccounts />
           <section className="panel verification-panel">
             <span className="stat-icon mint">
               {state.me.collegeVerified ? <CheckCircle2 size={22} /> : <Globe size={22} />}

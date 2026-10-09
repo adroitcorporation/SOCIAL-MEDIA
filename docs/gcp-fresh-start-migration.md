@@ -1,3 +1,7 @@
+# Current staging decision: Cloud Run frontend + API
+
+Use [the revised Cloud Run-only staging approval plan](gcp-cloud-run-staging-approval.md). Staging no longer uses Vercel; existing Vercel production remains unchanged. Firebase Auth stays in cynk-staging-e9c53 and infrastructure in cynk-staging. Earlier Vercel provisioning examples in this document are historical.
+
 # CYNK: GCP fresh start
 
 Status: **NO-GO for production. Repository implementation and local tests only.**
@@ -8,16 +12,29 @@ register again. Neither old Supabase project nor Render/Vercel production was ch
 No GCP resources were provisioned or deployed. Costs below are planning estimates,
 not authorization to spend. Obtain separate approval before any cloud creation.
 
+**2026-10-09 staging update:** primary region is now Delhi NCR (`asia-south2`), proposed
+project `cynk-staging`, monthly staging alert budget ₹2,000. Authenticated CLI now confirms
+the project is ACTIVE and billing is linked to an open INR account; actual identifiers
+are recorded only in ignored local configuration.
+Read [the revised staging plan](gcp-staging-deployment.md) and
+[verified public regional costs](gcp-regional-costs.md) before using any commands below.
+They supersede the earlier region/cost assumptions. Project creation/billing linkage,
+APIs/IAM/resources, credential/Auth setup and build/deployment each require explicit
+approval. The approved 11 APIs are now enabled. [Authenticated preflight](gcp-staging-preflight.md)
+verified inventories, Run/build quotas and the existing budget; trial credit, the INR quote,
+full SQL capacity and budget notification delivery remain unresolved.
+No GCP deployed testing has occurred.
+
 ## Architecture and dependency audit
 
 ```mermaid
 flowchart LR
   Browser --> Vercel[Existing Next.js frontend on Vercel]
   Browser --> Auth[Google Identity Platform]
-  Vercel -->|same-origin API rewrite / bearer token| Run[Next.js API on Cloud Run Mumbai]
+  Vercel -->|same-origin API rewrite / bearer token| Run[Next.js API on Cloud Run Delhi NCR]
   Run -->|ADC / verified and revocation-checked token| Auth
-  Run --> Prisma --> SQL[Fresh Cloud SQL PostgreSQL Mumbai]
-  Run -->|ADC / bucket-scoped IAM| GCS[Private GCS buckets Mumbai]
+  Run --> Prisma --> SQL[Fresh Cloud SQL PostgreSQL Delhi NCR]
+  Run -->|ADC / bucket-scoped IAM| GCS[Private GCS buckets Delhi NCR]
   Run -->|55-second SSE / database polling| Browser
   Job[Bounded recommendation job] --> SQL
   Secrets[Secret Manager] --> Run
@@ -75,7 +92,7 @@ college account or a privileged role.
   College IDs and attachments use authenticated application downloads and existing
   moderator/event permissions, not public bucket URLs. No IAM signing permission is
   needed; there is no new private-file signed-URL endpoint to expose.
-- GCP startup validates project, environment, canonical frontend origin, exact Mumbai
+- GCP startup validates project, environment, canonical frontend origin, exact Delhi NCR
   instance, database name, distinct runtime user, explicit bounded pool and absence
   of old-provider/emulator/demo credentials. Migration jobs require a separate user.
   Runtime never runs migrations. Docker is nonroot, excludes credential files, and
@@ -86,7 +103,7 @@ college account or a privileged role.
 ## Fresh PostgreSQL initialization
 
 Use a new **staging project** and a distinct future production project. Use PostgreSQL
-16 in Mumbai, a database named `cynk_staging`, instance `cynk-staging-db`. Create users
+16 in Delhi NCR, a database named `cynk_staging`, instance `cynk-staging-db`. Create users
 `cynk_migrator` (migration owner) and `cynk_runtime` (application). Keep passwords only
 in Secret Manager. Do not use old `.env` files. Do not run `db:seed` (demo data).
 Existing 15 migrations initialize schema, constraints, indices, RLS and reference
@@ -118,7 +135,7 @@ The custom Storage role contains `storage.objects.get`, `storage.objects.create`
 `storage.objects.delete`. Bind it individually on the three new buckets, not at
 project scope. Runtime does not need listing, bucket/policy administration or public ACLs.
 Secret versions are pinned (`:1` initially), not `latest`. No `DIRECT_URL` in runtime.
-Use built-in Cloud SQL connector Unix socket `/cloudsql/PROJECT:asia-south1:cynk-staging-db`.
+Use built-in Cloud SQL connector Unix socket `/cloudsql/PROJECT:asia-south2:cynk-staging-db`.
 A public-IP instance with **zero authorized networks** plus IAM connector avoids an
 extra VPC connector; verify no public CIDR access was added. Do not share production
 project, instance, IAM account, secrets, buckets, domains or API keys with staging.
@@ -130,7 +147,7 @@ or a clean checkout of the reviewed GCP branch, never the older audit checkout.
 `.gcloudignore` excludes credentials/local backups from build-source uploads, while
 `.dockerignore` excludes them from container context. Replace placeholders and review
 every target. Use a dedicated project and named staging Vercel project. First obtain
-a Mumbai-region Console cost quote and approve a monthly cap. Do not reuse the existing
+a Delhi NCR-region Console cost quote and approve a monthly cap. Do not reuse the existing
 production Vercel project, Render service or Supabase credentials.
 
 ```powershell
@@ -139,15 +156,15 @@ $GcpRelease = 'REPLACE-REVIEWED-COMMIT'
 gcloud auth login
 gcloud config set project $GcpStageProject
 gcloud services enable run.googleapis.com sqladmin.googleapis.com secretmanager.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com identitytoolkit.googleapis.com storage.googleapis.com
-gcloud artifacts repositories create cynk --repository-format=docker --location=asia-south1
+gcloud artifacts repositories create cynk --repository-format=docker --location=asia-south2
 gcloud iam service-accounts create cynk-runtime
 gcloud iam service-accounts create cynk-migrator
 gcloud iam service-accounts create cynk-recommendations
-gcloud sql instances create cynk-staging-db --database-version=POSTGRES_16 --edition=ENTERPRISE --tier=db-f1-micro --region=asia-south1 --storage-type=SSD --storage-size=10 --backup-start-time=20:00 --enable-point-in-time-recovery --deletion-protection
+gcloud sql instances create cynk-staging-db --database-version=POSTGRES_16 --edition=ENTERPRISE --tier=db-f1-micro --region=asia-south2 --storage-type=SSD --storage-size=10 --backup-start-time=20:00 --enable-point-in-time-recovery --deletion-protection
 gcloud sql databases create cynk_staging --instance=cynk-staging-db
 ```
 
-Console: verify Mumbai, smallest quoted instance, public authorized networks empty,
+Console: verify Delhi NCR, smallest quoted instance, public authorized networks empty,
 backups/PITR enabled, deletion protection enabled. Create both SQL users via Console,
 avoiding passwords on command lines. Do not approve a more expensive machine silently
 if the selected tier is unavailable. Shared-core sizing must pass load tests; it is
@@ -156,7 +173,7 @@ not a high-availability production recommendation.
 Identity Platform Console: enable email/password and required OAuth providers; enforce
 a password policy; configure separate staging OAuth client IDs/secrets, consent screen
 and callbacks. Enable LinkedIn only after configuring `oidc.linkedin`; otherwise that
-button cannot work. Register a Firebase web app in this same project and copy **public**
+button cannot work. Reuse the registered Firebase web app in `cynk-staging-e9c53` and copy **public**
 web API key/app ID. Restrict the API key to required Identity Toolkit/Secure Token APIs
 and allowed web referrers, verifying API-key restrictions do not break login/refresh.
 Add only dedicated staging frontend and auth domains to Authorized Domains. In email
@@ -169,19 +186,22 @@ Create private buckets (run only for the approved new project):
 
 ```powershell
 foreach ($GcpBucket in @('profile-photos','college-ids','event-attachments')) {
-  gcloud storage buckets create "gs://$GcpStageProject-staging-$GcpBucket" --location=asia-south1 --uniform-bucket-level-access --public-access-prevention
+  gcloud storage buckets create "gs://$GcpStageProject-staging-$GcpBucket" --location=asia-south2 --uniform-bucket-level-access --public-access-prevention
 }
 ```
 
 Console IAM: create custom roles with permissions above; bind runtime Storage role on
-each bucket and Auth read role on this project. Bind Cloud SQL Client to the three
+each bucket in infrastructure project `cynk-staging`. Create/bind the custom Auth read
+role in `cynk-staging-e9c53` to `cynk-runtime@cynk-staging.iam.gserviceaccount.com`.
+Set backend `FIREBASE_AUTH_PROJECT_ID=cynk-staging-e9c53`, matching public Firebase
+project/domain; retain `GCP_PROJECT_ID=cynk-staging` for SQL and GCS. Bind Cloud SQL Client to the three
 service accounts. In Secret Manager create `cynk-runtime-database-url` and
 `cynk-migration-database-url`, and grant secret access individually as in the matrix.
 Enter values through Console secret controls, never paste into chat/logs or public env.
 Percent-encode passwords in connection URLs. Runtime URL example:
 
 ```text
-postgresql://cynk_runtime:ENCODED_PASSWORD@localhost/cynk_staging?host=/cloudsql/PROJECT:asia-south1:cynk-staging-db&connection_limit=2&pool_timeout=10
+postgresql://cynk_runtime:ENCODED_PASSWORD@localhost/cynk_staging?host=/cloudsql/PROJECT:asia-south2:cynk-staging-db&connection_limit=2&pool_timeout=10
 ```
 
 Migration secret uses `cynk_migrator` with the same database/socket. Its job needs
@@ -195,10 +215,10 @@ Backend build uses the dedicated staging frontend origin and public Firebase con
 
 ```powershell
 gcloud builds submit --config=deployment/gcp/cloudbuild.yaml --substitutions="_RELEASE=$GcpRelease,_PUBLIC_AUTH_KEY=PUBLIC_KEY,_PUBLIC_APP_ID=PUBLIC_APP_ID,_FRONTEND_ORIGIN=https://STAGING_FRONTEND.vercel.app"
-gcloud run jobs create cynk-staging-migrate --image="asia-south1-docker.pkg.dev/$GcpStageProject/cynk/tooling:$GcpRelease" --region=asia-south1 --service-account="cynk-migrator@$GcpStageProject.iam.gserviceaccount.com" --set-cloudsql-instances="$($GcpStageProject):asia-south1:cynk-staging-db" --env-vars-file=REVIEWED_STAGING_PUBLIC_ENV.yaml --set-secrets=DATABASE_URL=cynk-migration-database-url:1,DIRECT_URL=cynk-migration-database-url:1 --tasks=1 --max-retries=0 --task-timeout=600s
-gcloud run jobs execute cynk-staging-migrate --region=asia-south1 --wait
+gcloud run jobs create cynk-staging-migrate --image="asia-south2-docker.pkg.dev/$GcpStageProject/cynk/tooling:$GcpRelease" --region=asia-south2 --service-account="cynk-migrator@$GcpStageProject.iam.gserviceaccount.com" --set-cloudsql-instances="$($GcpStageProject):asia-south2:cynk-staging-db" --env-vars-file=REVIEWED_STAGING_PUBLIC_ENV.yaml --set-secrets=DATABASE_URL=cynk-migration-database-url:1,DIRECT_URL=cynk-migration-database-url:1 --tasks=1 --max-retries=0 --task-timeout=600s
+gcloud run jobs execute cynk-staging-migrate --region=asia-south2 --wait
 # Apply database-access.sql in Cloud SQL Studio BEFORE starting runtime.
-gcloud run deploy cynk-staging-backend --image="asia-south1-docker.pkg.dev/$GcpStageProject/cynk/backend:$GcpRelease" --region=asia-south1 --service-account="cynk-runtime@$GcpStageProject.iam.gserviceaccount.com" --add-cloudsql-instances="$($GcpStageProject):asia-south1:cynk-staging-db" --env-vars-file=REVIEWED_STAGING_PUBLIC_ENV.yaml --set-secrets=DATABASE_URL=cynk-runtime-database-url:1 --min-instances=0 --max-instances=2 --concurrency=20 --cpu=1 --memory=512Mi --timeout=300s --allow-unauthenticated
+gcloud run deploy cynk-staging-backend --image="asia-south2-docker.pkg.dev/$GcpStageProject/cynk/backend:$GcpRelease" --region=asia-south2 --service-account="cynk-runtime@$GcpStageProject.iam.gserviceaccount.com" --add-cloudsql-instances="$($GcpStageProject):asia-south2:cynk-staging-db" --env-vars-file=REVIEWED_STAGING_PUBLIC_ENV.yaml --set-secrets=DATABASE_URL=cynk-runtime-database-url:1 --min-instances=0 --max-instances=2 --concurrency=20 --cpu=1 --memory=512Mi --timeout=300s --allow-unauthenticated
 ```
 
 Public Cloud Run invocation is needed for browser/Vercel requests. It does **not** bypass
@@ -291,7 +311,7 @@ Production checklist, requiring separate explicit approval for each live change:
 1. Approve fresh-start account/data-loss UX and communicate re-registration to 19 existing
    users without importing their data. Choose retention/retirement policy separately.
 2. Pass all deployed staging gates, recover a synthetic off-machine backup, quote/approve
-   production cost and provision a separate Mumbai production project/instance/keys/buckets.
+   production cost and provision a separate Delhi NCR production project/instance/keys/buckets.
 3. Build a reviewed production artifact using production public Auth/origin values; migrate
    only the EMPTY production DB, apply SQL privileges, bootstrap approved admin, verify jobs.
 4. Freeze old application via approved Render maintenance setting and independently freeze
@@ -315,7 +335,7 @@ Production checklist, requiring separate explicit approval for each live change:
 
 ## Performance and budget
 
-No Mumbai deployment measurements exist. `scripts/gcp-benchmark.mjs` provides bounded,
+No Delhi NCR deployment measurements exist. `scripts/gcp-benchmark.mjs` provides bounded,
 GET-only staging config/DB-health measurements (20 samples each), first/median/p95/max:
 
 ```powershell
@@ -328,13 +348,13 @@ Record client region, cold/warm condition, revision and sample times. Health inc
 roundtrip and is not a pure database benchmark. Measure real API/SSE/upload latency using
 synthetic browser flows and Cloud Monitoring. Do not assert improvements over Seoul.
 
-Planning envelope: **$15–25/month** for one small staging stack, **$30–60/month** for a
-small single-zone production stack, approximately **$45–85/month** if both remain running.
-These are conservative low-traffic estimates, not region-specific quotes or SLA guarantees;
-HA, bigger SQL tiers, egress and persistent SSE can increase them. Mumbai Console calculator
-quote is mandatory before approval. SQL compute/storage/backups run continuously; low-user
-count does not make SQL free. Small private GCS volume is inexpensive but download/egress,
-operations, logs, build/artifact storage, secrets and optional Scheduler also count.
+The earlier $15–25 staging/$30–60 production envelope is superseded by
+[the Delhi/Mumbai line-item comparison](gcp-regional-costs.md). With documented low-use
+assumptions, Delhi staging is **$14.04/month before shared free discounts/tax**; a dedicated
+single-zone small-production configuration is **$85.58/month**. These are not spending caps
+or measured workloads. An account-currency INR quote fitting the **₹2,000 staging budget**
+with headroom is mandatory before approval. SQL compute/storage/backups run continuously;
+HA, egress, retained backups and persistent SSE can materially increase costs.
 Basic email/social Identity Platform has a free MAU allowance sufficient for 19 users;
 phone/SMS and enterprise federation have different pricing. Avoid unneeded providers.
 Request-billed Cloud Run scales to zero when idle, but an open SSE request keeps processing
@@ -392,6 +412,6 @@ deployed browser integration/SSE/two-account checks; recommendation scheduling; 
 Auth/files/off-machine recovery; write-freeze rehearsal and measured downtime; separately
 approved production provisioning/cutover and fresh-start user communication.
 
-Next manually approved step: review this branch and Mumbai staging quote, select a NEW
+Next manually approved step: review this branch and Delhi NCR staging quote, select a NEW
 staging project and approve only the quoted staging provisioning/deployment. Until then,
 **NO-GO for production**. The old environment remains functional.

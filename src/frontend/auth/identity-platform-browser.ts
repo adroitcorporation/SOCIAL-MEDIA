@@ -12,9 +12,9 @@ import {
   updatePassword,
   signOut,
   signInWithPopup,
+  linkWithPopup,
   GoogleAuthProvider,
   GithubAuthProvider,
-  FacebookAuthProvider,
   OAuthProvider,
   applyActionCode,
   verifyPasswordResetCode,
@@ -22,6 +22,32 @@ import {
 
 let ready: Promise<ReturnType<typeof getAuth>> | undefined;
 let emailAction: Promise<'verified' | 'password-reset' | undefined> | undefined;
+export type GoogleOAuthProvider = 'google' | 'github' | 'facebook' | 'linkedin';
+export function configuredOAuthProviders(): GoogleOAuthProvider[] {
+  // Public build configuration must list only providers verified enabled in this project.
+  const configured = (process.env.NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS || '').split(',');
+  return (['google', 'github', 'linkedin'] as const).filter((provider) =>
+    configured.includes(provider),
+  );
+}
+function oauthProvider(provider: GoogleOAuthProvider) {
+  if (!configuredOAuthProviders().includes(provider))
+    throw new Error('This sign-in provider is not configured for this environment.');
+  if (provider === 'google') return new GoogleAuthProvider();
+  if (provider === 'github') return new GithubAuthProvider();
+  return new OAuthProvider('oidc.linkedin');
+}
+function providerError(error: unknown): never {
+  const code = (error as { code?: string } | null)?.code;
+  if (code === 'auth/account-exists-with-different-credential')
+    throw new Error(
+      'Sign in with your existing method, then link this provider in Profile settings.',
+    );
+  if (code === 'auth/credential-already-in-use')
+    throw new Error('This provider belongs to another account. Accounts cannot be merged here.');
+  // Never surface provider credentials, access tokens or account-email details.
+  throw new Error('Unable to complete authentication. Please try again or sign in again.');
+}
 function configuredAuth() {
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
@@ -111,18 +137,27 @@ export const googleBrowserAuth = {
     }
   },
   async signInWithOAuth(provider: 'google' | 'github' | 'facebook' | 'linkedin') {
+    const configuredProvider = oauthProvider(provider);
     const auth = await client();
-    const providers = {
-      google: new GoogleAuthProvider(),
-      github: new GithubAuthProvider(),
-      facebook: new FacebookAuthProvider(),
-      linkedin: new OAuthProvider('oidc.linkedin'),
-    };
-    const result = await signInWithPopup(auth, providers[provider]);
+    const result = await signInWithPopup(auth, configuredProvider).catch(providerError);
     if (!result.user.emailVerified) {
       await signOut(auth);
       throw new Error('Confirm your email before signing in.');
     }
+  },
+  async linkOAuthProvider(provider: GoogleOAuthProvider) {
+    const configuredProvider = oauthProvider(provider);
+    const auth = await client();
+    await auth.authStateReady();
+    const user = auth.currentUser;
+    if (!user?.emailVerified) throw new Error('Sign in with a verified account before linking.');
+    // Firebase links to this authenticated UID; never find or merge accounts by email.
+    const result = await linkWithPopup(user, configuredProvider).catch(providerError);
+    if (result.user.uid !== user.uid || auth.currentUser?.uid !== user.uid) {
+      await signOut(auth);
+      throw new Error('Your session changed. Sign in again before linking accounts.');
+    }
+    await result.user.getIdToken(true);
   },
   async requestPasswordReset(email: string) {
     await sendPasswordResetEmail(await client(), email, redirect('reset-password'));

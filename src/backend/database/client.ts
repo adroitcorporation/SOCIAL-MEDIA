@@ -1,8 +1,15 @@
 import 'server-only';
 import { PrismaClient } from '@prisma/client';
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
 import { validateGcpEnvironment } from '@/shared/config/gcp-environment.mjs';
 import { matchesProjectUrl, matchesProjectDatabase } from '@/shared/config/supabase-project.mjs';
-if (process.env.AUTH_PROVIDER === 'identity-platform') validateGcpEnvironment(process.env);
+// Next evaluates dynamic route modules during compilation. Builds have public Auth
+// config, not SQL secrets. Runtime startup (gcp-start.mjs) always validates all guards.
+if (
+  process.env.AUTH_PROVIDER === 'identity-platform' &&
+  process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD
+)
+  validateGcpEnvironment(process.env);
 const expected = process.env.SUPABASE_EXPECTED_PROJECT_REF;
 if (
   expected &&

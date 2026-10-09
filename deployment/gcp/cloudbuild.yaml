@@ -1,4 +1,6 @@
 # Manual build only; no production trigger. Public build substitutions only.
+options:
+  logging: CLOUD_LOGGING_ONLY
 steps:
   - name: gcr.io/cloud-builders/docker
     args:
@@ -8,15 +10,17 @@ steps:
       - -f
       - deployment/gcp/Dockerfile
       - --build-arg
-      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=$PROJECT_ID
+      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_AUTH_PROJECT_ID}
       - --build-arg
       - NEXT_PUBLIC_FIREBASE_API_KEY=${_PUBLIC_AUTH_KEY}
       - --build-arg
       - NEXT_PUBLIC_FIREBASE_APP_ID=${_PUBLIC_APP_ID}
       - --build-arg
+      - NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS=${_PUBLIC_AUTH_PROVIDERS}
+      - --build-arg
       - NEXT_PUBLIC_APP_URL=${_FRONTEND_ORIGIN}
       - -t
-      - asia-south1-docker.pkg.dev/$PROJECT_ID/cynk/backend:${_RELEASE}
+      - asia-south2-docker.pkg.dev/$PROJECT_ID/cynk/backend:${_RELEASE}
       - .
   - name: gcr.io/cloud-builders/docker
     args:
@@ -26,21 +30,25 @@ steps:
       - -f
       - deployment/gcp/Dockerfile
       - --build-arg
-      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=$PROJECT_ID
+      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=${_AUTH_PROJECT_ID}
       - --build-arg
       - NEXT_PUBLIC_FIREBASE_API_KEY=${_PUBLIC_AUTH_KEY}
       - --build-arg
       - NEXT_PUBLIC_FIREBASE_APP_ID=${_PUBLIC_APP_ID}
       - --build-arg
+      - NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS=${_PUBLIC_AUTH_PROVIDERS}
+      - --build-arg
       - NEXT_PUBLIC_APP_URL=${_FRONTEND_ORIGIN}
       - -t
-      - asia-south1-docker.pkg.dev/$PROJECT_ID/cynk/tooling:${_RELEASE}
+      - asia-south2-docker.pkg.dev/$PROJECT_ID/cynk/tooling:${_RELEASE}
       - .
 images:
-  - asia-south1-docker.pkg.dev/$PROJECT_ID/cynk/backend:${_RELEASE}
-  - asia-south1-docker.pkg.dev/$PROJECT_ID/cynk/tooling:${_RELEASE}
+  - asia-south2-docker.pkg.dev/$PROJECT_ID/cynk/backend:${_RELEASE}
+  - asia-south2-docker.pkg.dev/$PROJECT_ID/cynk/tooling:${_RELEASE}
 substitutions:
+  _AUTH_PROJECT_ID: cynk-staging-e9c53
   _RELEASE: reviewed-commit
   _PUBLIC_AUTH_KEY: SET_PUBLIC_WEB_API_KEY
   _PUBLIC_APP_ID: SET_PUBLIC_WEB_APP_ID
-  _FRONTEND_ORIGIN: https://SET_STAGING_FRONTEND.vercel.app
+  _PUBLIC_AUTH_PROVIDERS: 'google,github'
+  _FRONTEND_ORIGIN: https://SET_CONFIRMED_STAGING_SERVICE.run.app

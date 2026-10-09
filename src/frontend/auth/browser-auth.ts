@@ -1,6 +1,10 @@
 import { authClient } from './supabase-browser';
 import { authProvider } from '@/shared/config/auth-provider';
-import { googleBrowserAuth } from './identity-platform-browser';
+import {
+  googleBrowserAuth,
+  configuredOAuthProviders,
+  type GoogleOAuthProvider,
+} from './identity-platform-browser';
 const google = () => authProvider(process.env.NEXT_PUBLIC_AUTH_PROVIDER) === 'identity-platform';
 
 function resolveRedirectOrigin() {
@@ -20,6 +24,16 @@ function resolveRedirectOrigin() {
 
 // Browser session persistence is an auth-provider adapter. Authorization stays on the server.
 export const browserAuth = {
+  availableOAuthProviders(): GoogleOAuthProvider[] {
+    return google() ? configuredOAuthProviders() : ['google', 'linkedin', 'github', 'facebook'];
+  },
+  supportsProviderLinking() {
+    return google();
+  },
+  async linkOAuthProvider(provider: GoogleOAuthProvider) {
+    if (!google()) throw new Error('Account linking is unavailable for this environment.');
+    return googleBrowserAuth.linkOAuthProvider(provider);
+  },
   async session() {
     if (google()) return googleBrowserAuth.session();
     const { data } = await authClient().auth.getSession();

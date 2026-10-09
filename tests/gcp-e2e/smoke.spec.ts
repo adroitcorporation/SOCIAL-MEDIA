@@ -33,7 +33,11 @@ for (const suffix of ['A', 'B']) {
     // Inspect only project audience. Never log/assert the token or credentials.
     if (typeof body.idToken !== 'string') throw new Error('Google staging login failed.');
     const claims = JSON.parse(Buffer.from(body.idToken.split('.')[1], 'base64url').toString());
-    expect(claims.aud).toBe(process.env.GCP_STAGING_PROJECT_ID);
+    // Decoding here is an observation, not token verification; the backend verifies it.
+    expect(claims.aud).toBe(process.env.GCP_STAGING_AUTH_PROJECT_ID);
+    expect(claims.iss).toBe(
+      'https://securetoken.google.com/' + process.env.GCP_STAGING_AUTH_PROJECT_ID,
+    );
     await state;
     const session = (await context.cookies()).find(
       (cookie) => cookie.name === 'circle-page-session',

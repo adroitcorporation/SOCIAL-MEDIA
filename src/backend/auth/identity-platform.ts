@@ -4,7 +4,8 @@ import { getAuth } from 'firebase-admin/auth';
 import { requireThat } from '@/backend/utils/errors';
 
 export async function verifyGoogleIdentity(token: string) {
-  const projectId = process.env.GCP_PROJECT_ID;
+  // Token audience/issuer belong to Firebase, not the Cloud Run/SQL hosting project.
+  const projectId = process.env.FIREBASE_AUTH_PROJECT_ID;
   requireThat(
     projectId && projectId === process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     503,

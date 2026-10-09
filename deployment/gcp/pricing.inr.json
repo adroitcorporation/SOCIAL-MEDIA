@@ -1,0 +1,144 @@
+{
+  "verifiedAt": "2026-10-09",
+  "source": "Authenticated Cloud Billing v1beta account-specific pricing API",
+  "region": "asia-south2",
+  "method": "Highest quoted consumption tier; ignore credits/free allowances. Logging assumes under 50 GiB project allowance.",
+  "rates": [
+    {
+      "skuId": "373F-9187-D22A",
+      "description": "Cloud SQL for PostgreSQL: Zonal - Micro instance in Delhi",
+      "currency": "INR",
+      "unit": "h",
+      "unitQuantity": 1.0,
+      "grossRate": 1.209458249
+    },
+    {
+      "skuId": "2A6D-A928-ED0A",
+      "description": "Cloud SQL: Backups in Delhi",
+      "currency": "INR",
+      "unit": "GiBy.mo",
+      "unitQuantity": 1.0,
+      "grossRate": 9.214919999
+    },
+    {
+      "skuId": "085C-A237-027A",
+      "description": "Services CPU Tier 2  (Request-based billing)",
+      "currency": "INR",
+      "unit": "s",
+      "unitQuantity": 1.0,
+      "grossRate": 0.003225221
+    },
+    {
+      "skuId": "600C-3782-6708",
+      "description": "Services Memory Tier 2 (Request-based billing)",
+      "currency": "INR",
+      "unit": "GiBy.s",
+      "unitQuantity": 1.0,
+      "grossRate": 0.00033596
+    },
+    {
+      "skuId": "2DA5-55D3-E679",
+      "description": "Requests",
+      "currency": "INR",
+      "unit": "count",
+      "unitQuantity": 1000000.0,
+      "grossRate": 38.395499999
+    },
+    {
+      "skuId": "B219-7161-A1AF",
+      "description": "Standard Storage Delhi",
+      "currency": "INR",
+      "unit": "GiBy.mo",
+      "unitQuantity": 1.0,
+      "grossRate": 2.207741249
+    },
+    {
+      "skuId": "A464-9020-6404",
+      "description": "Build time e2-standard-2",
+      "currency": "INR",
+      "unit": "min",
+      "unitQuantity": 1.0,
+      "grossRate": 0.575932499
+    },
+    {
+      "skuId": "7756-ADEF-84F4",
+      "description": "Secret version replica storage",
+      "currency": "INR",
+      "unit": "mo",
+      "unitQuantity": 1.0,
+      "grossRate": 5.759324999
+    },
+    {
+      "skuId": "EBA7-264F-2D2C",
+      "description": "Secret access operations",
+      "currency": "INR",
+      "unit": "count",
+      "unitQuantity": 10000.0,
+      "grossRate": 2.879662499
+    },
+    {
+      "skuId": "8502-299A-ABAF",
+      "description": "Artifact Registry Storage",
+      "currency": "INR",
+      "unit": "GiBy.mo",
+      "unitQuantity": 1.0,
+      "grossRate": 9.598874999
+    },
+    {
+      "skuId": "143F-A1B0-E0BE",
+      "description": "Log Storage cost",
+      "currency": "INR",
+      "unit": "GiBy",
+      "unitQuantity": 1.0,
+      "grossRate": 47.994374999
+    },
+    {
+      "skuId": "B393-A1A5-83CA",
+      "description": "Cloud SQL for PostgreSQL: Zonal - Standard storage in Delhi",
+      "currency": "INR",
+      "unit": "GiBy.mo",
+      "unitQuantity": 1.0,
+      "grossRate": 19.581704999
+    },
+    {
+      "skuId": "4DBF-185F-A415",
+      "description": "Regional Standard Class A Operations",
+      "currency": "INR",
+      "unit": "count",
+      "unitQuantity": 1000.0,
+      "grossRate": 0.479943749
+    },
+    {
+      "skuId": "7870-010B-2763",
+      "description": "Regional Standard Class B Operations",
+      "currency": "INR",
+      "unit": "count",
+      "unitQuantity": 1000.0,
+      "grossRate": 0.038395499
+    },
+    {
+      "skuId": "9EA6-AE6D-E34E",
+      "description": "Cloud Run Network Internet Data Transfer Out AsiaPacific to AsiaPacific",
+      "currency": "INR",
+      "unit": "GiBy",
+      "unitQuantity": 1.0,
+      "grossRate": 11.518649999
+    },
+    {
+      "skuId": "B0A0-113A-7C65",
+      "description": "Jobs CPU in asia-south2",
+      "currency": "INR",
+      "unit": "s",
+      "unitQuantity": 1.0,
+      "grossRate": 0.002073356
+    },
+    {
+      "skuId": "F3F4-685E-66FF",
+      "description": "Jobs Memory in asia-south2",
+      "currency": "INR",
+      "unit": "GiBy.s",
+      "unitQuantity": 1.0,
+      "grossRate": 0.000230372
+    }
+  ]
+}

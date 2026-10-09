@@ -11,13 +11,14 @@ spec:
       annotations:
         autoscaling.knative.dev/minScale: '0'
         autoscaling.knative.dev/maxScale: '2'
-        run.googleapis.com/cloudsql-instances: PROJECT_ID:asia-south1:cynk-staging-db
+        run.googleapis.com/cpu-throttling: 'true'
+        run.googleapis.com/cloudsql-instances: PROJECT_ID:asia-south2:cynk-staging-db
     spec:
       serviceAccountName: cynk-runtime@PROJECT_ID.iam.gserviceaccount.com
       timeoutSeconds: 300
       containerConcurrency: 20
       containers:
-        - image: asia-south1-docker.pkg.dev/PROJECT_ID/cynk/backend:REVIEWED_COMMIT
+        - image: asia-south2-docker.pkg.dev/PROJECT_ID/cynk/backend:REVIEWED_COMMIT
           ports:
             - containerPort: 8080
           resources:
@@ -37,5 +38,21 @@ spec:
                 secretKeyRef:
                   name: cynk-runtime-database-url
                   key: '1'
-            # Expand every nonsecret variable from backend.env.example here.
-            # Do not include DIRECT_URL or credentials for the old providers.
+            - { name: DEPLOYMENT_TARGET, value: cloud-run }
+            - { name: GCP_PROJECT_ID, value: PROJECT_ID }
+            - { name: FIREBASE_AUTH_PROJECT_ID, value: cynk-staging-e9c53 }
+            - { name: APP_ENV, value: staging }
+            - { name: CLOUD_SQL_CONNECTION_NAME, value: 'PROJECT_ID:asia-south2:cynk-staging-db' }
+            - { name: AUTH_PROVIDER, value: identity-platform }
+            - { name: NEXT_PUBLIC_AUTH_PROVIDER, value: identity-platform }
+            - { name: NEXT_PUBLIC_FIREBASE_PROJECT_ID, value: cynk-staging-e9c53 }
+            - { name: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN, value: cynk-staging-e9c53.firebaseapp.com }
+            - { name: NEXT_PUBLIC_FIREBASE_API_KEY, value: SET_PUBLIC_WEB_API_KEY }
+            - { name: NEXT_PUBLIC_FIREBASE_APP_ID, value: SET_PUBLIC_WEB_APP_ID }
+            - { name: NEXT_PUBLIC_FIREBASE_OAUTH_PROVIDERS, value: 'google,github' }
+            - { name: APP_URL, value: 'https://SET_CONFIRMED_STAGING_SERVICE.run.app' }
+            - { name: NEXT_PUBLIC_APP_URL, value: 'https://SET_CONFIRMED_STAGING_SERVICE.run.app' }
+            - { name: FILE_STORAGE_MODE, value: gcs }
+            - { name: LOCAL_DEMO, value: 'false' }
+            - { name: RECOMMENDATION_WORKER_ENABLED, value: 'false' }
+            - { name: MIGRATION_MAINTENANCE, value: 'true' }
